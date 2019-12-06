@@ -1,5 +1,5 @@
 {
-  "name": "DigiChambermanager",
+  "name": "digiCenter",
   "version": "0.9.0",
   "description": "Control center for digi chamber",
   "main": "main.js",
@@ -18,7 +18,7 @@
   "author": "Shawn",
   "license": "MIT",
   "build": {
-    "productName": "DigiChambermanager",
+    "productName": "digiCenter",
     "appId": "app.release.v000900",
     "copyright": "Bareiss",
     "extraFiles": [
@@ -52,7 +52,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "DigiChambermanager",
+      "shortcutName": "digiCenter",
       "installerIcon": "img/icon.ico",
       "uninstallerIcon": "img/icon.ico",
       "installerHeaderIcon": "img/icon.ico"
