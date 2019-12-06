@@ -1,0 +1,113 @@
+<link rel="stylesheet" type="text/css" href="../assets/css/seqEditor.css">
+
+ <!-- template -->
+ <template class="task-template">
+        <section id="seqEditor-section" class="section js-section u-category-windows" draggable="true">
+            
+            <div class='w3-container w3-cell toolSection'>
+                <div class='secTitle'>Toolbox</div>
+                <div class="toolContainer">
+                    <div class="w3-cell-row w3-margin-top">
+
+                        <div class="w3-container w3-cell w3-center">
+                            <div id='tempBox' class='seqbox'>
+                                <div>Temperature</div>
+                                <div class='w3-margin-top'><i class="fas fa-thermometer-quarter fa-3x"></i></div>
+                            </div>
+                        </div>
+
+                        <div class="w3-container w3-cell w3-center">
+                            <div id='hardBox' class='seqbox'>
+                                <div>Hardness</div>
+                                <div class='w3-margin-top'><i class="fas fa-download fa-3x"></i></div>
+                            </div>
+                        </div>
+                        
+                    </div>
+
+                    <div class="w3-cell-row  w3-margin-top">
+
+                        <div class="w3-container w3-cell w3-center">
+                            <div id='waitBox' class='seqbox'>
+                                <div>Waiting</div>
+                                <div class='w3-margin-top'><i class="fas fa-hourglass-start fa-3x"></i></div>
+                            </div>
+                        </div>
+
+                        <div class="w3-container w3-cell w3-center">
+                            <div id='loopBox' class='seqbox'>
+                                <div>Loop</div>
+                                <div class='w3-margin-top'><i class="fas fa-retweet fa-3x"></i></div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="w3-cell-row  w3-margin-top">
+
+                        <div class="w3-container w3-cell w3-center">
+                            <div id='subprogBox' class='seqbox'>
+                                <div>SubProg</div>
+                                <div class='w3-margin-top'><i class="fas fa-indent fa-3x"></i></div>
+                            </div>
+                        </div>
+                        
+
+                        <div class="w3-container w3-cell w3-center">
+                            <div id='exportBox' class='seqbox'>
+                                <div>Export</div>
+                                <div class='w3-margin-top'><i class="fas fa-file-import fa-3x"></i></div>
+                            </div>
+                        </div>
+                    </div>     
+                </div>
+
+                </div>
+            </div>
+
+            <div class='w3-container w3-cell mainSeqSection'>
+                <div class='w3-bar w3-large w3-border-bottom w3-border-lightgray' style="width: 92%;">
+                    <div class="w3-bar-item">Main Sequence</div>
+                    <a href="#" id='save_seq' class="w3-bar-item w3-button w3-right" ><i class="far fa-save"></i></a>
+                    <a href="#" id='open_seq' class="w3-bar-item w3-button w3-right"><i class="far fa-folder-open"></i></a>
+                    <a href="#" id='create_seq' class="w3-bar-item w3-button w3-right"><i class="fas fa-plus"></i></a>
+                    
+                    
+                </div>
+                
+                
+                <div class='w3-container w3-padding mainSeqContainer'>
+                    <ul id='seqContainer'>
+                    </ul>
+                </div>
+            </div>
+
+            <div class='w3-container w3-cell'>
+                
+                <div id='rightMenu' class='w3-sidebar w3-bar-block w3-card w3-animate-right' style='display:none;'>
+                    <div class='w3-large w3-margin w3-border-bottom w3-border-lightgray'>Parameters Value</div>
+                    <div class='w3-container w3-cell-row w3-margin-bottom'>
+                        <div class="w3-container w3-cell">
+                            <button id='applyParaPanel' class="w3-bar-item w3-button w3-border w3-leftbar w3-border-green">Apply <i class="fas fa-check" style="color:green"></i></button>
+                        </div>
+                        <div class="w3-container w3-cell">
+                            <button id='closeParaPanel' class="w3-bar-item w3-button w3-border w3-leftbar w3-border-red">Close <i class="fas fa-times" style="color:red"></i></button>
+                        </div>
+                    </div>                  
+
+                    <ul id='paraContainer' class='w3-ul'>
+                    </ul>
+                </div>
+            </div>
+            
+     
+      
+        </section>
+        
+        <script>
+            require('./renderer-process/seqEditor.js');
+            
+        </script>
+        
+      </template>
+      

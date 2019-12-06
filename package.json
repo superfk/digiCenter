@@ -1,0 +1,87 @@
+{
+  "name": "DigiChambermanager",
+  "version": "0.9.0",
+  "description": "Control center for digi chamber",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "keywords": [
+    "Electron",
+    "Python",
+    "zerorpc",
+    "demo"
+  ],
+  "author": "Shawn",
+  "license": "MIT",
+  "build": {
+    "productName": "DigiChambermanager",
+    "appId": "app.release.v000900",
+    "copyright": "Bareiss",
+    "extraFiles": [
+      "config.json",
+      "pyserver_dist",
+      "lang"
+    ],
+    "directories": {
+      "output": "builds"
+    },
+    "win": {
+      "icon": "img/icon.ico",
+      "files": [
+        "!**/xpyserver_dist/*",
+        "!**/builds/*",
+        "!**/.vscode/*",
+        "!**/server/*"
+      ],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "DigiChambermanager",
+      "installerIcon": "img/icon.ico",
+      "uninstallerIcon": "img/icon.ico",
+      "installerHeaderIcon": "img/icon.ico"
+    }
+  },
+  "dependencies": {
+    "app-root-path": "^2.2.1",
+    "bootstrap": "^4.3.1",
+    "electron-progressbar": "^1.2.0",
+    "electron-root-path": "^1.0.9",
+    "electron-settings": "^3.2.0",
+    "electron-shortcut-normalizer": "^1.0.0",
+    "highlight.js": "^9.15.9",
+    "hydrogen": "^0.2.0",
+    "jquery": "^3.4.1",
+    "moment": "^2.24.0",
+    "popper": "^1.0.1",
+    "popper.js": "^1.15.0",
+    "uikit": "^3.2.3",
+    "websocket": "^1.0.30",
+    "ws": "^7.2.0",
+    "zeromq": "^5.1.0",
+    "zerorpc": "github:fyears/zerorpc-node"
+  },
+  "devDependencies": {
+    "electron": "^1.8.8",
+    "electron-builder": "^21.2.0",
+    "electron-packager": "^8.7.2",
+    "electron-rebuild": "^1.8.6",
+    "prebuild-install": "^5.3.1"
+  }
+}

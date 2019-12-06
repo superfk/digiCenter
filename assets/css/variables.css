@@ -1,0 +1,27 @@
+
+/* Custom Properties */
+
+:root {
+  --color:          hsl(0,0%,22%);
+  --color-subtle:   hsl(0,0%,44%);
+  --color-strong:   hsl(0,0%,11%);
+  --color-link:     hsl(0,0%,22%);
+
+  --color-border:   hsl(0,0%,88%);
+  --color-bg:       hsl(0,0%,96%);
+  --color-toolbar:  rgb(196, 228, 233);
+
+  --color-accent:   black; /* Fallback */
+
+  --color-c1: rgba(10, 52, 89, 1);
+  --color-c2: rgba(10, 38, 63, 1);
+  --color-c3: rgba(30, 129, 191, 1);
+  --color-c4: rgba(72, 211, 242, 1);
+  --color-c5: rgba(12, 12, 12, 1);
+  
+}
+
+
+/* Category Colors */
+
+.u-category-dataEx       { --color-accent: hsl(116, 30%, 36%); }
