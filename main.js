@@ -292,6 +292,7 @@ ipcMain.on('show-option-dialog', (event, title, msg) => {
   })
 })
 
+
 ipcMain.on('ignoreMouse', (event,state) => {
   mainWindow.setIgnoreMouseEvents(state);
 })

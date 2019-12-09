@@ -1,4 +1,5 @@
 const {ipcRenderer} = require("electron");
+const app = require('electron').remote.app
 const zerorpc = require("zerorpc");
 const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
 // create zerorpc instance
@@ -58,17 +59,21 @@ let activePara = null;
     // 
 // }
 
+function parseCmd(sriptName, data=null){
+    return JSON.stringify({'scriptName':sriptName, 'data':data})
+}
+
 createSeq.addEventListener('click', ()=>{
     seq = [];
     initSeq();
 })
 
 openSeq.addEventListener('click', ()=>{
-    
+    loadSeqFromServer()
 })
 
 saveSeq.addEventListener('click', ()=>{
-    
+    saveSeqInServer()
 })
 
 function random_rgb() {
@@ -99,7 +104,8 @@ function sortSeq(){
     //     active: false
     // });
     // seqContainer.innerHTML = generateStartSeq() + middleSeqs + generateEndSeq();
-    makeSortable()
+    makeSortable();
+    test_flow.main = seq;
 }
 
 function getActiveli(){
@@ -163,10 +169,16 @@ function genParas (paras,input=false) {
                 
             }else if (t === 'select'){
                 let op = item['options'];
+                let selectedOP = item['value']
                 let ops = op.split(',');
                 let opItems = '';
                 ops.forEach((item)=>{
-                    opItems += `<option value="${item}" ${ronly}>${item}</option>`;
+                    if(selectedOP==item){
+                        opItems += `<option value="${item}" ${ronly} selected>${item}</option>`;
+                    }else{
+                        opItems += `<option value="${item}" ${ronly}>${item}</option>`;
+                    }
+                    
                 })
                 c += `<li><label>${capitalize(item['name'])} ${genUnit(item['unit'])}</label> 
                 <select class="w3-select w3-border" name="option">${opItems}</select></li>`;
@@ -383,9 +395,68 @@ function generateEndSeq() {
 
 function initSeq() {
     seqContainer.innerHTML = generateStartSeq() + generateEndSeq();
+    client.invoke('run_cmd',parseCmd('ini_seq'),(err, res)=>{
+        if(err){
+            console.error(err)
+        }else{
+            console.log(res)
+        }
+    });
     
 }
 
+function logResponse(resObj){
+    let isError = resObj.error;
+    let response = resObj.res;
+    if(isError){
+        console.log('error:');
+        console.log(response);
+    }else{
+        console.log('response:');
+        console.log(response);
+    }
+}
+
+function saveSeqInServer(){ipcRenderer.send('open-file-dialog','save-seq')};
+function loadSeqFromServer(){ipcRenderer.send('open-file-dialog','load-seq')};
+
+ipcRenderer.on('save-seq', (event, path) => {
+    client.invoke('run_cmd',parseCmd('save_seq',{path: path[0],seq: test_flow}),(err, resObj)=>{
+        if(err){
+            console.error(err)
+        }else{
+            logResponse(resObj);
+            let {error,res} = resObj;
+            if(!iserror){
+                // do something
+            }
+        }
+    });
+})
+
+ipcRenderer.on('load-seq', (event, path) => {
+    console.log(path[0])
+
+    client.invoke('run_cmd',parseCmd('load_seq',{path: path[0]}),(err, resObj)=>{
+        if(err){
+            console.error(err)
+        }else{
+            logResponse(resObj);
+            let {error,res} = resObj;
+            console.log(res)
+            if(!error){
+                // do something
+                test_flow.setup = res.setup;
+                test_flow.main = res.main;
+                seq = res.main
+                test_flow.loop = res.loop;
+                test_flow.teardown = res.teardown;
+                sortSeq();
+            }
+            
+        }
+    });
+});
 
 tempBox.addEventListener('click', () =>{
     let paras= [

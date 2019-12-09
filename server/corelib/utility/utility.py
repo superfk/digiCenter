@@ -64,6 +64,11 @@ def write2JSON(path, data_dict):
     with open(path, 'w', encoding='utf-8') as outfile:
         json.dump(data_dict, outfile, ensure_ascii=False)
 
+def readFromJSON(path):
+    with open(path, 'r', encoding='utf-8') as outfile:
+        data = json.load(outfile)
+    return data
+
 def readLang(lang_folder, lang='en'):
     path = os.path.join(lang_folder, lang+".json")
     with open(path, 'r', encoding='utf-8') as f:

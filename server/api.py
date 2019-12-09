@@ -36,6 +36,7 @@ class PyServerAPI(object):
         self.db = DB(r"SHAWNNB\SQLEXPRESS", 'BareissAdmin', 'BaAdmin')
         self.userMang = UserManag(self.db,"Guest", "Guest", 0, True)
         self.config_path = None
+        self.productProcess = DigiChamberProduct('digiCenter')
         #self.config = read_system_config(r'C:\\BaDBManager\BaDBManager\\pymain\\config.json')
       
     def read_csv(self, path):
@@ -177,7 +178,22 @@ class PyServerAPI(object):
                 return "connection ok"
             except:
                 return "connecton failed"
-            
+    
+    def run_cmd(self,data):
+        respObj = {'error':False,'res':None}
+        try:
+            data = json.loads(data)
+            scriptName = data['scriptName']
+            data = data['data']
+            response = self.productProcess.run_script(scriptName,data)
+            respObj['res']=response
+        except Exception as e:
+            self.lg.error(e)
+            response = e
+            respObj['error']=True
+            respObj['res']=response
+        finally:
+            return respObj
 
     def export_test_data(self,tableData, path='testdata', options=['csv']):
         try:
