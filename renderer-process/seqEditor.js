@@ -427,7 +427,7 @@ ipcRenderer.on('save-seq', (event, path) => {
         }else{
             logResponse(resObj);
             let {error,res} = resObj;
-            if(!iserror){
+            if(!error){
                 // do something
             }
         }
