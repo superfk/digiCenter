@@ -1,0 +1,92 @@
+#batchInfoPanel{
+    height:100%;
+    width:300px;
+    background-color: var(--color-c2);
+    color:  #F2F2F2;
+    position:fixed!important;
+    left: 0;
+    top:0;
+    bottom: 0px;
+    z-index:1;
+    overflow:auto;
+    padding: 8px;
+}
+
+#batchInfoPanel h3{
+    padding: 10px 0 5px 5px;
+    height: auto;
+    width: 90%;
+    box-sizing: border-box;
+    border-bottom: 1px solid lightslategrey;
+    font-size: large;
+    color: var(--color-c4);
+}
+
+#batchInfoForm p{
+    margin: 5px 0px 2px 0px;
+}
+
+#batchInfoPanel label{
+    color:  rgb(199, 192, 192);
+}
+
+textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 100%; width:100%;}
+
+.testToolBar {
+    position: absolute;
+    left: 300px;
+    top:0;
+    height: 60px;
+    background-color: var(--color-c3);
+    color:  #F2F2F2;
+}
+
+.testMainPanel{
+    position: absolute;
+    left: 300px;
+    top:60px;
+    color:  var(--color-c5);
+    height: 100%;
+    width: 100%;
+}
+
+.testMainPanel > .seqSection{
+    position: absolute;
+    left: 0;
+    top:0;
+    color:  var(--color-c5);
+    height: 100%;
+    width: 600px;
+    padding: 20px 10px 20px 10px;
+}
+
+.testMainPanel > .graphSection{
+    position: absolute;
+    left: 600px;
+    top:0;
+    color:  var(--color-c5);
+    height: 100%;
+    width: max-content;
+    padding: 20px 10px 20px 10px;
+}
+
+.testSeqContainer{
+    margin: 0px;
+    padding: 5px;
+    width: 100%;
+}
+
+.seqSection > ul {
+    list-style-type: none;
+  }
+  
+.seqSection > ul > li {
+    /* You need to turn on relative positioning so the line is placed relative to the item rather than absolutely on the page */
+    position: relative;
+
+    /* Use padding to space things out rather than margins as the line would get broken up otherwise */
+    margin: 0;
+    padding-bottom: 0em;
+    padding-left: 0px;
+    border-bottom: 0;
+}

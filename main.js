@@ -187,22 +187,42 @@ ipcMain.on('abort-indet-progressbar', (event) =>{
   progressBar.close();
 })
 
-ipcMain.on('open-file-dialog', (event, calback) => {
+ipcMain.on('open-file-dialog', (event, default_Path, calback) => {
   dialog.showOpenDialog({
-    properties: ['openFile']
+    filters: [
+      { name: 'Sequence', extensions: ['seq'] }
+    ],
+    properties: ['openFile'],
+    defaultPath: default_Path,
   }, (files) => {
     if (files) {
-      event.sender.send(calback, files)
+      event.sender.send(calback, files[0])
     }
   })
 })
 
-ipcMain.on('open-folder-dialog', (event, calback) => {
+ipcMain.on('save-file-dialog', (event, default_Path, calback) => {
+  dialog.showSaveDialog({
+    filters: [
+      { name: 'Sequence', extensions: ['seq'] }
+    ],
+    defaultPath: default_Path,
+  }, (file) => {
+    console.log(file)
+    if (file) {
+      event.sender.send(calback, file)
+    }
+  })
+})
+
+ipcMain.on('open-folder-dialog', (event, default_Path, calback) => {
   dialog.showOpenDialog({
-    properties: ['openDirectory']
+    properties: ['openDirectory'],
+    defaultPath: default_Path,
   }, (files) => {
     if (files) {
-      event.sender.send(calback, files)
+      console.log(files)
+      event.sender.send(calback, files[0])
     }
   })
 })

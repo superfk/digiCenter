@@ -1,0 +1,99 @@
+<link rel="stylesheet" type="text/css" href="../assets/css/run.css">
+
+ <!-- template -->
+ <template class="task-template">
+        <section id="run-section" class="section js-section u-category-windows" draggable="true">
+            
+            <!-- batch info -->
+            <div class="w3-container w3-cell" id="batchInfoPanel">
+                <div class="w3-container w3-display-container w3-padding-16">
+                  <i onclick="w3_close()" class="fa fa-remove w3-hide-large w3-button w3-transparent w3-display-topright"></i>
+                  <h3>Batch Info</h3>
+                  <form id='batchInfoForm' target="_blank">
+                    <p><label><i class="fa fa-calendar-check-o"></i> Load Sequence
+                        <a href="#" id='open_test_seq' class="w3-button w3-center" style='display: inline-block;width:40px;height:auto;padding: 0;'><i class="far fa-folder-open w3-medium"></i></a>
+                    </label>
+                        
+                    </p>
+                    <input class="w3-input w3-border" type="text" placeholder="Please load sequence file" name="CheckIn" disabled readonly required> 
+                    <p><label><i class="fab fa-product-hunt"></i> Project</label></p>
+                    <input class="w3-input w3-border" type="text" name="Project" required>          
+                    <p><label><i class="fab fa-bootstrap"></i> Batch</label></p>
+                    <input class="w3-input w3-border" type="text" name="Batch" required>         
+                    <p><label><i class="fab fa-buffer"></i> Number of Samples</label></p>
+                    <input class="w3-input w3-border" type="number" value='1' min='1'>              
+                    <p><label><i class="far fa-sticky-note"></i> Test Note</label></p>
+                    <textarea name="NumberOfSample" cols="5" rows="5" name="Note"></textarea>
+                    <p><button class="w3-button w3-block w3-green w3-center" type="submit"><i class="fas fa-check-double"></i> Confirm</button></p>
+                  </form>
+                </div>
+            <!-- end of batch info -->
+            </div>
+
+            <!-- test tool bar -->
+            <div class='w3-bar w3-card w3-large testToolBar'>
+
+                <div class="w3-bar-item">
+                    <a href="#" id='start_test' class="w3-button w3-center w3-green" ><i class="far fa-play-circle"></i> Start</a>
+                </div>
+                <div class="w3-bar-item">
+                    <a href="#" id='stop_test' class="w3-button w3-center w3-red" ><i class="far fa-stop-circle"></i> Stop</a>
+                </div>
+            <!-- end of test tool bar -->
+            </div>
+
+            <!-- test main panel -->
+            <div class="w3-row-padding testMainPanel">
+
+                <!-- seq section -->
+                <div class='w3-twothird seqSection'>
+                    <div class="w3-card">
+                        <ul id='testSeqContainer'>
+                        </ul>
+                    </div>
+                <!-- end of seq section -->
+                </div>
+
+                <!-- graph section -->
+                <div class='w3-third graphSection'>
+
+                    <!-- hardness graph section -->
+                    <div class='w3-container w3-card w3-margin-bottom'>
+                        hardness graph
+                        <div id="hardness_graph" class="w3-half"></div>
+                    <!-- end of hardness graph section -->
+                    </div>
+    
+                    <!-- hardness verse temperature graph section -->
+                    <div class='w3-container w3-card w3-margin-bottom'>
+                        hardness verse temperature graph
+                        <div id="hardnessVStemp_graph" class="w3-half"></div>
+                    <!-- end of hardness verse temperature graph section -->
+                    </div>
+    
+                    <!-- realtime temp and humidity gauge section -->
+                    <div class='w3-container w3-card w3-margin-bottom'>
+                        realtime temp and humidity gauge
+                        <div id="actualTempGauge" class="w3-container w3-cell w3-left"></div>
+                        <div id="actualHumGauge" class="w3-container w3-cell"></div>
+                    <!-- end of realtime temp and humidity gauge section -->
+                    </div>
+
+                <!-- end of graph section -->
+                </div>
+
+                
+
+            <!-- end of test main panel -->
+            </div>
+     
+      
+        </section>
+        
+        <script>
+            require('./renderer-process/run.js');
+            
+        </script>
+        
+      </template>
+      

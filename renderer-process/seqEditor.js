@@ -30,6 +30,7 @@ let test_flow = {
     teardown: teardown_seq
 };
 let activePara = null;
+let defaultSeqPath = null;
 // 
 // singleStep = {
     // id: 0,
@@ -417,11 +418,41 @@ function logResponse(resObj){
     }
 }
 
-function saveSeqInServer(){ipcRenderer.send('open-file-dialog','save-seq')};
-function loadSeqFromServer(){ipcRenderer.send('open-file-dialog','load-seq')};
+function saveSeqInServer(){
+    client.invoke('run_cmd',parseCmd('get_default_seq_path'),(err, resObj)=>{
+        if(err){
+            console.error(err)
+        }else{
+            logResponse(resObj);
+            let {error,res} = resObj;
+            if(!error){
+                // do something
+                defaultSeqPath = res;
+                ipcRenderer.send('save-file-dialog',defaultSeqPath,'save-seq')
+            }
+        }
+    });
+    
+};
+function loadSeqFromServer(){
+    client.invoke('run_cmd',parseCmd('get_default_seq_path'),(err, resObj)=>{
+        if(err){
+            console.error(err)
+        }else{
+            logResponse(resObj);
+            let {error,res} = resObj;
+            if(!error){
+                // do something
+                defaultSeqPath = res;
+                ipcRenderer.send('open-file-dialog',defaultSeqPath,'load-seq')
+            }
+        }
+    });
+    
+};
 
 ipcRenderer.on('save-seq', (event, path) => {
-    client.invoke('run_cmd',parseCmd('save_seq',{path: path[0],seq: test_flow}),(err, resObj)=>{
+    client.invoke('run_cmd',parseCmd('save_seq',{path: path,seq: test_flow}),(err, resObj)=>{
         if(err){
             console.error(err)
         }else{
@@ -435,9 +466,8 @@ ipcRenderer.on('save-seq', (event, path) => {
 })
 
 ipcRenderer.on('load-seq', (event, path) => {
-    console.log(path[0])
 
-    client.invoke('run_cmd',parseCmd('load_seq',{path: path[0]}),(err, resObj)=>{
+    client.invoke('run_cmd',parseCmd('load_seq',{path: path}),(err, resObj)=>{
         if(err){
             console.error(err)
         }else{

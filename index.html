@@ -38,10 +38,13 @@
 
 
     <!-- <link rel="import" href="sections/dataEx-connection.html"> -->
+    <link rel="import" href="sections/config.html">
     <link rel="import" href="sections/seqEditor.html">
     <link rel="import" href="sections/status.html">
+    <link rel="import" href="sections/run.html">
     <link rel="import" href="sections/report.html">
-    <link rel="import" href="sections/config.html">
+    
+    
     
     <style>
       html,body,h1,h2,h3,h4,h5 {font-family: Arial, Helvetica, sans-serif}
@@ -82,7 +85,11 @@
         </a>
         <a href="#" id="button-seqEditor" data-section="seqEditor" data-auth='button-seqEditor' class="w3-bar-item nav-button">
           <i class="fas fa-file-upload w3-xlarge w3-margin-right" data-section="seqEditor"></i>
-          <span data-section="seqEditor" data-lang='side_upload' data-lang_type='innertext' >SeqEditor</span>
+          <span data-section="seqEditor" data-lang='side_seqEditor' data-lang_type='innertext' >SeqEditor</span>
+        </a>
+        <a href="#" id="button-run" data-section="run" data-auth='button-run' class="w3-bar-item nav-button">
+          <i class="far fa-play-circle w3-xlarge w3-margin-right" data-section="run"></i>
+          <span data-section="run" data-lang='side_run' data-lang_type='innertext' >Run</span>
         </a>
         <a href="#" id="button-status" data-section="status" data-auth='button-status' class="w3-bar-item nav-button">
           <i class="fas fa-file-upload w3-xlarge w3-margin-right" data-section="status"></i>

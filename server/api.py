@@ -52,6 +52,7 @@ class PyServerAPI(object):
     def load_sys_config(self, path):
         self.config = read_system_config(path)
         self.config_path = path
+        self.productProcess.setDefaultSeqFolder(self.config['system']['default_seq_folder'])
         self.lg.debug(self.config)
         return self.config
 
