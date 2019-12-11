@@ -37,7 +37,7 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
     left: 300px;
     top:0;
     height: 60px;
-    background-color: var(--color-c3);
+    background: linear-gradient(45deg, var(--color-c1),var(--color-c4));
     color:  #F2F2F2;
 }
 
@@ -45,48 +45,86 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
     position: absolute;
     left: 300px;
     top:60px;
+    right: 0px;
+    bottom: 0px;
+    background-color: white;
     color:  var(--color-c5);
-    height: 100%;
-    width: 100%;
 }
 
 .testMainPanel > .seqSection{
     position: absolute;
     left: 0;
     top:0;
+    bottom: 10px;
+    background-color: white;
     color:  var(--color-c5);
-    height: 100%;
-    width: 600px;
-    padding: 20px 10px 20px 10px;
+    width: 580px;
+    margin: 10px;
 }
+
+
 
 .testMainPanel > .graphSection{
     position: absolute;
     left: 600px;
     top:0;
+    right: 10px;
+    bottom: 0px;
+    background-color: white;
     color:  var(--color-c5);
     height: 100%;
-    width: max-content;
-    padding: 20px 10px 20px 10px;
-}
-
-.testSeqContainer{
     margin: 0px;
-    padding: 5px;
-    width: 100%;
+    padding: 10px 10px 10px 10px;
 }
 
-.seqSection > ul {
+.testMainPanel .cardHeader{
+    background: linear-gradient(45deg, var(--color-c3),var(--color-c4));
+    color: white;
+    height: 24px;
+}
+
+.testMainPanel .cardContent{
+    width: 100%;
+    overflow: auto;
+}
+
+
+.testMainPanel > .graphSection .w3-card{
+    margin-bottom: 10px;
+}
+
+.testMainPanel > .graphSection .w3-card .cardContent{
+    overflow: hidden;
+}
+
+
+.seqSection > .cardContent{
+    position: absolute;
+    top:24px;
+    bottom: 10px;
+}
+
+#testSeqContainer{
+    margin: 0px !important;
+    padding: 10px 10px 10px 10px !important;
+    width: 100%;
+    overflow: auto;
+}
+
+#testSeqContainer li a { padding: 0px; }
+#testSeqContainer .active-item { background: #F39814; color: white; }
+
+.cardContent > ul {
     list-style-type: none;
   }
   
-.seqSection > ul > li {
+.cardContent > ul > li {
     /* You need to turn on relative positioning so the line is placed relative to the item rather than absolutely on the page */
     position: relative;
 
     /* Use padding to space things out rather than margins as the line would get broken up otherwise */
     margin: 0;
-    padding-bottom: 0em;
+    padding: 0px !important;
     padding-left: 0px;
     border-bottom: 0;
 }

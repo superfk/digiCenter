@@ -15,7 +15,7 @@
                     </label>
                         
                     </p>
-                    <input class="w3-input w3-border" type="text" placeholder="Please load sequence file" name="CheckIn" disabled readonly required> 
+                    <input class="w3-input w3-border" type="text" placeholder="Please load sequence file" name="SeqName" disabled readonly required> 
                     <p><label><i class="fab fa-product-hunt"></i> Project</label></p>
                     <input class="w3-input w3-border" type="text" name="Project" required>          
                     <p><label><i class="fab fa-bootstrap"></i> Batch</label></p>
@@ -43,11 +43,14 @@
             </div>
 
             <!-- test main panel -->
-            <div class="w3-row-padding testMainPanel">
+            <div class="testMainPanel">
 
                 <!-- seq section -->
-                <div class='w3-twothird seqSection'>
-                    <div class="w3-card">
+                <div class='w3-card seqSection'>
+                    <div class="w3-container cardHeader">
+                        Test Sequence
+                    </div>
+                    <div class="w3-container cardContent">
                         <ul id='testSeqContainer'>
                         </ul>
                     </div>
@@ -55,29 +58,38 @@
                 </div>
 
                 <!-- graph section -->
-                <div class='w3-third graphSection'>
+                <div class='graphSection'>
 
                     <!-- hardness graph section -->
-                    <div class='w3-container w3-card w3-margin-bottom'>
-                        hardness graph
-                        <div id="hardness_graph" class="w3-half"></div>
+                    <div class='w3-card'>
+                        <div class="w3-container cardHeader">
+                            Hardness graph
+                        </div>
+                        <div id="hardness_graph" class="w3-container cardContent"></div>
                     <!-- end of hardness graph section -->
                     </div>
     
                     <!-- hardness verse temperature graph section -->
-                    <div class='w3-container w3-card w3-margin-bottom'>
-                        hardness verse temperature graph
-                        <div id="hardnessVStemp_graph" class="w3-half"></div>
+                    <div class='w3-card'>
+                        <div class="w3-container cardHeader">
+                            Hardness versus temperature graph
+                        </div>
+                        <div id="hardnessVStemp_graph" class="w3-container cardContent"></div>
                     <!-- end of hardness verse temperature graph section -->
                     </div>
     
                     <!-- realtime temp and humidity gauge section -->
-                    <div class='w3-container w3-card w3-margin-bottom'>
-                        realtime temp and humidity gauge
-                        <div id="actualTempGauge" class="w3-container w3-cell w3-left"></div>
-                        <div id="actualHumGauge" class="w3-container w3-cell"></div>
+                    <div class='w3-card'>
+                        <div class="w3-container cardHeader">
+                            Realtime temperature and humidity gauge
+                        </div>
+                        <div class="w3-container w3-cell-row cardContent">
+                            <div id="actualTempGauge" class='w3-cell'></div>
+                            <div id="actualHumGauge" class='w3-cell'></div>
+                        </div>
                     <!-- end of realtime temp and humidity gauge section -->
                     </div>
+                    
 
                 <!-- end of graph section -->
                 </div>

@@ -733,7 +733,9 @@ function makeSortable(){
             preArray = [];
             let allSteps = document.querySelectorAll('li[data-sortable=true]');
             allSteps.forEach((elem)=>{
-                preArray.push(elem.innerText);
+                let stepText = elem.innerText;
+                if(stepText!==''){preArray.push(stepText);}
+                
             });
         },
         beforeStop: function( event, ui ) {
@@ -744,7 +746,9 @@ function makeSortable(){
             postArray = [];
             let allSteps = document.querySelectorAll('li[data-sortable=true]');
             allSteps.forEach((elem)=>{
-                postArray.push(elem.innerText);
+                let stepText = elem.innerText;
+                if(stepText!==''){postArray.push(stepText);}
+                
             });
 
             let diffIdx = findDiff(preArray,postArray);
