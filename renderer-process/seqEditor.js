@@ -263,17 +263,21 @@ function genLoopIndicator(start, end){
     if(start<0 || end<0){
         return null;
     }
+    let liItem = $('.mainSeqContainer > ul > li');
     // ignore settup step
     start+=1;
     end+=1;
-    $('.mainSeqContainer > ul > li').each((index,item)=>{
-        $(item).removeClass('loop loopStart loopEnd');
+    $('.lopCount').removeClass('lopCount-enabled');
+    liItem.removeClass('loop loopStart loopEnd');
+    liItem.each((index,item)=>{
         if(index==start){
             $(item).addClass('loop loopStart');
         }else if (index > start && index < end){
             $(item).addClass('loop');
         }else if (index===end){
+            let loopCount = seq[start-1].subitem['paras'].filter(item=>item.name=='loop counts')[0].value;
             $(item).addClass('loop loopEnd');
+            $(item).find('.lopCount').addClass('lopCount-enabled').html(loopCount);
         }else{
             
         }
@@ -306,11 +310,13 @@ function generateSeq() {
         curstr += `
         <li data-stepid=${index} data-sortable=true class='w3-bar'>
             
-                <a href="#" style="font-size:14px;width:470px;" class='w3-bar-item'>
+                <a href="#" style="font-size:14px;width:430px;" class='w3-bar-item'>
                     ${genIconByCat(cat,subitem['paras'])}${stepTitles[index]}${stepParaText}
                 </a>
+                
                 <div class='w3-bar-item w3-right' style='padding:2px;margin:0px;'>${genDeleteIcon(index)}</div>
                 <div class='w3-bar-item w3-right' style='padding:2px;margin:0px;'>${genEnableIcon(index,en)}</div>
+                <div class="w3-bar-item w3-right lopCount"></div>
         </li>
         `;
     });
@@ -696,8 +702,7 @@ function checkLoopValid(seqin)
     function checkValid(valid) {
         return valid;
     }
-    console.log('start and end index: ')
-    console.log(idxPairs)
+    
     let validsCollection = [];
     idxPairs.forEach((item,index,array)=>{
         let uut = item;

@@ -126,5 +126,5 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
     margin: 0;
     padding: 0px !important;
     padding-left: 0px;
-    border-bottom: 0;
+    border-bottom: 1px solid lightgray;
 }

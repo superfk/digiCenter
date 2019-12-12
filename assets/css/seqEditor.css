@@ -164,4 +164,6 @@ div.paraText {
 .loop {box-shadow: 2px 0px 0px 0px #3498db;}
 /* .loopStart{box-shadow: 6px 0px 0px 0px red;} */
 .loopEnd{box-shadow: 6px 0px 0px 0px #3498db !important;}
+.lopCount{padding: 5px 5px !important;text-align:center;background-color:rgba(37, 187, 23, 0);color:rgba(255, 255, 255, 0);display: none;}
+.lopCount-enabled{padding: 5px 5px !important;text-align:center;background-color:#3498db;color:#fff;display:block;}
 
