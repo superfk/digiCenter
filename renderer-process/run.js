@@ -1,6 +1,7 @@
 const {ipcRenderer} = require("electron");
 const app = require('electron').remote.app
 const zerorpc = require("zerorpc");
+const d3 = require('d3');
 const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
 // create zerorpc instance
 client.connect("tcp://127.0.0.1:4242");
@@ -49,28 +50,45 @@ generateGauge('actualHumGauge', 50, 0, 100,'Humidity');
 // generate graph functions
 // **************************************
 
-
 function generateHardnessVsTempPlot(){
   
-    var trace = {
-        // x: datapoints_x,
-        y: datapoints_y,
-      mode: 'lines+markers',
-      name: 'Scatter and Lines',
-      line: {
-        color: 'rgb(219, 64, 82)',
-        width: 3
-      }
-    };
+      function createTrace(curDeg, baseHard){
+        var trace = {
+          // x: datapoints_x,
+          y: Array.from({length: 40}, () => Math.floor(Math.random() * 20)+baseHard),
+        type: 'box',
+        name: curDeg,
+        boxpoints: 'all',
+        jitter: 0.1,
+        pointpos: -1.8,
+        line: {
+          width: 2
+        }
+      };
+      return trace;
+    }
+
+    let data = [];
+
+    for(let i = 0; i<10;i++){
+      const startDeg = 20;
+      const increDeg = 5;
+      const starthard = 80;
+      const decreHard = 1;
+      let curDeg = startDeg + increDeg*i;
+      let curHard = starthard - decreHard*i
+      let newTrace = createTrace(curDeg, curHard);
+      data.push(newTrace);
+    }
   
-    var data = [trace];
 
     var layout = {
       xaxis: {
         title: 'degree Celsius ℃'
       },
       yaxis: {
-        title: 'hardness'
+        title: 'hardness',
+        range: [0, 100]
       },
       width: 400,
       height: 200,
@@ -88,10 +106,8 @@ function generateHardnessVsTempPlot(){
       // x: h_data_x,
       y: h_data_y,
       mode: 'lines+markers',
-      name: 'Scatter and Lines',
       line: {
-        color: 'rgb(219, 64, 82)',
-        width: 3
+        width: 2
       }
     };
   
@@ -102,7 +118,8 @@ function generateHardnessVsTempPlot(){
         title: 'samples'
       },
       yaxis: {
-        title: 'hardness'
+        title: 'hardness',
+        range: [0, 100]
       },
       width: 400,
       height: 200,
@@ -124,7 +141,7 @@ function generateGauge(locationID, refvalue=23, min=-40, max=200, titleText='Tem
         type: "indicator",
         mode: "gauge+number+delta",
         value: 0,
-        title: { text: titleText, font: { size: 14 } },
+        title: { text: titleText, font: { size: 12 } },
         delta: { reference: refvalue, increasing: { color: "green" }, decreasing: { color: "red" } },
         gauge: {
           axis: { range: [min, max], tickwidth: 1, tickcolor: "darkblue" },
@@ -146,8 +163,8 @@ function generateGauge(locationID, refvalue=23, min=-40, max=200, titleText='Tem
     ];
     
     var layout = {
-      width: 250,
-      height: 230,
+      width: 150,
+      height: 150,
       margin: { t: 10, r: 25, l: 25, b: 10 },
       paper_bgcolor: "transparent",
       font: { color: "dimgray", family: "Arial", size: 10}
@@ -173,17 +190,30 @@ function repositionChart(){
   Plotly.relayout('hardness_graph', update);
   Plotly.relayout('hardnessVStemp_graph', update);
 
+  var update = {
+    autosize: true,
+  };
+  if (!$('#hardness_graph').html()===''){
+    // check if chart has data, if no data, the following function will throw error
+    Plotly.relayout('hardness_graph', update);
+    Plotly.relayout('hardnessVStemp_graph', update);
+  }
+
+  Plotly.relayout('hardness_graph', update);
+  Plotly.relayout('hardnessVStemp_graph', update);
+
 }
 
   
 // **************************************
 // event functions
 // **************************************
+
 loadSeqBtn.addEventListener('click', ()=>{
     loadSeqFromServer()
 })
 
-ipcRenderer.on('load-seq', (event, path) => {
+ipcRenderer.on('load-seq-run', (event, path) => {
 
   $('#batchInfoForm input[name=SeqName]').val(path)
 
@@ -241,7 +271,7 @@ function loadSeqFromServer(){
           if(!error){
               // do something
               defaultSeqPath = res;
-              ipcRenderer.send('open-file-dialog',defaultSeqPath,'load-seq')
+              ipcRenderer.send('open-file-dialog',defaultSeqPath,'load-seq-run')
           }
       }
   });
@@ -266,6 +296,15 @@ function sortSeq(){
   let middleSeqs =  generateSeq();
   $('#testSeqContainer').html(generateStartSeq() + middleSeqs + generateEndSeq());
   test_flow.main = seq;
+  let revSeq = seq.slice();
+  revSeq.reverse().forEach((item,index)=>{
+    if(item.cat==='loop' && item.subitem['item']=='loop end'){
+        let loopid = item.subitem.paras.filter(item=>item.name=='loop id')[0].value;
+        let ids = searchLoopStartEndByID(loopid);
+        genLoopIndicator(ids[0],ids[1]);
+    }
+    
+  })
 }
 
 function genUnit(unit) {
@@ -367,16 +406,6 @@ function genShortParaText(cat,subitem){
   return `<div class="paraText">${mainText}</div>`
 }
 
-function genEnableIcon(stepID, enabled){
-  let iconset = '';
-  if (enabled){
-      iconset = 'icon enable_list';
-  }else{
-      iconset = 'icon disable_list';
-  }
-  return `<i data-stepID=${stepID} class="${iconset} w3-right w3-margin-right"></i>`
-}
-
 function genStepTitles(){
   let titles = [];
   for (i = 0; i < seq.length; i++) {
@@ -405,6 +434,7 @@ function generateSeq() {
               <a href="#" style="font-size:14px;width:400px;" class='w3-bar-item'>
                   ${genIconByCat(cat,subitem['paras'])}${stepTitles[index]}${stepParaText}
               </a>
+              <div class="w3-bar-item w3-right lopCount">00</div>
       </li>
       `;
   });
@@ -431,4 +461,61 @@ function generateEndSeq() {
   </li>
   `;
   return curstr;
+}
+
+function genLoopIndicator(start, end){
+  console.log(start,end)
+  if(start<0 || end<0){
+      return null;
+  }
+  let liItem = $('#testSeqContainer li');
+  console.log(liItem)
+  // ignore settup step
+  start+=1;
+  end+=1;
+  // $('.lopCount').removeClass('lopCount-enabled');
+  // liItem.removeClass('loop loopStart loopEnd');
+  liItem.each((index,item)=>{
+      let loopCount = seq[start-1].subitem['paras'].filter(item=>item.name=='loop counts')[0].value;
+      let loopColor = seq[start-1].subitem['paras'].filter(item=>item.name=='loop color')[0].value;
+      if(index==start){
+          $(item).addClass('loop loopStart');
+          $(item).find('.lopCount').addClass('lopCount-start-enabled').html(loopCount).css("cssText","border-color:"+loopColor + ' !important');
+          $(item).css("cssText","box-shadow: 2px 0px 0px 0px "+ loopColor + ' !important');
+      }else if (index > start && index < end){
+          $(item).addClass('loop');
+          $(item).css("cssText","box-shadow: 2px 0px 0px 0px "+ loopColor + ' !important');
+      }else if (index===end){
+          loopCount = seq[start-1].subitem['paras'].filter(item=>item.name=='loop counts')[0].value;
+          loopColor = seq[start-1].subitem['paras'].filter(item=>item.name=='loop color')[0].value;
+          $(item).addClass('loop loopEnd');
+          $(item).find('.lopCount').addClass('lopCount-enabled').html(loopCount).css("background-color",loopColor);
+          $(item).css("cssText","box-shadow: 2px 0px 0px 0px "+ loopColor + ' !important');
+      }else{
+          
+      }
+      
+      
+  })
+  
+}
+
+function searchLoopStartEndByID(loopid, dummyseq=null){
+  if(dummyseq==null){
+      dummyseq = seq.slice();
+  }
+  let loopStartID=loopid;
+  let loopEndID=loopid;
+  dummyseq.forEach((item,index)=>{
+      if(item.cat=='loop' && item.subitem.item=='loop start'){
+          if(item.subitem.paras.filter(item=>item.name=='loop id')[0].value==loopid){
+              loopStartID=index;
+          }
+      }else if(item.cat=='loop' && item.subitem.item=='loop end'){
+          if(item.subitem.paras.filter(item=>item.name=='loop id')[0].value==loopid){
+              loopEndID=index;
+          }
+      }
+  })
+  return [loopStartID,loopEndID]
 }

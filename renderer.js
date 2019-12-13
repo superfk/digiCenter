@@ -25,6 +25,19 @@ for (var i = 0; i < list.length; i++) {
     ipcRenderer.send('save_log',`Click ${e.target.textContent} nav button`, 'info', 1);
     e.preventDefault();
     ipcRenderer.send('updateFootStatus',"");
+    let charts = document.querySelectorAll('#run-section .svg-container');
+    // in order to avoid plotly mouse occupy
+    if(e.target.id !=='button-run'){
+     
+      charts.forEach((item,index)=>{
+        $(item).hide()
+      })
+    }else{
+      let charts = document.querySelectorAll('#run-section .svg-container');
+      charts.forEach((item,index)=>{
+        $(item).show()
+      })
+    }
   });
 }
 

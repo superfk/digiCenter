@@ -161,9 +161,25 @@ div.paraText {
   border-bottom: 0;
 }
 
-.loop {box-shadow: 2px 0px 0px 0px #3498db;}
+.loop {box-shadow: 2px 0px 0px 0px}
+
 /* .loopStart{box-shadow: 6px 0px 0px 0px red;} */
-.loopEnd{box-shadow: 6px 0px 0px 0px #3498db !important;}
-.lopCount{padding: 5px 5px !important;text-align:center;background-color:rgba(37, 187, 23, 0);color:rgba(255, 255, 255, 0);display: none;}
-.lopCount-enabled{padding: 5px 5px !important;text-align:center;background-color:#3498db;color:#fff;display:block;}
+.loopEnd{box-shadow: 2px 0px 0px 0px}
+.lopCount{
+  font-size: 14px;
+  margin:0px 0px 0px 0px!important;
+  padding: 7px 5px 5px 2px !important;
+  text-align:center;
+  background-color:#3498db;
+  color:#fff;
+  visibility: hidden;
+  width:20px!important;}
+  
+.lopCount-enabled{visibility: visible;}
+.lopCount-start-enabled{
+  visibility: visible;
+  background-color:transparent;
+  color:transparent;
+  border-top: 2px solid !important;
+}
 

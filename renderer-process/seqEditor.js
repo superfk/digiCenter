@@ -31,6 +31,7 @@ let test_flow = {
 };
 let activePara = null;
 let defaultSeqPath = null;
+let alwayIncrLoopColorIdx = 0;
 // 
 // singleStep = {
     // id: 0,
@@ -89,6 +90,13 @@ function random_hsl(){
     return "hsla(" + ~~(360 * Math.random()) + "," + "100%,"+ "50%,1)"
 }
 
+function pick_color_hsl(){
+    let colorArr = ['red', 'blue', 'green', 'orange', 'brown', 'sienna', 'blueviolet', 'darkcyan', 'hotpink'];
+    let ouputColor = colorArr[alwayIncrLoopColorIdx % colorArr.length];
+    alwayIncrLoopColorIdx+=1
+    return ouputColor
+}
+
 const capitalize = (s) => {
     if (typeof s !== 'string') return ''
     return s.charAt(0).toUpperCase() + s.slice(1)
@@ -107,6 +115,16 @@ function sortSeq(){
     // seqContainer.innerHTML = generateStartSeq() + middleSeqs + generateEndSeq();
     makeSortable();
     test_flow.main = seq;
+    let revSeq = seq.slice();
+    revSeq.reverse().forEach((item,index)=>{
+        if(item.cat==='loop' && item.subitem['item']=='loop end'){
+            let loopid = item.subitem.paras.filter(item=>item.name=='loop id')[0].value;
+            let ids = searchLoopStartEndByID(loopid);
+            genLoopIndicator(ids[0],ids[1]);
+        }
+        
+    })
+    
 }
 
 function getActiveli(){
@@ -267,23 +285,33 @@ function genLoopIndicator(start, end){
     // ignore settup step
     start+=1;
     end+=1;
-    $('.lopCount').removeClass('lopCount-enabled');
-    liItem.removeClass('loop loopStart loopEnd');
+    // $('.lopCount').removeClass('lopCount-enabled');
+    // liItem.removeClass('loop loopStart loopEnd');
     liItem.each((index,item)=>{
+        let loopCount = seq[start-1].subitem['paras'].filter(item=>item.name=='loop counts')[0].value;
+        let loopColor = seq[start-1].subitem['paras'].filter(item=>item.name=='loop color')[0].value;
         if(index==start){
             $(item).addClass('loop loopStart');
+            $(item).find('.lopCount').addClass('lopCount-start-enabled').html(loopCount).css("cssText","border-color:"+loopColor + ' !important');
+            $(item).css("cssText","box-shadow: 2px 0px 0px 0px "+ loopColor + ' !important');
         }else if (index > start && index < end){
             $(item).addClass('loop');
+            $(item).css("cssText","box-shadow: 2px 0px 0px 0px "+ loopColor + ' !important');
         }else if (index===end){
-            let loopCount = seq[start-1].subitem['paras'].filter(item=>item.name=='loop counts')[0].value;
+            loopCount = seq[start-1].subitem['paras'].filter(item=>item.name=='loop counts')[0].value;
+            loopColor = seq[start-1].subitem['paras'].filter(item=>item.name=='loop color')[0].value;
             $(item).addClass('loop loopEnd');
-            $(item).find('.lopCount').addClass('lopCount-enabled').html(loopCount);
+            $(item).find('.lopCount').addClass('lopCount-enabled').html(loopCount).css("background-color",loopColor);
+            $(item).css("cssText","box-shadow: 2px 0px 0px 0px "+ loopColor + ' !important');
         }else{
             
         }
+        
+        
     })
     
 }
+
 
 function genStepTitles(){
     let titles = [];
@@ -310,13 +338,13 @@ function generateSeq() {
         curstr += `
         <li data-stepid=${index} data-sortable=true class='w3-bar'>
             
-                <a href="#" style="font-size:14px;width:430px;" class='w3-bar-item'>
+                <a href="#" style="font-size:14px;width:450px;" class='w3-bar-item'>
                     ${genIconByCat(cat,subitem['paras'])}${stepTitles[index]}${stepParaText}
                 </a>
+                <div class="w3-bar-item w3-right lopCount">00</div>
+                <div class='w3-bar-item w3-right' style='padding:2px;margin:0px;width:40px'>${genDeleteIcon(index)}</div>
+                <div class='w3-bar-item w3-right' style='padding:2px;margin:0px;width:40px'>${genEnableIcon(index,en)}</div>
                 
-                <div class='w3-bar-item w3-right' style='padding:2px;margin:0px;'>${genDeleteIcon(index)}</div>
-                <div class='w3-bar-item w3-right' style='padding:2px;margin:0px;'>${genEnableIcon(index,en)}</div>
-                <div class="w3-bar-item w3-right lopCount"></div>
         </li>
         `;
     });
@@ -402,6 +430,7 @@ function generateEndSeq() {
 
 function initSeq() {
     seqContainer.innerHTML = generateStartSeq() + generateEndSeq();
+    alwayIncrLoopColorIdx=0;
     client.invoke('run_cmd',parseCmd('ini_seq'),(err, res)=>{
         if(err){
             console.error(err)
@@ -450,7 +479,7 @@ function loadSeqFromServer(){
             if(!error){
                 // do something
                 defaultSeqPath = res;
-                ipcRenderer.send('open-file-dialog',defaultSeqPath,'load-seq')
+                ipcRenderer.send('open-file-dialog',defaultSeqPath,'load-seq-editor')
             }
         }
     });
@@ -471,7 +500,7 @@ ipcRenderer.on('save-seq', (event, path) => {
     });
 })
 
-ipcRenderer.on('load-seq', (event, path) => {
+ipcRenderer.on('load-seq-editor', (event, path) => {
 
     client.invoke('run_cmd',parseCmd('load_seq',{path: path}),(err, resObj)=>{
         if(err){
@@ -575,7 +604,7 @@ loopBox.addEventListener('click', () =>{
     let stepTitles = genStepTitles();
     let stepTitlesStr = stepTitles.join(',');
     let loopID = Math.floor(Math.random() * 100000000);
-    let loopColor = random_hsl();
+    let loopColor = pick_color_hsl();
     let loop_counts = 5;
     let paras= [
         {
@@ -809,7 +838,7 @@ function genParasPanel(parain){
 
 function searchLoopStartEndByID(loopid, dummyseq=null){
     if(dummyseq==null){
-        dummyseq = seq;
+        dummyseq = seq.slice();
     }
     let loopStartID=loopid;
     let loopEndID=loopid;
@@ -839,18 +868,19 @@ $('body').on('click', '#seqContainer > li > a',function() {
             $(elem).removeClass('active-item');
         });
         $(this).parents('li').toggleClass('active-item');
-        let curStep = seq[seqID-1];
-        let cat = curStep.cat;
-        let paras = curStep.subitem.paras;
-        let loopStartID=seqID;
-        let loopEndID=seqID;
-        if(cat=='loop'){
-            let loopid = paras.filter(item=>item.name=='loop id')[0].value;
-            let ids = searchLoopStartEndByID(loopid);
-            genLoopIndicator(ids[0],ids[1]);
-        }else{
-            genLoopIndicator(-1,-1);
-        }
+        // let curStep = seq[seqID-1];
+        // let cat = curStep.cat;
+        // let paras = curStep.subitem.paras;
+        // let loopStartID=seqID;
+        // let loopEndID=seqID;
+        // if(cat=='loop'){
+        //     let loopid = paras.filter(item=>item.name=='loop id')[0].value;
+        //     let ids = searchLoopStartEndByID(loopid);
+        //     genLoopIndicator(ids[0],ids[1]);
+            
+        // }else{
+        //     genLoopIndicator(-1,-1);
+        // }
         
         genParasPanel(seq[seqID-1]);
     }else{

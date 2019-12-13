@@ -1,4 +1,5 @@
 <link rel="stylesheet" type="text/css" href="../assets/css/run.css">
+<script src="../assets/d3/d3.min.js"></script>
 
  <!-- template -->
  <template class="task-template">
@@ -60,8 +61,20 @@
                 <!-- graph section -->
                 <div class='graphSection'>
 
+                    <!-- realtime temp and humidity gauge section -->
+                    <div class='w3-card' style='width:fit-content;flex: 0 1 150px;min-width: 340px;' >
+                        <div class="w3-container cardHeader">
+                            Realtime temperature and humidity gauge
+                        </div>
+                        <div class="w3-container cardContent" style="overflow: hidden;vertical-align: middle;">
+                            <span id="actualTempGauge" style="display: inline-block;"></span>
+                            <span id="actualHumGauge" style="display: inline-block;"></span>
+                        </div>
+                    <!-- end of realtime temp and humidity gauge section -->
+                    </div>
+
                     <!-- hardness graph section -->
-                    <div class='w3-card'>
+                    <div class='w3-card' style='position: relative;flex: 1 1 auto'>
                         <div class="w3-container cardHeader">
                             Hardness graph
                         </div>
@@ -70,7 +83,7 @@
                     </div>
     
                     <!-- hardness verse temperature graph section -->
-                    <div class='w3-card'>
+                    <div class='w3-card' style='position: relative; flex: 1 1 auto;'>
                         <div class="w3-container cardHeader">
                             Hardness versus temperature graph
                         </div>
@@ -78,17 +91,7 @@
                     <!-- end of hardness verse temperature graph section -->
                     </div>
     
-                    <!-- realtime temp and humidity gauge section -->
-                    <div class='w3-card'>
-                        <div class="w3-container cardHeader">
-                            Realtime temperature and humidity gauge
-                        </div>
-                        <div class="w3-container w3-cell-row cardContent">
-                            <div id="actualTempGauge" class='w3-cell'></div>
-                            <div id="actualHumGauge" class='w3-cell'></div>
-                        </div>
-                    <!-- end of realtime temp and humidity gauge section -->
-                    </div>
+                    
                     
 
                 <!-- end of graph section -->
