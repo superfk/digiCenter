@@ -242,6 +242,25 @@ $( window ).resize(function() {
   repositionChart();
 });
 
+startSeqBtn.addEventListener('click',()=>{
+
+  client.invoke('run_cmd',parseCmd('run_seq'),(err, resObj)=>{
+      if(err){
+          console.error(err)
+      }else{
+          logResponse(resObj);
+          let {error,res} = resObj;
+          console.log(res)
+          if(!error){
+              // do something
+              
+          }
+          
+      }
+  });
+
+})
+
 // **************************************
 // general functions
 // **************************************

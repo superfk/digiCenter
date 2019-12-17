@@ -11,7 +11,7 @@ from corelib.hardwarelib.digiChamber import DigiChamber
 from corelib.hardwarelib.instrClass.digitest import Digitest
 from corelib.logging_module.baLogger import TimeRotateLogger
 from corelib.UserManagement.user_login import UserManag
-from productlib.pd_digichamber import DigiChamberProduct
+from productlib.digiCenter.pd_digichamber import DigiChamberProduct
 import ctypes  # An included library with Python install.
 import struct
 from db_operation import DB
