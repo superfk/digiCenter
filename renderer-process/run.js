@@ -91,7 +91,7 @@ function generateHardnessVsTempPlot(){
         range: [0, 100]
       },
       width: 400,
-      height: 200,
+      height: 300,
       margin: plotMargin,
       autosize: true,
       font: { color: "dimgray", family: "Arial", size: 10}
@@ -122,7 +122,7 @@ function generateHardnessVsTempPlot(){
         range: [0, 100]
       },
       width: 400,
-      height: 200,
+      height: 250,
       margin: plotMargin,
       autosize: true,
       font: { color: "dimgray", family: "Arial", size: 10}
@@ -244,17 +244,11 @@ $( window ).resize(function() {
 
 startSeqBtn.addEventListener('click',()=>{
 
-  client.invoke('run_cmd',parseCmd('run_seq'),(err, resObj)=>{
+  client.invoke('run_seq',(err, res)=>{
       if(err){
           console.error(err)
       }else{
-          logResponse(resObj);
-          let {error,res} = resObj;
           console.log(res)
-          if(!error){
-              // do something
-              
-          }
           
       }
   });

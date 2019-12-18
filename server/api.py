@@ -195,6 +195,11 @@ class PyServerAPI(object):
             respObj['res']=response
         finally:
             return respObj
+    
+    @zerorpc.stream
+    def run_seq(self):
+        self.productProcess.run_script('run_seq')
+        return self.productProcess.run_seq()
 
     def export_test_data(self,tableData, path='testdata', options=['csv']):
         try:

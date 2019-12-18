@@ -12,7 +12,7 @@ class DigiCenterStep(object):
         self.stepid = None
         self.contained_steps = []
         self.paras = []
-        self.result = [{'name':None, 'value': None}]
+        self.result = {'stepid':0,'name':None, 'value': None}
         self.enabled = True
         self.startTime = None
         self.endTime = None
@@ -24,11 +24,11 @@ class DigiCenterStep(object):
         self.itemname = step['subitem']['item']
         self.enabled = step['subitem']['enabled']
     
-    def do(self,step2run=None, async=False):
+    def do(self,step2run=None, asyn=False):
         print('cat: {}, itemname: {}, id: {}'.format(self.category,self.itemname,self.stepid))
         self.set_startTime()
         self.set_endTime()
-        if async:
+        if asyn:
             thred = threading.Thread(target=step2run)
             thred.start()
         else:
@@ -51,6 +51,11 @@ class DigiCenterStep(object):
         t = self.endTime - self.startTime
         # print('single test interval: {}'.format(t))
         return t
+    
+    def set_result(self, value):
+        self.result['stepid'] = self.stepid
+        self.result['name'] = self.itemname
+        self.result['value'] = value
 
 
 class SetupStep(DigiCenterStep):
@@ -64,6 +69,7 @@ class SetupStep(DigiCenterStep):
         def do_core():
             # do setup control
             time.sleep(dummy_delay)
+            self.set_result('PASS')
         super().do(do_core)
         return self.result
 
@@ -79,6 +85,7 @@ class TeardownStep(DigiCenterStep):
         def do_core():
             # do teardown control
             time.sleep(dummy_delay)
+            self.set_result('PASS')
         super().do(do_core)
         return self.result
 
@@ -98,6 +105,7 @@ class TemperatureStep(DigiCenterStep):
         def do_core():
             # do digichamber temperature control
             time.sleep(dummy_delay)
+            self.set_result('PASS')
         super().do(do_core)
         return self.result
 
@@ -122,7 +130,7 @@ class HardnessStep(DigiCenterStep):
         def do_core():
             # do digiTest temperature control
             time.sleep(dummy_delay)
-        
+            self.set_result('PASS')
         super().do(do_core)
         return self.result
 
@@ -141,6 +149,7 @@ class WaitingStep(DigiCenterStep):
         def do_core():
             # do time control
             time.sleep(dummy_delay)
+            self.set_result('PASS')
         super().do(do_core)
         return self.result
 
@@ -165,25 +174,33 @@ class ForLoopStartStep(DigiCenterStep):
                 print('Loop count {} in loop {}'.format(itr,self.loopid))
                 for stp in steps:
                     stp.do()
+            self.set_result('PASS')
         super().do(do_core)
         return self.result
     
     def set_containedSteps(self, containSteps):
-        self.containSteps = containSteps
+         self.containSteps = containSteps
+    
+    def add_one_containStep(self, step):
+        self.containSteps.append(step)
 
 class ForLoopEndStep(DigiCenterStep):
     def __init__(self):
         super(ForLoopEndStep,self).__init__()
+        self.loopCounts = 0
         self.loopid = 0
+        self.loopIter = 0
 
     def set_paras(self,step):
         super().set_paras(step)
         paras = step['subitem']['paras']
+        self.loopCounts = int(list(filter(lambda name: name['name'] == 'stop on', paras))[0]['value'])
         self.loopid = list(filter(lambda name: name['name'] == 'loop id', paras))[0]['value']
     
     def do(self):
         def do_core():
-           pass
+            self.loopIter += 1
+            self.set_result('PASS')
         super().do(do_core)
         return self.result
 
@@ -201,6 +218,7 @@ class SubProgramStep(DigiCenterStep):
         def do_core():
             # do sub program control
             time.sleep(dummy_delay)
+            self.set_result('PASS')
         super().do(do_core)
         return self.result
 

@@ -90,43 +90,51 @@ class DigiChamberProduct(pd_product.Product):
                     elif s.itemname == 'loop end' and s.loopid == loopid:
                         loopEndIndex = s.stepid
                         return (loopStarIndex,loopEndIndex)
-
-        # give loop the contain steps
-        for s in self.mainClass:
-            if s.category == 'loop':
-                if s.itemname == 'loop start':
-                    startIdx, endIdx = findLoopPair(s.loopid,self.mainClass)
-                    curLoopSteps = self.mainClass[startIdx+1:endIdx]
-                    internalLoop = list(filter(lambda x: x.category == 'loop', curLoopSteps))
-                    isAnyLoopInside = len(internalLoop)>0
-                    if isAnyLoopInside:
-                        startIdx, endIdx = findLoopPair(internalLoop[0].loopid,self.mainClass)
-                        actualLoop = []
-                        for l in curLoopSteps:
-                            l.insideLoop=True
-                            self.mainClass[l.stepid].insideLoop=True
-                            if l.stepid<=startIdx or l.stepid>endIdx:
-                                actualLoop.append(l)
-                        s.set_containedSteps(actualLoop)
-                    else:
-                        for l in curLoopSteps:
-                            self.mainClass[l.stepid].insideLoop=True
-                        s.set_containedSteps(self.mainClass[startIdx+1:endIdx])
-                    
+        
+        def get_contained_steps(loopStartObj, mainStep):
+            startIdx, endIdx = findLoopPair(loopStartObj.loopid, mainStep)
+            curLoopSteps = mainStep[startIdx+1:endIdx]
+            remainStepsCounts = len(curLoopSteps)
+            cursor = 0
+            while remainStepsCounts>0:
+                stp = curLoopSteps[cursor]
+                if stp.category == 'loop' and stp.itemname == 'loop start':
+                    startIdx, endIdx = findLoopPair(stp.loopid, mainStep)
+                    cursor += endIdx-startIdx+1
+                    remainStepsCounts -= endIdx-startIdx+1
+                    loopStartObj.add_one_containStep(get_contained_steps(stp,mainStep))
+                elif stp.category == 'loop' and stp.itemname == 'loop end':
+                    cursor += 1
+                    remainStepsCounts -= 1
+                else:
+                    cursor += 1
+                    remainStepsCounts -= 1
+                    loopStartObj.add_one_containStep(stp)   
+            return loopStartObj                 
         
         # combine setup main teardown steps
         stepObj = seqClass.SetupStep()
         stepObj.set_paras(step=setup)
         self.stepsClass.append(stepObj)
-        for m in self.mainClass:
-            print(m.category)
-            if not m.insideLoop:
-                self.stepsClass.append(m)
-            
+        endStepId = self.mainClass[-1].stepid
+        cursor = 0
+        while cursor < endStepId:
+            print(cursor)
+            curStep = self.mainClass[cursor]
+            print(curStep)
+            if curStep.category == 'loop' and curStep.itemname == 'loop start':
+                startIdx, endIdx = findLoopPair(curStep.loopid, self.mainClass)
+                cursor += endIdx-startIdx+1
+                self.stepsClass.append(get_contained_steps(curStep,self.mainClass))
+            elif curStep.category == 'loop' and curStep.itemname == 'loop end':
+                cursor += 1
+            else:
+                self.stepsClass.append(curStep)
+                cursor += 1
         stepObj = seqClass.TeardownStep()
         stepObj.set_paras(step=teardown)
         self.stepsClass.append(stepObj)
 
     def run_seq(self):
         for s in self.stepsClass:
-            s.do()
+            yield s.do()
