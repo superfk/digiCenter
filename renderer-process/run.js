@@ -131,6 +131,33 @@ function generateHardnessVsTempPlot(){
     Plotly.newPlot('hardness_graph', data, layout, config);
   }
 
+  
+function repositionChart(){
+  var update = {
+    autosize: true,
+  };
+  if (!$('#hardness_graph').html()===''){
+    // check if chart has data, if no data, the following function will throw error
+    Plotly.relayout('hardness_graph', update);
+    Plotly.relayout('hardnessVStemp_graph', update);
+  }
+
+  Plotly.relayout('hardness_graph', update);
+  Plotly.relayout('hardnessVStemp_graph', update);
+
+  var update = {
+    autosize: true,
+  };
+  if (!$('#hardness_graph').html()===''){
+    // check if chart has data, if no data, the following function will throw error
+    Plotly.relayout('hardness_graph', update);
+    Plotly.relayout('hardnessVStemp_graph', update);
+  }
+
+  Plotly.relayout('hardness_graph', update);
+  Plotly.relayout('hardnessVStemp_graph', update);
+
+}
 
 // **************************************
 // generate gauge functions
@@ -177,33 +204,14 @@ function generateGauge(locationID, refvalue=23, min=-40, max=200, titleText='Tem
     });
   }
 
-function repositionChart(){
-  var update = {
-    autosize: true,
-  };
-  if (!$('#hardness_graph').html()===''){
-    // check if chart has data, if no data, the following function will throw error
-    Plotly.relayout('hardness_graph', update);
-    Plotly.relayout('hardnessVStemp_graph', update);
-  }
+function updateValue(locationID, val){
+  var data_update = 
+      {
+        value: val,
+      }
 
-  Plotly.relayout('hardness_graph', update);
-  Plotly.relayout('hardnessVStemp_graph', update);
-
-  var update = {
-    autosize: true,
-  };
-  if (!$('#hardness_graph').html()===''){
-    // check if chart has data, if no data, the following function will throw error
-    Plotly.relayout('hardness_graph', update);
-    Plotly.relayout('hardnessVStemp_graph', update);
-  }
-
-  Plotly.relayout('hardness_graph', update);
-  Plotly.relayout('hardnessVStemp_graph', update);
-
+      Plotly.update(locationID, data_update);
 }
-
   
 // **************************************
 // event functions
@@ -243,13 +251,34 @@ $( window ).resize(function() {
 });
 
 startSeqBtn.addEventListener('click',()=>{
-
+  $('#start_test').css('pointer-events', 'none');
+  $('#testSeqContainer li').css('background-color', 'white');
   client.invoke('run_seq',(err, res)=>{
       if(err){
           console.error(err)
       }else{
-          console.log(res)
           
+          if (typeof(res) !== 'undefined'){
+            console.log(res)
+            let stepid = res.stepid;
+            let stepname = res.name;
+            let value = res.value;
+            let result = res.status;
+
+            let curstep = $('#testSeqContainer').find(`[data-stepid='${stepid}']`);
+            if (result == 'PASS'){
+              curstep.css('background-color', 'lightgreen');
+            }else if (result == 'Waiting'){
+              curstep.css('background-color', 'orange');
+            }else{
+              curstep.css('background-color', 'red');
+            }
+            
+            if(stepid==9999){
+              $('#start_test').css('pointer-events', 'auto');
+            }
+
+          }        
       }
   });
 
@@ -290,6 +319,21 @@ function loadSeqFromServer(){
   });
   
 };
+
+let monitorValue = setInterval(()=>{
+  client.invoke('run_cmd',parseCmd('get_cur_temp_and_humi'),(err, resObj)=>{
+    if(err){
+        console.error(err)
+    }else{
+        let {error,res} = resObj;
+        if(!error){
+            // do something
+            updateValue('actualTempGauge', res.temp);
+            updateValue('actualHumGauge', res.hum);
+        }
+    }
+  });
+},1000)
 
 
 // **************************************
@@ -457,7 +501,7 @@ function generateSeq() {
 function generateStartSeq() {
   test_flow.setup = setup_seq;
   let curstr = `
-  <li>
+  <li data-stepid=-1>
       <a href="#" ><i class="far fa-play-circle w3-margin-right fa-lg"></i>Sequence Setup</a>
       
   </li>
@@ -468,7 +512,7 @@ function generateStartSeq() {
 function generateEndSeq() {
   test_flow.teardown = teardown_seq;
   let curstr = `
-  <li>
+  <li data-stepid=9999>
       <a href="#" ><i class="far fa-stop-circle w3-margin-right fa-lg"></i>Sequence Teardown</a>
       
   </li>

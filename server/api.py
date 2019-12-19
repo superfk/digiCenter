@@ -198,8 +198,9 @@ class PyServerAPI(object):
     
     @zerorpc.stream
     def run_seq(self):
-        self.productProcess.run_script('run_seq')
+        self.productProcess.create_seq()
         return self.productProcess.run_seq()
+    
 
     def export_test_data(self,tableData, path='testdata', options=['csv']):
         try:

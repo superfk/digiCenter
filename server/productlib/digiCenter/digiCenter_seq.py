@@ -2,6 +2,7 @@
 from datetime import datetime
 import time
 import threading
+import random
 
 dummy_delay = 0.1
 
@@ -12,7 +13,7 @@ class DigiCenterStep(object):
         self.stepid = None
         self.contained_steps = []
         self.paras = []
-        self.result = {'stepid':0,'name':None, 'value': None}
+        self.result = {'stepid':0,'name':None, 'value': None, 'status': 'FAIL'}
         self.enabled = True
         self.startTime = None
         self.endTime = None
@@ -35,8 +36,7 @@ class DigiCenterStep(object):
             step2run()
             self.set_endTime()
             self.get_test_interval()
-        
-        return self.result
+        yield self.result
 
     def get_result(self):
         return self.result
@@ -52,10 +52,11 @@ class DigiCenterStep(object):
         # print('single test interval: {}'.format(t))
         return t
     
-    def set_result(self, value):
+    def set_result(self, value, status):
         self.result['stepid'] = self.stepid
         self.result['name'] = self.itemname
         self.result['value'] = value
+        self.result['status'] = status
 
 
 class SetupStep(DigiCenterStep):
@@ -69,9 +70,8 @@ class SetupStep(DigiCenterStep):
         def do_core():
             # do setup control
             time.sleep(dummy_delay)
-            self.set_result('PASS')
-        super().do(do_core)
-        return self.result
+            yield self.set_result('PASS','PASS')
+        yield from super().do(do_core)
 
 
 class TeardownStep(DigiCenterStep):
@@ -85,29 +85,38 @@ class TeardownStep(DigiCenterStep):
         def do_core():
             # do teardown control
             time.sleep(dummy_delay)
-            self.set_result('PASS')
-        super().do(do_core)
-        return self.result
+            yield self.set_result('PASS','PASS')
+        yield from super().do(do_core)
 
 class TemperatureStep(DigiCenterStep):
     def __init__(self):
         super(TemperatureStep,self).__init__()
-        self.targetTemp = 0
-        self.slope = 0
+        self.targetTemp = 0.0
+        self.slope = 0.0 #K/min -> 1/60 K/s
 
     def set_paras(self,step):
         super().set_paras(step)
         paras = step['subitem']['paras']
-        self.targetTemp = list(filter(lambda name: name['name'] == 'target temperature', paras))[0]['value']
-        self.slope = list(filter(lambda name: name['name'] == 'slope', paras))[0]['value']
+        self.targetTemp = float(list(filter(lambda name: name['name'] == 'target temperature', paras))[0]['value'])
+        self.slope = float(list(filter(lambda name: name['name'] == 'slope', paras))[0]['value'])
 
     def do(self):
         def do_core():
             # do digichamber temperature control
-            time.sleep(dummy_delay)
-            self.set_result('PASS')
-        super().do(do_core)
-        return self.result
+            curT = random.random()*0.5 + 23
+            tol = 0.5
+            UL = self.targetTemp+tol
+            CL = self.targetTemp-tol
+            while curT>UL or curT<CL:
+                time.sleep(1)
+                yield self.set_result(curT, 'Waiting')
+                if (self.targetTemp-curT)<0:
+                    signSlope = -self.slope
+                else:
+                    signSlope = self.slope
+                curT = curT + signSlope/60*1 + random.random()*0.2
+            yield self.set_result(curT, 'PASS')
+        yield from super().do(do_core)
 
 
 class HardnessStep(DigiCenterStep):
@@ -124,13 +133,14 @@ class HardnessStep(DigiCenterStep):
         self.port = list(filter(lambda name: name['name'] == 'port', paras))[0]['value']
         self.method = list(filter(lambda name: name['name'] == 'method', paras))[0]['value']
         self.mode = list(filter(lambda name: name['name'] == 'mode', paras))[0]['value']
-        self.mearTime = list(filter(lambda name: name['name'] == 'measuring time', paras))[0]['value']
+        self.mearTime = float(list(filter(lambda name: name['name'] == 'measuring time', paras))[0]['value'])
 
     def do(self):
         def do_core():
             # do digiTest temperature control
-            time.sleep(dummy_delay)
-            self.set_result('PASS')
+            time.sleep(self.mearTime)
+            dummpyHard = random.random()*10 + 50
+            self.set_result(dummpyHard,'PASS')
         super().do(do_core)
         return self.result
 
@@ -138,18 +148,18 @@ class HardnessStep(DigiCenterStep):
 class WaitingStep(DigiCenterStep):
     def __init__(self):
         super(WaitingStep,self).__init__()
-        self.condTime = 0
+        self.condTime = 0 # min
 
     def set_paras(self,step):
         super().set_paras(step)
         paras = step['subitem']['paras']
-        self.condTime = list(filter(lambda name: name['name'] == 'conditioning time', paras))[0]['value']
+        self.condTime = float(list(filter(lambda name: name['name'] == 'conditioning time', paras))[0]['value'])
 
     def do(self):
         def do_core():
             # do time control
-            time.sleep(dummy_delay)
-            self.set_result('PASS')
+            time.sleep(self.condTime/60)
+            self.set_result(0,'PASS')
         super().do(do_core)
         return self.result
 
@@ -174,7 +184,7 @@ class ForLoopStartStep(DigiCenterStep):
                 print('Loop count {} in loop {}'.format(itr,self.loopid))
                 for stp in steps:
                     stp.do()
-            self.set_result('PASS')
+            self.set_result(0,'PASS')
         super().do(do_core)
         return self.result
     
@@ -190,6 +200,7 @@ class ForLoopEndStep(DigiCenterStep):
         self.loopCounts = 0
         self.loopid = 0
         self.loopIter = 0
+        self.loopDone = False
 
     def set_paras(self,step):
         super().set_paras(step)
@@ -200,9 +211,15 @@ class ForLoopEndStep(DigiCenterStep):
     def do(self):
         def do_core():
             self.loopIter += 1
-            self.set_result('PASS')
+            if self.loopIter >= self.loopCounts:
+                self.loopDone = True
+            self.set_result(0,'PASS')
         super().do(do_core)
         return self.result
+    
+    def resetLoop(self):
+        self.loopDone = False
+        self.loopIter = 0
 
 class SubProgramStep(DigiCenterStep):
     def __init__(self):
@@ -218,7 +235,7 @@ class SubProgramStep(DigiCenterStep):
         def do_core():
             # do sub program control
             time.sleep(dummy_delay)
-            self.set_result('PASS')
+            self.set_result(0,'PASS')
         super().do(do_core)
         return self.result
 

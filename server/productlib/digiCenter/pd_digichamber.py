@@ -2,6 +2,7 @@ from productlib import pd_product
 import corelib.utility.utility as util
 import os
 import productlib.digiCenter.digiCenter_seq as seqClass
+import random
 
 class DigiChamberProduct(pd_product.Product):
     def __init__(self, pd_name,seqPath=r"C:\\data_exports"):
@@ -10,6 +11,8 @@ class DigiChamberProduct(pd_product.Product):
         self.setDefaultSeqFolder(seqPath)
         self.stepsClass = []
         self.mainClass = []
+        self.dummyT = 23
+        self.dummyH = 50
 
     def run_script(self, scriptName, data=None):
         if scriptName=='ini_seq':
@@ -23,6 +26,8 @@ class DigiChamberProduct(pd_product.Product):
             return self.run_seq()
         elif scriptName=='get_default_seq_path':
             return self.default_seq_folder
+        elif scriptName=='get_cur_temp_and_humi':
+            return self.get_cur_temp_and_humi()
         else:
             print('No this case: {}'.format(scriptName))
         return 0
@@ -80,61 +85,51 @@ class DigiChamberProduct(pd_product.Product):
                 stepObj.set_paras(step=s)
                 self.mainClass.append(stepObj)
             else:
-                pass
-        
-        def findLoopPair(loopid,mainClass):
-            for s in self.mainClass:
-                if s.category == 'loop':
-                    if s.itemname == 'loop start' and s.loopid == loopid:
-                        loopStarIndex = s.stepid
-                    elif s.itemname == 'loop end' and s.loopid == loopid:
-                        loopEndIndex = s.stepid
-                        return (loopStarIndex,loopEndIndex)
-        
-        def get_contained_steps(loopStartObj, mainStep):
-            startIdx, endIdx = findLoopPair(loopStartObj.loopid, mainStep)
-            curLoopSteps = mainStep[startIdx+1:endIdx]
-            remainStepsCounts = len(curLoopSteps)
-            cursor = 0
-            while remainStepsCounts>0:
-                stp = curLoopSteps[cursor]
-                if stp.category == 'loop' and stp.itemname == 'loop start':
-                    startIdx, endIdx = findLoopPair(stp.loopid, mainStep)
-                    cursor += endIdx-startIdx+1
-                    remainStepsCounts -= endIdx-startIdx+1
-                    loopStartObj.add_one_containStep(get_contained_steps(stp,mainStep))
-                elif stp.category == 'loop' and stp.itemname == 'loop end':
-                    cursor += 1
-                    remainStepsCounts -= 1
-                else:
-                    cursor += 1
-                    remainStepsCounts -= 1
-                    loopStartObj.add_one_containStep(stp)   
-            return loopStartObj                 
+                pass               
         
         # combine setup main teardown steps
         stepObj = seqClass.SetupStep()
         stepObj.set_paras(step=setup)
         self.stepsClass.append(stepObj)
-        endStepId = self.mainClass[-1].stepid
-        cursor = 0
-        while cursor < endStepId:
-            print(cursor)
-            curStep = self.mainClass[cursor]
-            print(curStep)
-            if curStep.category == 'loop' and curStep.itemname == 'loop start':
-                startIdx, endIdx = findLoopPair(curStep.loopid, self.mainClass)
-                cursor += endIdx-startIdx+1
-                self.stepsClass.append(get_contained_steps(curStep,self.mainClass))
-            elif curStep.category == 'loop' and curStep.itemname == 'loop end':
-                cursor += 1
-            else:
-                self.stepsClass.append(curStep)
-                cursor += 1
+        for m in self.mainClass:
+            self.stepsClass.append(m)
         stepObj = seqClass.TeardownStep()
         stepObj.set_paras(step=teardown)
         self.stepsClass.append(stepObj)
 
     def run_seq(self):
-        for s in self.stepsClass:
-            yield s.do()
+        totalStepsCounts = len(self.stepsClass)
+        cursor = 0
+        while cursor < totalStepsCounts:
+            step = self.stepsClass[cursor]
+            yield cursor
+            if step.category == 'loop' and step.itemname == 'loop end':
+                testResult = next(step.do())
+                yield testResult
+                if not step.loopDone:
+                    # starting after loop start
+                    startIdx, endIdx = self.findLoopPair(step.loopid, self.stepsClass)
+                    cursor = startIdx + 1
+                else:
+                    '''reset loop because if another loop run this loop again 
+                    that not lead to immediately stop''' 
+                    step.resetLoop()
+                    cursor += 1
+            else:
+                testResult = next(step.do())
+                yield testResult
+                if testResult['status'] in ['PASS','FAIL']:
+                    cursor += 1
+                
+                
+    def get_cur_temp_and_humi(self):
+        return {'temp':random.random()*0.2 + self.dummyT, 'hum':random.random()*1 + self.dummyH}
+
+    def findLoopPair(self, loopid, mainClass):
+        for i,s in enumerate(mainClass):
+            if s.category == 'loop':
+                if s.itemname == 'loop start' and s.loopid == loopid:
+                    loopStarIndex = i
+                elif s.itemname == 'loop end' and s.loopid == loopid:
+                    loopEndIndex = i
+                    return (loopStarIndex,loopEndIndex)
