@@ -3,16 +3,87 @@ const app = electron.app
 const BrowserWindow = electron.BrowserWindow
 const path = require('path')
 const {ipcMain, dialog, shell} = require('electron')
-const appRoot = require('electron-root-path').rootPath;
+// const appRoot = require('electron-root-path').rootPath;
+const appRoot = app.getAppPath();
+console.log(appRoot)
 const ProgressBar = require('electron-progressbar');
-const zerorpc = require("zerorpc");
+// const zerorpc = require("zerorpc");
 
-// zerorpc client
-const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
-// create zerorpc instance
-client.connect("tcp://127.0.0.1:4242");
+// // zerorpc client
+// const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
+// // create zerorpc instance
+// client.connect("tcp://127.0.0.1:4242");
+// let socket = require('socket.io-client')('http://127.0.0.1:5678/test',{transports:['WebSocket']});
+let ws;
 
+function parseCmd(sriptName, data=null){
+  return JSON.stringify({'cmd':sriptName, 'data':data})
+}
 
+function connect() {
+  try{
+    const WebSocket = require('ws');
+    ws = new WebSocket('ws://127.0.0.1:5678');
+  }catch(e){
+    console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
+  }
+
+  ws.onopen = function() {
+    console.log('websocket in main connected')
+    init_server();
+  };
+
+  ws.onmessage = function(message) {
+    try{
+      console.log('cmd is ' + message.data);
+      console.log(typeof(message.data));
+      msg = message.data;
+      if(typeof(msg)=='string'){
+        msg = JSON.parse(msg)
+      }else{
+
+      }
+      let cmd = msg.cmd;
+      let data = msg.data;
+      console.log(cmd)
+      console.log(data)
+      switch(cmd) {
+        case 'server_drive_send':
+          console.log('got server data ' + data)
+          break;
+        case 'result_of_backendinit':
+          if(data.result == 1){
+            console.log(data.resp)
+            PY_INIT_OK=true;
+            createWindow();
+          }else{
+            console.log(data.resp)
+
+          }
+          break;
+        default:
+          console.log('Not found this cmd ' + cmd)
+          break;
+      }
+    }catch(e){
+      console.error(e)
+    }
+  };
+
+  ws.onclose = function(e) {
+    console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+    setTimeout(function() {
+      connect();
+    }, 1000);
+  };
+
+  ws.onerror = function(err) {
+    console.error('Socket encountered error: ', err.message, 'Closing socket');
+    ws.close();
+  };
+}
+
+connect()
 
 /*************************************************************
  * py process
@@ -66,50 +137,33 @@ const createPyProc = () => {
   if (pyProc != null) {
     //console.log(pyProc)
     console.log('child process success on port ' + port);
-    init_server();
+    
 
   }
 }
 
 const exitPyProc = () => {
-  client.invoke("close_all", (error, res) => {
-    if(error) {
-      console.error(error);
-      pyProc.kill();
-      pyProc = null;
-      pyPort = null;
-    }else{
-      pyProc.kill();
-      pyProc = null;
-      pyPort = null;
-    }
-  })
+  pyProc.kill();
+  pyProc = null;
+  pyPort = null;
 }
 
 // init config and database
 var init_server = function(){
   var curPath = path.join(appRoot, 'config.json')
-
-  client.invoke("load_sys_config", curPath, (error, res) => {
-    if(error) {
-      console.error(error);
-    }else{
-      client.invoke("backend_init", (error, res) => {
-        if(error) {
-          console.error(error);
-        }
-        else{
-          if (res[0] === 1){
-            PY_INIT_OK = true;
-          }
-          console.log(res);
-          createWindow();
-          
-          
-        }
-      })
-    }
-  })
+  ws.send(parseCmd('load_sys_config',curPath));
+  ws.send(parseCmd('backend_init'));
+  // ws.send(JSON.stringify({cmd:"load_sys_config", data:'curPath'}), (res) => {
+  //   console.log(res);
+  //   ws.send(JSON.stringify({cmd:"backend_init", data:'curPath'}), (res,status) => {
+  //     console.log(res,status)
+  //     if (res === 1){
+  //       PY_INIT_OK = true;
+  //     }
+  //     console.log(res);
+  //     createWindow();
+  //   })
+  // })
 }
 
 
@@ -188,6 +242,7 @@ ipcMain.on('abort-indet-progressbar', (event) =>{
 })
 
 ipcMain.on('open-file-dialog', (event, default_Path, calback) => {
+  console.log(default_Path)
   dialog.showOpenDialog({
     filters: [
       { name: 'Sequence', extensions: ['seq'] }
@@ -200,6 +255,7 @@ ipcMain.on('open-file-dialog', (event, default_Path, calback) => {
     }
   })
 })
+
 
 ipcMain.on('save-file-dialog', (event, default_Path, calback) => {
   dialog.showSaveDialog({
@@ -248,10 +304,8 @@ function updatefoot(msg, color='w3-red'){
 
 // save_log
 ipcMain.on('save_log', (event, msg, type='info', audit=0) => {
-  client.invoke("log_to_db",  msg, type, audit, (error, res) => {
-    if(error) {console.error(error);}
-    })
-
+  // ws.send(JSON.stringify({cmd:"log_to_db", data:{ msg, type, audit}}), (res) => {})
+    
 })
 
 // show info dialog
@@ -329,5 +383,3 @@ ipcMain.on('updateFootStatus', (event,msg) => {
 ipcMain.on('login-changed', (event) => {
   mainWindow.webContents.send('refresh_user_accounts');
 })
-
-

@@ -3,9 +3,10 @@ import corelib.utility.utility as util
 import os
 import productlib.digiCenter.digiCenter_seq as seqClass
 import random
+import asyncio
 
 class DigiChamberProduct(pd_product.Product):
-    def __init__(self, pd_name,seqPath=r"C:\\data_exports"):
+    def __init__(self, pd_name,seqPath=r"C:\\data_exports",msg_callback=None):
         super(DigiChamberProduct, self).__init__(pd_name)
         self.script = None
         self.setDefaultSeqFolder(seqPath)
@@ -13,45 +14,46 @@ class DigiChamberProduct(pd_product.Product):
         self.mainClass = []
         self.dummyT = 23
         self.dummyH = 50
+        self.socketCallback = msg_callback
 
-    def run_script(self, scriptName, data=None):
+    async def run_script(self,websocket, scriptName, data=None):
         if scriptName=='ini_seq':
-            return self.init_seq(data)
+            await self.init_seq()
         elif scriptName=='save_seq':
-            return self.save_seq(path=data['path'],seq_json=data['seq'])
+            await self.save_seq(websocket,path=data['path'],seq_json=data['seq'])
         elif scriptName=='load_seq':
-            return self.load_seq(data['path'])
+            await self.load_seq(websocket,data['path'])
         elif scriptName=='run_seq':
-            self.create_seq()
-            return self.run_seq()
+            await self.create_seq(websocket)
+            await self.run_seq(websocket)
         elif scriptName=='get_default_seq_path':
-            return self.default_seq_folder
+            await self.socketCallback(websocket, 'update_sys_default_config', self.default_seq_folder)
         elif scriptName=='get_cur_temp_and_humi':
-            return self.get_cur_temp_and_humi()
+            await self.get_cur_temp_and_humi(websocket)
         else:
             print('No this case: {}'.format(scriptName))
         return 0
 
-    def init_seq(self,data):
+    async def init_seq(self):
         self.script=None
-        return data
+        return self.script
 
-    def save_seq(self,path,seq_json):
+    async def save_seq(self,websocket, path,seq_json):
         newPath = os.path.join(self.default_seq_folder,path)
         util.write2JSON(newPath, seq_json)
-        return 'file saved to: {}'.format(newPath)
+        return self.script
 
-    def load_seq(self,path):
+    async def load_seq(self,websocket, path):
         data = util.readFromJSON(path)
         self.script=data
-        return data
+        await self.socketCallback(websocket, 'update_sequence', self.script)
     
     def setDefaultSeqFolder(self,seqPath):
         path = os.path.join(seqPath,'seq_files')
         self.default_seq_folder = path
         util.newPathIfNotExist(self.default_seq_folder)
     
-    def create_seq(self):
+    def create_seq(self,websocket):
         setup = self.script['setup']
         main = self.script['main']
         teardown = self.script['teardown']
@@ -61,28 +63,34 @@ class DigiChamberProduct(pd_product.Product):
             if s['cat']=='temperature':
                 stepObj = seqClass.TemperatureStep()
                 stepObj.set_paras(step=s)
+                stepObj.set_sockect_callback(self.socketCallback)
                 self.mainClass.append(stepObj)
             elif s['cat']=='hardness':
                 stepObj = seqClass.HardnessStep()
                 stepObj.set_paras(step=s)
+                stepObj.set_sockect_callback(self.socketCallback)
                 self.mainClass.append(stepObj)
             elif s['cat']=='waiting':
                 stepObj = seqClass.WaitingStep()
                 stepObj.set_paras(step=s)
+                stepObj.set_sockect_callback(self.socketCallback)
                 self.mainClass.append(stepObj)
             elif s['cat']=='loop':
                 item = s['subitem']['item']
                 if item == 'loop start':
                     stepObj = seqClass.ForLoopStartStep()
                     stepObj.set_paras(step=s)
+                    stepObj.set_sockect_callback(self.socketCallback)
                     self.mainClass.append(stepObj)
                 elif item == 'loop end':
                     stepObj = seqClass.ForLoopEndStep()
                     stepObj.set_paras(step=s)
+                    stepObj.set_sockect_callback(self.socketCallback)
                     self.mainClass.append(stepObj)              
             elif s['cat']=='subprog':
                 stepObj = seqClass.SubProgramStep()
                 stepObj.set_paras(step=s)
+                stepObj.set_sockect_callback(self.socketCallback)
                 self.mainClass.append(stepObj)
             else:
                 pass               
@@ -90,25 +98,27 @@ class DigiChamberProduct(pd_product.Product):
         # combine setup main teardown steps
         stepObj = seqClass.SetupStep()
         stepObj.set_paras(step=setup)
+        stepObj.set_sockect_callback(self.socketCallback)
         self.stepsClass.append(stepObj)
         for m in self.mainClass:
             self.stepsClass.append(m)
         stepObj = seqClass.TeardownStep()
         stepObj.set_paras(step=teardown)
+        stepObj.set_sockect_callback(self.socketCallback)
         self.stepsClass.append(stepObj)
 
-    def run_seq(self):
+    async def run_seq(self,websocket):
         totalStepsCounts = len(self.stepsClass)
         cursor = 0
         while cursor < totalStepsCounts:
             step = self.stepsClass[cursor]
-            yield cursor
+            await self.socketCallback(websocket,'update_cursor',cursor) 
             if step.category == 'loop' and step.itemname == 'loop end':
-                testResult = next(step.do())
-                yield testResult
+                testResult = step.do(websocket)
+                await self.socketCallback(websocket,'update-step-result',testResult) 
                 if not step.loopDone:
                     # starting after loop start
-                    startIdx, endIdx = self.findLoopPair(step.loopid, self.stepsClass)
+                    startIdx, endIdx = await self.findLoopPair(step.loopid, self.stepsClass)
                     cursor = startIdx + 1
                 else:
                     '''reset loop because if another loop run this loop again 
@@ -116,14 +126,14 @@ class DigiChamberProduct(pd_product.Product):
                     step.resetLoop()
                     cursor += 1
             else:
-                testResult = next(step.do())
-                yield testResult
+                testResult = step.do(websocket)
+                await self.socketCallback(websocket,'update-step-result',testResult) 
                 if testResult['status'] in ['PASS','FAIL']:
                     cursor += 1
-                
-                
-    def get_cur_temp_and_humi(self):
-        return {'temp':random.random()*0.2 + self.dummyT, 'hum':random.random()*1 + self.dummyH}
+
+    async def get_cur_temp_and_humi(self, websocket):
+        status = {'temp':random.random()*0.2 + self.dummyT, 'hum':random.random()*1 + self.dummyH}
+        await self.socketCallback(websocket,'update_cur_status',status)
 
     def findLoopPair(self, loopid, mainClass):
         for i,s in enumerate(mainClass):

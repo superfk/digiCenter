@@ -36,13 +36,10 @@
     <script type="text/javascript" src="assets/plotly-latest.min.js"></script>
     
 
-
-    <!-- <link rel="import" href="sections/dataEx-connection.html"> -->
-    <link rel="import" href="sections/config.html">
+    <!-- <link rel="import" href="sections/config.html"> -->
     <link rel="import" href="sections/seqEditor.html">
-    <link rel="import" href="sections/status.html">
     <link rel="import" href="sections/run.html">
-    <link rel="import" href="sections/report.html">
+    <!-- <link rel="import" href="sections/report.html"> -->
     
     
     
@@ -91,10 +88,6 @@
           <i class="far fa-play-circle w3-xlarge w3-margin-right" data-section="run"></i>
           <span data-section="run" data-lang='side_run' data-lang_type='innertext' >Run</span>
         </a>
-        <a href="#" id="button-status" data-section="status" data-auth='button-status' class="w3-bar-item nav-button">
-          <i class="fas fa-file-upload w3-xlarge w3-margin-right" data-section="status"></i>
-          <span data-section="status" data-lang='side_upload' data-lang_type='innertext' >Status</span>
-        </a>
         <a href="#" id="button-report" data-section="report" data-auth='button-report' class="w3-bar-item nav-button">
           <i class="fas fa-chart-line w3-xlarge w3-margin-right" data-section="report"></i>
           <span data-section="report" data-lang='side_report' data-lang_type='innertext'>Report</span>
@@ -103,7 +96,7 @@
     </nav>
 
     <!-- !PAGE CONTENT! -->
-    <div class="content js-content"></div>
+    <div id='page-content' class="content js-content"></div>
   </main>
   <div id='waiting-download' class='w3-display-middle'></div>
   <!-- !PAGE footer! -->

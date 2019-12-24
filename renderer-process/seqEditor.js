@@ -1,10 +1,12 @@
 const {ipcRenderer} = require("electron");
 const app = require('electron').remote.app
-const zerorpc = require("zerorpc");
-const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
-// create zerorpc instance
-client.connect("tcp://127.0.0.1:4242");
-
+// const zerorpc = require("zerorpc");
+// const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
+// // create zerorpc instance
+// client.connect("tcp://127.0.0.1:4242");
+console.log('jojo')
+const WebSocket = require('ws');
+const ws = new WebSocket('ws://127.0.0.1:5678');
 
 const mainContainer = document.getElementById('mainContainer');
 const seqContainer = document.getElementById('seqContainer');
@@ -61,9 +63,49 @@ let alwayIncrLoopColorIdx = 0;
     // 
 // }
 
-function parseCmd(sriptName, data=null){
-    return JSON.stringify({'scriptName':sriptName, 'data':data})
+// **************************************
+// websocket functions
+// **************************************
+
+ws.on('open', function open() { 
+    console.log('websocket in seqEditor connected')
+});
+  
+ws.on('message', function incoming(msg) {
+
+try{
+    msg = JSON.parse(msg)
+    console.log(msg)
+    let cmd = msg.cmd;
+    let data = msg.data;
+    switch(cmd) {
+    case 'update_sequence':
+        updateSequence(data)
+        break;
+    case 'update_sys_default_config':
+        updateServerSeqFolder(data);
+        break;
+    default:
+        console.log('Not found this cmd' + cmd)
+    }
+}catch(e){
+    console.error(e)
 }
+
+});
+
+// **************************************
+// general functions
+// **************************************
+
+function parseCmd(sriptName, data=null){
+    return JSON.stringify({'cmd':sriptName, 'data':data})
+}
+
+function logWsError(error){
+    console.log('Error when sending websocket message');
+    console.error(error);
+  }
 
 createSeq.addEventListener('click', ()=>{
     seq = [];
@@ -431,97 +473,37 @@ function generateEndSeq() {
 function initSeq() {
     seqContainer.innerHTML = generateStartSeq() + generateEndSeq();
     alwayIncrLoopColorIdx=0;
-    client.invoke('run_cmd',parseCmd('ini_seq'),(err, res)=>{
-        if(err){
-            console.error(err)
-        }else{
-            console.log(res)
-        }
-    });
-    
+    ws.send(parseCmd('run_cmd',parseCmd('ini_seq')));    
 }
 
-function logResponse(resObj){
-    let isError = resObj.error;
-    let response = resObj.res;
-    if(isError){
-        console.log('error:');
-        console.log(response);
-    }else{
-        console.log('response:');
-        console.log(response);
-    }
+function updateServerSeqFolder(path){
+    defaultSeqPath = path;
 }
 
 function saveSeqInServer(){
-    client.invoke('run_cmd',parseCmd('get_default_seq_path'),(err, resObj)=>{
-        if(err){
-            console.error(err)
-        }else{
-            logResponse(resObj);
-            let {error,res} = resObj;
-            if(!error){
-                // do something
-                defaultSeqPath = res;
-                ipcRenderer.send('save-file-dialog',defaultSeqPath,'save-seq')
-            }
-        }
-    });
-    
+    ipcRenderer.send('save-file-dialog',defaultSeqPath,'save-seq')
 };
+
 function loadSeqFromServer(){
-    client.invoke('run_cmd',parseCmd('get_default_seq_path'),(err, resObj)=>{
-        if(err){
-            console.error(err)
-        }else{
-            logResponse(resObj);
-            let {error,res} = resObj;
-            if(!error){
-                // do something
-                defaultSeqPath = res;
-                ipcRenderer.send('open-file-dialog',defaultSeqPath,'load-seq-editor')
-            }
-        }
-    });
-    
+    ipcRenderer.send('open-file-dialog',defaultSeqPath,'load-seq-editor')
 };
 
 ipcRenderer.on('save-seq', (event, path) => {
-    client.invoke('run_cmd',parseCmd('save_seq',{path: path,seq: test_flow}),(err, resObj)=>{
-        if(err){
-            console.error(err)
-        }else{
-            logResponse(resObj);
-            let {error,res} = resObj;
-            if(!error){
-                // do something
-            }
-        }
-    });
+    ws.send(parseCmd('run_cmd',parseCmd('save_seq',{path: path,seq: test_flow})));
 })
 
 ipcRenderer.on('load-seq-editor', (event, path) => {
-
-    client.invoke('run_cmd',parseCmd('load_seq',{path: path}),(err, resObj)=>{
-        if(err){
-            console.error(err)
-        }else{
-            logResponse(resObj);
-            let {error,res} = resObj;
-            console.log(res)
-            if(!error){
-                // do something
-                test_flow.setup = res.setup;
-                test_flow.main = res.main;
-                seq = res.main
-                test_flow.loop = res.loop;
-                test_flow.teardown = res.teardown;
-                sortSeq();
-            }
-            
-        }
-    });
+    ws.send(parseCmd('run_cmd',parseCmd('load_seq',{path: path})));
 });
+
+function updateSequence(res){
+    test_flow.setup = res.setup;
+    test_flow.main = res.main;
+    seq = res.main
+    test_flow.loop = res.loop;
+    test_flow.teardown = res.teardown;
+    sortSeq();
+  }
 
 tempBox.addEventListener('click', () =>{
     let paras= [

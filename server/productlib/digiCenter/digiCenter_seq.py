@@ -18,6 +18,7 @@ class DigiCenterStep(object):
         self.startTime = None
         self.endTime = None
         self.insideLoop = False
+        self.socketCallback = None
 
     def set_paras(self,step):
         self.stepid = step['id']
@@ -25,18 +26,19 @@ class DigiCenterStep(object):
         self.itemname = step['subitem']['item']
         self.enabled = step['subitem']['enabled']
     
-    def do(self,step2run=None, asyn=False):
+    def do(self,websocket,step2run=None, asyn=False):
         print('cat: {}, itemname: {}, id: {}'.format(self.category,self.itemname,self.stepid))
         self.set_startTime()
         self.set_endTime()
         if asyn:
-            thred = threading.Thread(target=step2run)
+            thred = threading.Thread(target=step2run,args=[websocket,])
             thred.start()
         else:
-            step2run()
+            step2run(websocket)
             self.set_endTime()
             self.get_test_interval()
-        yield self.result
+        self.socketCallback(websocket,'updateResult', {'data': self.result})
+        return self.get_result()
 
     def get_result(self):
         return self.result
@@ -57,7 +59,10 @@ class DigiCenterStep(object):
         self.result['name'] = self.itemname
         self.result['value'] = value
         self.result['status'] = status
+        return self.result
 
+    def set_sockect_callback(self,socketCallback):
+        self.socketCallback = socketCallback
 
 class SetupStep(DigiCenterStep):
     def __init__(self):
@@ -66,12 +71,13 @@ class SetupStep(DigiCenterStep):
     def set_paras(self,step):
         super().set_paras(step)
     
-    def do(self):
-        def do_core():
+    def do(self,websocket):
+        def do_core(websocket):
             # do setup control
             time.sleep(dummy_delay)
-            yield self.set_result('PASS','PASS')
-        yield from super().do(do_core)
+            result = self.set_result('PASS','PASS')
+            self.socketCallback(websocket,'updateResult', {'data': result})
+        return super().do(do_core)
 
 
 class TeardownStep(DigiCenterStep):
@@ -81,12 +87,13 @@ class TeardownStep(DigiCenterStep):
     def set_paras(self,step):
         super().set_paras(step)
 
-    def do(self):
+    def do(self,websocket):
         def do_core():
             # do teardown control
             time.sleep(dummy_delay)
-            yield self.set_result('PASS','PASS')
-        yield from super().do(do_core)
+            result = self.set_result('PASS','PASS')
+            self.socketCallback(websocket,'updateResult', {'data': result})
+        return super().do(do_core)
 
 class TemperatureStep(DigiCenterStep):
     def __init__(self):
@@ -100,8 +107,8 @@ class TemperatureStep(DigiCenterStep):
         self.targetTemp = float(list(filter(lambda name: name['name'] == 'target temperature', paras))[0]['value'])
         self.slope = float(list(filter(lambda name: name['name'] == 'slope', paras))[0]['value'])
 
-    def do(self):
-        def do_core():
+    def do(self,websocket):
+        def do_core(websocket):
             # do digichamber temperature control
             curT = random.random()*0.5 + 23
             tol = 0.5
@@ -109,14 +116,16 @@ class TemperatureStep(DigiCenterStep):
             CL = self.targetTemp-tol
             while curT>UL or curT<CL:
                 time.sleep(1)
-                yield self.set_result(curT, 'Waiting')
+                result = self.set_result(curT,'Waiting')
+                self.socketCallback(websocket,'updateResult', {'data': result})
                 if (self.targetTemp-curT)<0:
                     signSlope = -self.slope
                 else:
                     signSlope = self.slope
                 curT = curT + signSlope/60*1 + random.random()*0.2
-            yield self.set_result(curT, 'PASS')
-        yield from super().do(do_core)
+            result = self.set_result(curT, 'PASS')
+            self.socketCallback(websocket,'updateResult', {'data': result})
+        return super().do(do_core)
 
 
 class HardnessStep(DigiCenterStep):
@@ -135,8 +144,8 @@ class HardnessStep(DigiCenterStep):
         self.mode = list(filter(lambda name: name['name'] == 'mode', paras))[0]['value']
         self.mearTime = float(list(filter(lambda name: name['name'] == 'measuring time', paras))[0]['value'])
 
-    def do(self):
-        def do_core():
+    def do(self,websocket):
+        def do_core(websocket):
             # do digiTest temperature control
             time.sleep(self.mearTime)
             dummpyHard = random.random()*10 + 50
@@ -155,7 +164,7 @@ class WaitingStep(DigiCenterStep):
         paras = step['subitem']['paras']
         self.condTime = float(list(filter(lambda name: name['name'] == 'conditioning time', paras))[0]['value'])
 
-    def do(self):
+    def do(self,websocket):
         def do_core():
             # do time control
             time.sleep(self.condTime/60)
@@ -177,7 +186,7 @@ class ForLoopStartStep(DigiCenterStep):
         self.loopCounts = int(list(filter(lambda name: name['name'] == 'loop counts', paras))[0]['value'])
         self.loopid = list(filter(lambda name: name['name'] == 'loop id', paras))[0]['value']
     
-    def do(self):
+    def do(self,websocket):
         def do_core(counts = self.loopCounts, steps = self.containSteps):
             # do loop control
             for itr in range(counts):
@@ -208,7 +217,7 @@ class ForLoopEndStep(DigiCenterStep):
         self.loopCounts = int(list(filter(lambda name: name['name'] == 'stop on', paras))[0]['value'])
         self.loopid = list(filter(lambda name: name['name'] == 'loop id', paras))[0]['value']
     
-    def do(self):
+    def do(self,websocket):
         def do_core():
             self.loopIter += 1
             if self.loopIter >= self.loopCounts:
@@ -231,7 +240,7 @@ class SubProgramStep(DigiCenterStep):
         paras = step['subitem']['paras']
         self.prog_path = list(filter(lambda name: name['name'] == 'path', paras))[0]['value']
 
-    def do(self):
+    def do(self,websocket):
         def do_core():
             # do sub program control
             time.sleep(dummy_delay)

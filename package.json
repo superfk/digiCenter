@@ -59,11 +59,9 @@
     }
   },
   "dependencies": {
-    "app-root-path": "^2.2.1",
     "bootstrap": "^4.3.1",
     "d3": "^5.14.2",
     "electron-progressbar": "^1.2.0",
-    "electron-root-path": "^1.0.9",
     "electron-settings": "^3.2.0",
     "electron-shortcut-normalizer": "^1.0.0",
     "highlight.js": "^9.15.9",
@@ -73,13 +71,10 @@
     "popper": "^1.0.1",
     "popper.js": "^1.15.0",
     "uikit": "^3.2.3",
-    "websocket": "^1.0.30",
-    "ws": "^7.2.0",
-    "zeromq": "^5.1.0",
-    "zerorpc": "github:fyears/zerorpc-node"
+    "ws": "^7.2.1"
   },
   "devDependencies": {
-    "electron": "^1.8.8",
+    "electron": "^6.0.0",
     "electron-builder": "^21.2.0",
     "electron-packager": "^8.7.2",
     "electron-rebuild": "^1.8.8",

@@ -1,7 +1,6 @@
 const { ipcRenderer } = require('electron');
 const app = require('electron').remote.app;
 const path = require('path');
-const appRoot = require('electron-root-path').rootPath;
 var moment = require('moment');
 var systime_hook = document.getElementById('systime');
 // const zerorpc = require("zerorpc");
@@ -309,38 +308,3 @@ function autoUpdateLang(){
 
 }
 
-
-/*************************************************************
- * websocket server process
- * the purpose to use websocket is zeorpc is bad in get message from server.
- * if the server need to actively send message to client, using websocket
- *************************************************************/
-var http = require('http');
-var ws = require('websocket').server;
-
-// 建立server 並監聽Port 12345
-var PORT = 12345;
-var server = http.createServer().listen(PORT)
-
-// 產生websocketServer
-webSocketServer = new ws({
-    httpServer: server
-});
-
-//當使用者連入時 觸發此事件
-webSocketServer.on('request', function(request) {
-    var connection = request.accept('echo-protocol', request.origin);
-
-    //當websocket server收到訊息時 觸發此事件
-    connection.on('message', function(message) {
-        console.log(message)
-        connection.send("我收到了: " + message.utf8Data);
-        var obj = JSON.parse(message.utf8Data);
-        console.log(obj);
-    });
-
-    //當使用者socket連線中斷時 例如：關閉瀏覽器 觸發此事件
-    connection.on('close', function(reasonCode, description) {
-        console.log('Close');
-    });
-});

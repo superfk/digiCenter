@@ -1,11 +1,13 @@
 const {ipcRenderer} = require("electron");
-const app = require('electron').remote.app
-const zerorpc = require("zerorpc");
+// const app = require('electron').remote.app
+// const zerorpc = require("zerorpc");
 const d3 = require('d3');
-const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
-// create zerorpc instance
-client.connect("tcp://127.0.0.1:4242");
+// const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
+// // create zerorpc instance
+// client.connect("tcp://127.0.0.1:4242");
 
+const WebSocket = require('ws');
+let ws = new WebSocket('ws://127.0.0.1:5678');
 
 // **************************************
 // variable define
@@ -212,38 +214,70 @@ function updateValue(locationID, val){
 
       Plotly.update(locationID, data_update);
 }
+
+
+// **************************************
+// websocket functions
+// **************************************
+
+ws.on('open', function open() { 
+  console.log('websocket in run connected')
+  ws.send(parseCmd('hello'))
+  init();
+});
+
+ws.on('message', function incoming(msg) {
+
+  try{
+    msg = JSON.parse(msg)
+    let cmd = msg.cmd;
+    let data = msg.data;
+    switch(cmd) {
+      case 'server_drive_send':
+        console.log('got server data ' + data)
+        break;
+      case 'update_sequence':
+        updateSequence(data)
+        break;
+      case 'update_sys_default_config':
+        updateServerSeqFolder(data);
+        break;
+      case 'update_cur_status':
+        updateValue('actualTempGauge', data.temp);
+        updateValue('actualHumGauge', data.hum);
+        break;
+      case 'updateSingleStep':
+        updateSingleStep(data);
+        break;
+      default:
+        console.log('Not found this cmd' + cmd)
+        break;
+    }
+  }catch(e){
+    console.error(e)
+  }
   
+});
+
+ws.on('error', (err)=>{
+  console.error(err);
+  ws = new WebSocket('ws://127.0.0.1:5678');
+})
+
 // **************************************
 // event functions
 // **************************************
 
 loadSeqBtn.addEventListener('click', ()=>{
-    loadSeqFromServer()
+    loadSeqFromServer();
 })
 
 ipcRenderer.on('load-seq-run', (event, path) => {
 
   $('#batchInfoForm input[name=SeqName]').val(path)
 
-    client.invoke('run_cmd',parseCmd('load_seq',{path: path}),(err, resObj)=>{
-        if(err){
-            console.error(err)
-        }else{
-            logResponse(resObj);
-            let {error,res} = resObj;
-            console.log(res)
-            if(!error){
-                // do something
-                test_flow.setup = res.setup;
-                test_flow.main = res.main;
-                seq = res.main
-                test_flow.loop = res.loop;
-                test_flow.teardown = res.teardown;
-                sortSeq();
-            }
-            
-        }
-    });
+  ws.send(parseCmd('run_cmd',parseCmd('load_seq',{path: path})));
+
 });
 
 $( window ).resize(function() {
@@ -253,88 +287,66 @@ $( window ).resize(function() {
 startSeqBtn.addEventListener('click',()=>{
   $('#start_test').css('pointer-events', 'none');
   $('#testSeqContainer li').css('background-color', 'white');
-  client.invoke('run_seq',(err, res)=>{
-      if(err){
-          console.error(err)
-      }else{
-          
-          if (typeof(res) !== 'undefined'){
-            console.log(res)
-            let stepid = res.stepid;
-            let stepname = res.name;
-            let value = res.value;
-            let result = res.status;
-
-            let curstep = $('#testSeqContainer').find(`[data-stepid='${stepid}']`);
-            if (result == 'PASS'){
-              curstep.css('background-color', 'lightgreen');
-            }else if (result == 'Waiting'){
-              curstep.css('background-color', 'orange');
-            }else{
-              curstep.css('background-color', 'red');
-            }
-            
-            if(stepid==9999){
-              $('#start_test').css('pointer-events', 'auto');
-            }
-
-          }        
-      }
-  });
-
+  ws.send(parseCmd('run_seq',''));
 })
+
 
 // **************************************
 // general functions
 // **************************************
 function parseCmd(sriptName, data=null){
-  return JSON.stringify({'scriptName':sriptName, 'data':data})
+  return JSON.stringify({'cmd':sriptName, 'data':data})
 }
 
-function logResponse(resObj){
-  let isError = resObj.error;
-  let response = resObj.res;
-  if(isError){
-      console.log('error:');
-      console.log(response);
-  }else{
-      console.log('response:');
-      console.log(response);
-  }
+function logWsError(error){
+  console.log('Error when sending websocket message');
+  console.error(error);
+}
+
+function init(){
+  ws.send(parseCmd('run_cmd',parseCmd('get_default_seq_path')));
+}
+
+function updateServerSeqFolder(path){
+  defaultSeqPath = path;
 }
 
 function loadSeqFromServer(){
-  client.invoke('run_cmd',parseCmd('get_default_seq_path'),(err, resObj)=>{
-      if(err){
-          console.error(err)
-      }else{
-          logResponse(resObj);
-          let {error,res} = resObj;
-          if(!error){
-              // do something
-              defaultSeqPath = res;
-              ipcRenderer.send('open-file-dialog',defaultSeqPath,'load-seq-run')
-          }
-      }
-  });
-  
+  ipcRenderer.send('open-file-dialog',defaultSeqPath,'load-seq-run')
 };
 
 let monitorValue = setInterval(()=>{
-  client.invoke('run_cmd',parseCmd('get_cur_temp_and_humi'),(err, resObj)=>{
-    if(err){
-        console.error(err)
-    }else{
-        let {error,res} = resObj;
-        if(!error){
-            // do something
-            updateValue('actualTempGauge', res.temp);
-            updateValue('actualHumGauge', res.hum);
-        }
-    }
-  });
+  ws.send(parseCmd('run_cmd',parseCmd('get_cur_temp_and_humi')));
 },1000)
 
+function updateSequence(res){
+  test_flow.setup = res.setup;
+  test_flow.main = res.main;
+  seq = res.main
+  test_flow.loop = res.loop;
+  test_flow.teardown = res.teardown;
+  sortSeq();
+}
+
+function updateSingleStep(res){
+  let stepid = res.stepid;
+  let stepname = res.name;
+  let value = res.value;
+  let result = res.status;
+
+  let curstep = $('#testSeqContainer').find(`[data-stepid='${stepid}']`);
+  if (result == 'PASS'){
+    curstep.css('background-color', 'lightgreen');
+  }else if (result == 'Waiting'){
+    curstep.css('background-color', 'orange');
+  }else{
+    curstep.css('background-color', 'red');
+  }
+  
+  if(stepid==9999){
+    $('#start_test').css('pointer-events', 'auto');
+  }
+}
 
 // **************************************
 // Sequence render functions
