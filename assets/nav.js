@@ -11,18 +11,19 @@ document.body.addEventListener('click', (event) => {
 })
 
 function handleSectionTrigger (event) {
-  hideAllSectionsAndDeselectButtons()
+  // hideAllSectionsAndDeselectButtons()
 
-  // Highlight clicked button and show view
-  event.target.classList.add('is-selected')
+  // // Highlight clicked button and show view
+  // event.target.classList.add('is-selected')
 
-  // Display the current section
-  const sectionId = `${event.target.dataset.section}-section`
-  document.getElementById(sectionId).classList.add('is-shown')
+  // // Display the current section
+  // const sectionId = `${event.target.dataset.section}-section`
+  // console.log(sectionId)
+  // document.getElementById(sectionId).classList.add('is-shown')
 
-  // Save currently active button in localStorage
-  const buttonId = event.target.getAttribute('id')
-  settings.set('activeSectionButtonId', buttonId)
+  // // Save currently active button in localStorage
+  // const buttonId = event.target.getAttribute('id')
+  // settings.set('activeSectionButtonId', buttonId)
 }
 
 function activateDefaultSection () {
@@ -71,3 +72,32 @@ showMainContent()
 // } else {
 //   activateDefaultSection()
 // }
+
+function addClassProcess(id){
+  let target = $('#'+id);
+  hideAllSectionsAndDeselectButtons();
+  // Highlight clicked button and show view
+  target.addClass('is-selected');
+
+  // Display the current section
+  // const sectionId = `${e.target.dataset.section}-section`
+  const sectionId = target.data('section')+'-section';
+  console.log(sectionId);
+  document.getElementById(sectionId).classList.add('is-shown');
+}
+
+$('#button-config').on('click',(e)=>{
+  addClassProcess('button-config');
+})
+
+$('#button-seqEditor').on('click',(e)=>{
+  addClassProcess('button-seqEditor');
+})
+
+$('#button-run').on('click',(e)=>{
+  addClassProcess('button-run');
+})
+
+$('#button-report').on('click',(e)=>{
+  addClassProcess('button-report');
+})

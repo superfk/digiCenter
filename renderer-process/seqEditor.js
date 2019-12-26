@@ -4,9 +4,8 @@ const app = require('electron').remote.app
 // const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
 // // create zerorpc instance
 // client.connect("tcp://127.0.0.1:4242");
-console.log('jojo')
-const WebSocket = require('ws');
-const ws = new WebSocket('ws://127.0.0.1:5678');
+let tools = require('../assets/shared_tools');
+let ws;
 
 const mainContainer = document.getElementById('mainContainer');
 const seqContainer = document.getElementById('seqContainer');
@@ -67,50 +66,68 @@ let alwayIncrLoopColorIdx = 0;
 // websocket functions
 // **************************************
 
-ws.on('open', function open() { 
-    console.log('websocket in seqEditor connected')
-});
-  
-ws.on('message', function incoming(msg) {
-
-try{
-    msg = JSON.parse(msg)
-    console.log(msg)
-    let cmd = msg.cmd;
-    let data = msg.data;
-    switch(cmd) {
-    case 'update_sequence':
-        updateSequence(data)
-        break;
-    case 'update_sys_default_config':
-        updateServerSeqFolder(data);
-        break;
-    default:
-        console.log('Not found this cmd' + cmd)
+function connect() {
+    try{
+        const WebSocket = require('ws');
+        ws = new WebSocket('ws://127.0.0.1:5678');
+    }catch(e){
+        console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
     }
-}catch(e){
-    console.error(e)
+    ws.on('open', function open() { 
+        console.log('websocket in seqEditor connected');
+        initSeq();
+    });
+    
+    ws.on('message', function incoming(message) {
+
+    try{
+        msg = tools.parseServerMessage(message);
+        let cmd = msg.cmd;
+        let data = msg.data;
+        switch(cmd) {
+        case 'update_sequence':
+            updateSequence(data)
+            break;
+        case 'update_sys_default_config':
+            updateServerSeqFolder(data);
+            break;
+        default:
+            console.log('Not found this cmd' + cmd)
+        }
+    }catch(e){
+        console.error(e)
+    }
+
+    });
+    
+    ws.onclose = function(e) {
+        console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+        setTimeout(function() {
+        connect();
+        }, 1000);
+    };
+
+    ws.onerror = function(err) {
+    console.error('Socket encountered error: ', err.message, 'Closing socket');
+    ws.close();
+    };
 }
 
-});
+connect();
+  
 
 // **************************************
 // general functions
 // **************************************
 
-function parseCmd(sriptName, data=null){
-    return JSON.stringify({'cmd':sriptName, 'data':data})
-}
-
-function logWsError(error){
-    console.log('Error when sending websocket message');
-    console.error(error);
-  }
-
 createSeq.addEventListener('click', ()=>{
     seq = [];
     initSeq();
 })
+
+function updateServerSeqFolder(path){
+    defaultSeqPath = path;
+}
 
 openSeq.addEventListener('click', ()=>{
     loadSeqFromServer()
@@ -473,7 +490,8 @@ function generateEndSeq() {
 function initSeq() {
     seqContainer.innerHTML = generateStartSeq() + generateEndSeq();
     alwayIncrLoopColorIdx=0;
-    ws.send(parseCmd('run_cmd',parseCmd('ini_seq')));    
+    ws.send(tools.parseCmd('run_cmd',tools.parseCmd('ini_seq')));
+    ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_default_seq_path')));
 }
 
 function updateServerSeqFolder(path){
@@ -489,11 +507,11 @@ function loadSeqFromServer(){
 };
 
 ipcRenderer.on('save-seq', (event, path) => {
-    ws.send(parseCmd('run_cmd',parseCmd('save_seq',{path: path,seq: test_flow})));
+    ws.send(tools.parseCmd('run_cmd',tools.parseCmd('save_seq',{path: path,seq: test_flow})));
 })
 
 ipcRenderer.on('load-seq-editor', (event, path) => {
-    ws.send(parseCmd('run_cmd',parseCmd('load_seq',{path: path})));
+    ws.send(tools.parseCmd('run_cmd',tools.parseCmd('load_seq',{path: path})));
 });
 
 function updateSequence(res){
@@ -657,8 +675,6 @@ subprogBox.addEventListener('click', () =>{
     appendSeq(step);
 
 })
-
-initSeq();
 
 let preArray = [];
 let postArray = [];

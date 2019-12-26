@@ -7,6 +7,7 @@ const {ipcMain, dialog, shell} = require('electron')
 const appRoot = app.getAppPath();
 console.log(appRoot)
 const ProgressBar = require('electron-progressbar');
+let tools = require('./assets/shared_tools');
 // const zerorpc = require("zerorpc");
 
 // // zerorpc client
@@ -16,10 +17,6 @@ const ProgressBar = require('electron-progressbar');
 // let socket = require('socket.io-client')('http://127.0.0.1:5678/test',{transports:['WebSocket']});
 let ws;
 
-function parseCmd(sriptName, data=null){
-  return JSON.stringify({'cmd':sriptName, 'data':data})
-}
-
 function connect() {
   try{
     const WebSocket = require('ws');
@@ -28,25 +25,16 @@ function connect() {
     console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
   }
 
-  ws.onopen = function() {
+  ws.on('open', ()=> {
     console.log('websocket in main connected')
     init_server();
-  };
+  });
 
-  ws.onmessage = function(message) {
+  ws.on('message',(message)=>{
     try{
-      console.log('cmd is ' + message.data);
-      console.log(typeof(message.data));
-      msg = message.data;
-      if(typeof(msg)=='string'){
-        msg = JSON.parse(msg)
-      }else{
-
-      }
+      msg = tools.parseServerMessage(message);
       let cmd = msg.cmd;
       let data = msg.data;
-      console.log(cmd)
-      console.log(data)
       switch(cmd) {
         case 'server_drive_send':
           console.log('got server data ' + data)
@@ -68,7 +56,7 @@ function connect() {
     }catch(e){
       console.error(e)
     }
-  };
+  });
 
   ws.onclose = function(e) {
     console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
@@ -151,8 +139,8 @@ const exitPyProc = () => {
 // init config and database
 var init_server = function(){
   var curPath = path.join(appRoot, 'config.json')
-  ws.send(parseCmd('load_sys_config',curPath));
-  ws.send(parseCmd('backend_init'));
+  ws.send(tools.parseCmd('load_sys_config',curPath));
+  ws.send(tools.parseCmd('backend_init'));
   // ws.send(JSON.stringify({cmd:"load_sys_config", data:'curPath'}), (res) => {
   //   console.log(res);
   //   ws.send(JSON.stringify({cmd:"backend_init", data:'curPath'}), (res,status) => {

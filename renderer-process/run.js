@@ -5,15 +5,14 @@ const d3 = require('d3');
 // const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
 // // create zerorpc instance
 // client.connect("tcp://127.0.0.1:4242");
-
-const WebSocket = require('ws');
-let ws = new WebSocket('ws://127.0.0.1:5678');
+let tools = require('../assets/shared_tools');
+let ws
 
 // **************************************
 // variable define
 // **************************************
 let h_data_x = Array.from({length: 40}, () => Math.floor(Math.random() * 40));
-let h_data_y = Array.from({length: 40}, () => Math.floor(Math.random() * 40));
+let h_data_y = [];
 let datapoints_x = Array.from({length: 40}, () => Math.floor(Math.random() * 40));
 let datapoints_y = Array.from({length: 40}, () => Math.floor(Math.random() * 40));
 let defaultSeqPath = null;
@@ -219,50 +218,75 @@ function updateValue(locationID, val){
 // **************************************
 // websocket functions
 // **************************************
-
-ws.on('open', function open() { 
-  console.log('websocket in run connected')
-  ws.send(parseCmd('hello'))
-  init();
-});
-
-ws.on('message', function incoming(msg) {
-
+function connect() {
   try{
-    msg = JSON.parse(msg)
-    let cmd = msg.cmd;
-    let data = msg.data;
-    switch(cmd) {
-      case 'server_drive_send':
-        console.log('got server data ' + data)
-        break;
-      case 'update_sequence':
-        updateSequence(data)
-        break;
-      case 'update_sys_default_config':
-        updateServerSeqFolder(data);
-        break;
-      case 'update_cur_status':
-        updateValue('actualTempGauge', data.temp);
-        updateValue('actualHumGauge', data.hum);
-        break;
-      case 'updateSingleStep':
-        updateSingleStep(data);
-        break;
-      default:
-        console.log('Not found this cmd' + cmd)
-        break;
-    }
+    const WebSocket = require('ws');
+    ws = new WebSocket('ws://127.0.0.1:5678');
   }catch(e){
-    console.error(e)
+    console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
   }
-  
-});
 
-ws.on('error', (err)=>{
-  console.error(err);
-  ws = new WebSocket('ws://127.0.0.1:5678');
-})
+  ws.on('open', function open() { 
+    console.log('websocket in run connected')
+    ws.send(tools.parseCmd('hello'))
+    init();
+  });
+
+  ws.on('message', function incoming(message) {
+
+    try{
+      msg = tools.parseServerMessage(message);
+      let cmd = msg.cmd;
+      let data = msg.data;
+      switch(cmd) {
+        case 'server_drive_send':
+          console.log('got server data ' + data)
+          break;
+        case 'update_sequence':
+          updateSequence(data)
+          break;
+        case 'update_sys_default_config':
+          updateServerSeqFolder(data);
+          break;
+        case 'update_cur_status':
+          updateValue('actualTempGauge', data.temp);
+          updateValue('actualHumGauge', data.hum);
+          break;
+        case 'update_step_result':
+          console.log(data)
+          updateSingleStep(data);
+          break;
+        case 'update_cursor':
+          console.log(data);
+          break;
+        case 'end_of_test':
+          console.log('end of test')
+          endOfTest(data)
+          break;
+        default:
+          console.log('Not found this cmd' + cmd)
+          break;
+      }
+    }catch(e){
+      console.error(e)
+    }
+    
+  });
+
+  ws.onclose = function(e) {
+    console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+    setTimeout(function() {
+      connect();
+    }, 1000);
+  };
+
+  ws.onerror = function(err) {
+    console.error('Socket encountered error: ', err.message, 'Closing socket');
+    ws.close();
+  };
+}
+
+connect()
 
 // **************************************
 // event functions
@@ -276,7 +300,7 @@ ipcRenderer.on('load-seq-run', (event, path) => {
 
   $('#batchInfoForm input[name=SeqName]').val(path)
 
-  ws.send(parseCmd('run_cmd',parseCmd('load_seq',{path: path})));
+  ws.send(tools.parseCmd('run_cmd',tools.parseCmd('load_seq',{path: path})));
 
 });
 
@@ -287,24 +311,19 @@ $( window ).resize(function() {
 startSeqBtn.addEventListener('click',()=>{
   $('#start_test').css('pointer-events', 'none');
   $('#testSeqContainer li').css('background-color', 'white');
-  ws.send(parseCmd('run_seq',''));
+  clearInterval(monitorValue);
+  ws.send(tools.parseCmd('run_seq',''));
 })
 
+stopSeqBtn.addEventListener('click',()=>{
+  ws.send(tools.parseCmd('stop_seq',''));
+})
 
 // **************************************
 // general functions
 // **************************************
-function parseCmd(sriptName, data=null){
-  return JSON.stringify({'cmd':sriptName, 'data':data})
-}
-
-function logWsError(error){
-  console.log('Error when sending websocket message');
-  console.error(error);
-}
-
 function init(){
-  ws.send(parseCmd('run_cmd',parseCmd('get_default_seq_path')));
+  ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_default_seq_path')));
 }
 
 function updateServerSeqFolder(path){
@@ -315,9 +334,11 @@ function loadSeqFromServer(){
   ipcRenderer.send('open-file-dialog',defaultSeqPath,'load-seq-run')
 };
 
-let monitorValue = setInterval(()=>{
-  ws.send(parseCmd('run_cmd',parseCmd('get_cur_temp_and_humi')));
-},1000)
+function monitorFunction(){
+  ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_cur_temp_and_humi')));
+}
+
+let monitorValue = setInterval(monitorFunction,1000);
 
 function updateSequence(res){
   test_flow.setup = res.setup;
@@ -334,7 +355,11 @@ function updateSingleStep(res){
   let value = res.value;
   let result = res.status;
 
+  updateStepByCat(res);
+
   let curstep = $('#testSeqContainer').find(`[data-stepid='${stepid}']`);
+  let curResult = $(curstep).find('.stepResult');
+  curResult.html(value)
   if (result == 'PASS'){
     curstep.css('background-color', 'lightgreen');
   }else if (result == 'Waiting'){
@@ -343,9 +368,37 @@ function updateSingleStep(res){
     curstep.css('background-color', 'red');
   }
   
-  if(stepid==9999){
-    $('#start_test').css('pointer-events', 'auto');
+}
+
+function updateStepByCat(res){
+  let stepid = res.stepid;
+  let stepname = res.name;
+  let value = res.value;
+  let result = res.status;
+
+  switch(stepname) {
+    case 'ramp':
+      updateValue('actualTempGauge', value);
+      break;
+    case 'measure':
+      h_data_y.push(value)
+      updateValue('hardness_graph', value);
+      break;
+    case 'time':
+      break;
+    default:
+      console.log('Not found this stepname: ' + stepname)
+      break;
   }
+
+}
+
+function endOfTest(reason){
+  clearInterval(monitorValue);
+  console.log(reason);
+  monitorValue = setInterval(monitorFunction,1000);
+  $('#start_test').css('pointer-events', 'auto');
+  ipcRenderer.send('show-info-alert','Test Finished',reason);
 }
 
 // **************************************
@@ -500,10 +553,11 @@ function generateSeq() {
       curstr += `
       <li data-stepid=${index} data-sortable=true class='w3-bar'>
           
-              <a href="#" style="font-size:14px;width:400px;" class='w3-bar-item'>
+              <a href="#" style="font-size:14px;width:450px;" class='w3-bar-item'>
                   ${genIconByCat(cat,subitem['paras'])}${stepTitles[index]}${stepParaText}
               </a>
               <div class="w3-bar-item w3-right lopCount">00</div>
+              <div class="w3-bar-item w3-right stepResult"></div>
       </li>
       `;
   });

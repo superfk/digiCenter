@@ -4,6 +4,8 @@ import os
 import productlib.digiCenter.digiCenter_seq as seqClass
 import random
 import asyncio
+import types
+import threading, queue
 
 class DigiChamberProduct(pd_product.Product):
     def __init__(self, pd_name,seqPath=r"C:\\data_exports",msg_callback=None):
@@ -12,9 +14,16 @@ class DigiChamberProduct(pd_product.Product):
         self.setDefaultSeqFolder(seqPath)
         self.stepsClass = []
         self.mainClass = []
-        self.dummyT = 23
-        self.dummyH = 50
+        self.dummyT_init = 23
+        self.dummyT_decRate = 0.1
+        self.curT = 23
+        self.dummyH_init = 50
+        self.curH = 50
         self.socketCallback = msg_callback
+        self.loop = None
+        self.ws = None
+        self.testStop = False
+        self.interruptStop = False
 
     async def run_script(self,websocket, scriptName, data=None):
         if scriptName=='ini_seq':
@@ -24,7 +33,7 @@ class DigiChamberProduct(pd_product.Product):
         elif scriptName=='load_seq':
             await self.load_seq(websocket,data['path'])
         elif scriptName=='run_seq':
-            await self.create_seq(websocket)
+            await self.create_seq()
             await self.run_seq(websocket)
         elif scriptName=='get_default_seq_path':
             await self.socketCallback(websocket, 'update_sys_default_config', self.default_seq_folder)
@@ -53,7 +62,7 @@ class DigiChamberProduct(pd_product.Product):
         self.default_seq_folder = path
         util.newPathIfNotExist(self.default_seq_folder)
     
-    def create_seq(self,websocket):
+    def create_seq(self):
         setup = self.script['setup']
         main = self.script['main']
         teardown = self.script['teardown']
@@ -108,17 +117,25 @@ class DigiChamberProduct(pd_product.Product):
         self.stepsClass.append(stepObj)
 
     async def run_seq(self,websocket):
+        self.stopMsgQueue = queue.Queue()
+        self.testStop=False
+        self.interruptStop=False
+        self.create_result_callback_loop()
+        self.ws = websocket
         totalStepsCounts = len(self.stepsClass)
+        print(totalStepsCounts)
         cursor = 0
-        while cursor < totalStepsCounts:
+        while cursor < totalStepsCounts and not self.testStop:
+            print('current cursor: {}'.format(cursor))
             step = self.stepsClass[cursor]
+            step.set_result_callback(self.sendResultCallback)
+            step.stopMsgQueue = self.stopMsgQueue
             await self.socketCallback(websocket,'update_cursor',cursor) 
             if step.category == 'loop' and step.itemname == 'loop end':
-                testResult = step.do(websocket)
-                await self.socketCallback(websocket,'update-step-result',testResult) 
+                testResult = step.do()
                 if not step.loopDone:
                     # starting after loop start
-                    startIdx, endIdx = await self.findLoopPair(step.loopid, self.stepsClass)
+                    startIdx, endIdx = self.findLoopPair(step.loopid, self.stepsClass)
                     cursor = startIdx + 1
                 else:
                     '''reset loop because if another loop run this loop again 
@@ -126,13 +143,27 @@ class DigiChamberProduct(pd_product.Product):
                     step.resetLoop()
                     cursor += 1
             else:
-                testResult = step.do(websocket)
-                await self.socketCallback(websocket,'update-step-result',testResult) 
+                testResult = step.do()
                 if testResult['status'] in ['PASS','FAIL']:
                     cursor += 1
+            if cursor >= totalStepsCounts:
+                self.testStop=True
+        try:
+            if self.interruptStop:
+                item = self.stopMsgQueue.get()
+                self.stopMsgQueue.task_done()
+                print('reached end_of_test, interrupted')
+                await self.socketCallback(websocket,'end_of_test','test interrupted')
+            else:
+                print('reached end_of_test, all done')
+                await self.socketCallback(websocket,'end_of_test','test all done') 
+            self.loop.stop()
+            
+        except Exception as e:
+            print(e)             
 
     async def get_cur_temp_and_humi(self, websocket):
-        status = {'temp':random.random()*0.2 + self.dummyT, 'hum':random.random()*1 + self.dummyH}
+        status = {'temp':random.random()*0.2 + self.curT, 'hum':random.random()*1 + self.curH}
         await self.socketCallback(websocket,'update_cur_status',status)
 
     def findLoopPair(self, loopid, mainClass):
@@ -143,3 +174,21 @@ class DigiChamberProduct(pd_product.Product):
                 elif s.itemname == 'loop end' and s.loopid == loopid:
                     loopEndIndex = i
                     return (loopStarIndex,loopEndIndex)
+    
+    def create_result_callback_loop(self):
+        self.loop = asyncio.new_event_loop()
+        def f(loop):
+            asyncio.set_event_loop(self.loop)
+            self.loop.run_forever()
+        t = threading.Thread(target=f, args=(self.loop,))
+        t.start()
+
+    def sendResultCallback(self,result):
+        future = asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,'update_step_result',result), self.loop)
+    
+    def set_test_stop(self):
+        self.testStop=True
+        self.interruptStop=True
+        self.stopMsgQueue.put(True)
+
+    

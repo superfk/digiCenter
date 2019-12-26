@@ -142,7 +142,15 @@ class PyServerAPI(object):
                 elif cmd == 'run_cmd':
                     await self.run_cmd(websocket,data)
                 elif cmd == 'run_seq':
-                    await self.run_seq(websocket)
+                    loop = asyncio.new_event_loop()
+                    def f(loop):
+                        asyncio.set_event_loop(loop)
+                        loop.run_forever()
+                    t = threading.Thread(target=f, args=(loop,))
+                    t.start()
+                    future = asyncio.run_coroutine_threadsafe(self.run_seq(websocket), loop)
+                elif cmd == 'stop_seq':
+                    self.stop_seq()
                 elif cmd == 'export_test_data':
                     tabledata = data['tabledata']
                     path = data['path']
@@ -160,7 +168,7 @@ class PyServerAPI(object):
             self.lg.debug(e)
             await self.unregister(websocket)
 
-    async def sendMsg(self, websocket, cmd, data=''):
+    async def sendMsg(self, websocket, cmd, data=None):
         msg = {'cmd': cmd, 'data': data}
         print('server sent msg: {}'.format(msg))
         try:
@@ -326,8 +334,12 @@ class PyServerAPI(object):
             self.lg.error(e)
     
     async def run_seq(self, websocket):
-        await asyncio.wait(self.productProcess.create_seq(websocket))
-        await asyncio.wait(self.productProcess.run_seq(websocket))  
+        self.productProcess.create_seq()
+        await self.productProcess.run_seq(websocket)
+
+    def stop_seq(self):
+        print('execute stop seq')
+        self.productProcess.set_test_stop()
 
     async def export_test_data(self, websocket,tableData, path='testdata', options=['csv']):
         try:

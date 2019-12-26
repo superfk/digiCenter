@@ -3,8 +3,13 @@ from datetime import datetime
 import time
 import threading
 import random
+import asyncio
+import json
+import types
+import queue
 
 dummy_delay = 0.1
+
 
 class DigiCenterStep(object):
     def __init__(self):
@@ -13,12 +18,14 @@ class DigiCenterStep(object):
         self.stepid = None
         self.contained_steps = []
         self.paras = []
-        self.result = {'stepid':0,'name':None, 'value': None, 'status': 'FAIL'}
+        self.result = {'stepid':0,'name':None, 'value': None, 'status': 'FAIL','startT':None,'endT':None,'exeT':0}
         self.enabled = True
         self.startTime = None
         self.endTime = None
         self.insideLoop = False
         self.socketCallback = None
+        self.resultCallback = None
+        self.stopMsgQueue = False
 
     def set_paras(self,step):
         self.stepid = step['id']
@@ -26,19 +33,24 @@ class DigiCenterStep(object):
         self.itemname = step['subitem']['item']
         self.enabled = step['subitem']['enabled']
     
-    def do(self,websocket,step2run=None, asyn=False):
-        print('cat: {}, itemname: {}, id: {}'.format(self.category,self.itemname,self.stepid))
-        self.set_startTime()
-        self.set_endTime()
-        if asyn:
-            thred = threading.Thread(target=step2run,args=[websocket,])
-            thred.start()
-        else:
-            step2run(websocket)
+    @staticmethod
+    def deco(func):
+        def wrapper(self,*args ):
+            print('start of do process')
+            self.result = {'stepid':0,'name':None, 'value': None, 'status': 'FAIL','startT':None,'endT':None,'exeT':0}
+            self.set_startTime()
+            self.result['startT']=self.startTime
+            self.result = func(self,*args)
             self.set_endTime()
-            self.get_test_interval()
-        self.socketCallback(websocket,'updateResult', {'data': self.result})
-        return self.get_result()
+            self.result['endT']=self.endTime
+            self.result['exeT']=self.endTime-self.startTime
+            self.resultCallback(self.result)
+            print('end of do process')
+            return self.result 
+        return wrapper
+    
+    def do(self):
+        return self.result
 
     def get_result(self):
         return self.result
@@ -63,6 +75,9 @@ class DigiCenterStep(object):
 
     def set_sockect_callback(self,socketCallback):
         self.socketCallback = socketCallback
+    
+    def set_result_callback(self,resultCallback):
+        self.resultCallback = resultCallback
 
 class SetupStep(DigiCenterStep):
     def __init__(self):
@@ -71,13 +86,11 @@ class SetupStep(DigiCenterStep):
     def set_paras(self,step):
         super().set_paras(step)
     
-    def do(self,websocket):
-        def do_core(websocket):
-            # do setup control
-            time.sleep(dummy_delay)
-            result = self.set_result('PASS','PASS')
-            self.socketCallback(websocket,'updateResult', {'data': result})
-        return super().do(do_core)
+    @DigiCenterStep.deco
+    def do(self):
+        time.sleep(dummy_delay)
+        self.set_result('PASS','PASS')
+        return self.result
 
 
 class TeardownStep(DigiCenterStep):
@@ -87,13 +100,11 @@ class TeardownStep(DigiCenterStep):
     def set_paras(self,step):
         super().set_paras(step)
 
-    def do(self,websocket):
-        def do_core():
-            # do teardown control
-            time.sleep(dummy_delay)
-            result = self.set_result('PASS','PASS')
-            self.socketCallback(websocket,'updateResult', {'data': result})
-        return super().do(do_core)
+    @DigiCenterStep.deco
+    def do(self):
+        time.sleep(dummy_delay)
+        self.set_result('PASS','PASS')
+        return self.result
 
 class TemperatureStep(DigiCenterStep):
     def __init__(self):
@@ -106,26 +117,32 @@ class TemperatureStep(DigiCenterStep):
         paras = step['subitem']['paras']
         self.targetTemp = float(list(filter(lambda name: name['name'] == 'target temperature', paras))[0]['value'])
         self.slope = float(list(filter(lambda name: name['name'] == 'slope', paras))[0]['value'])
-
-    def do(self,websocket):
-        def do_core(websocket):
-            # do digichamber temperature control
-            curT = random.random()*0.5 + 23
-            tol = 0.5
-            UL = self.targetTemp+tol
-            CL = self.targetTemp-tol
-            while curT>UL or curT<CL:
-                time.sleep(1)
-                result = self.set_result(curT,'Waiting')
-                self.socketCallback(websocket,'updateResult', {'data': result})
-                if (self.targetTemp-curT)<0:
-                    signSlope = -self.slope
-                else:
-                    signSlope = self.slope
-                curT = curT + signSlope/60*1 + random.random()*0.2
-            result = self.set_result(curT, 'PASS')
-            self.socketCallback(websocket,'updateResult', {'data': result})
-        return super().do(do_core)
+    
+    @DigiCenterStep.deco
+    def do(self):
+        # do digichamber temperature control
+        curT = random.random()*0.5 + 23
+        tol = 0.5
+        UL = self.targetTemp+tol
+        CL = self.targetTemp-tol
+        while curT>UL or curT<CL:
+            if self.stopMsgQueue.qsize()>0:
+                # stop process immediately
+                break
+            time.sleep(1)
+            self.set_result(round(curT,1),'Waiting')
+            self.resultCallback(self.result)
+            # yield self.result
+            if (self.targetTemp-curT)<0:
+                signSlope = -self.slope
+            else:
+                signSlope = self.slope
+            print('signSlope: {}'.format(signSlope))
+            curT = curT + signSlope/60*1 + random.random()*0.02
+            if curT<=UL and curT>=CL:
+                break
+        self.set_result(round(curT,1),'PASS')
+        return self.result
 
 
 class HardnessStep(DigiCenterStep):
@@ -134,7 +151,7 @@ class HardnessStep(DigiCenterStep):
         self.port = None
         self.method = None
         self.mode = None
-        self.mearTime = None
+        self.mearTime = None # sec
 
     def set_paras(self,step):
         super().set_paras(step)
@@ -144,13 +161,24 @@ class HardnessStep(DigiCenterStep):
         self.mode = list(filter(lambda name: name['name'] == 'mode', paras))[0]['value']
         self.mearTime = float(list(filter(lambda name: name['name'] == 'measuring time', paras))[0]['value'])
 
-    def do(self,websocket):
-        def do_core(websocket):
-            # do digiTest temperature control
-            time.sleep(self.mearTime)
+    @DigiCenterStep.deco
+    def do(self):
+        # do digiTest temperature control
+        targetTime = self.mearTime
+        countdownTime = 0
+        startTime = time.time()
+        # do time control
+        while countdownTime<targetTime:
+            if self.stopMsgQueue.qsize()>0:
+                # stop process immediately
+                break
+            time.sleep(0.25)
+            endTime = time.time()
+            countdownTime = endTime - startTime
             dummpyHard = random.random()*10 + 50
-            self.set_result(dummpyHard,'PASS')
-        super().do(do_core)
+            self.set_result(round(dummpyHard,1),'Waiting')
+            self.resultCallback(self.result)
+        self.set_result(round(dummpyHard,1),'PASS')
         return self.result
 
 
@@ -164,12 +192,22 @@ class WaitingStep(DigiCenterStep):
         paras = step['subitem']['paras']
         self.condTime = float(list(filter(lambda name: name['name'] == 'conditioning time', paras))[0]['value'])
 
-    def do(self,websocket):
-        def do_core():
-            # do time control
-            time.sleep(self.condTime/60)
-            self.set_result(0,'PASS')
-        super().do(do_core)
+    @DigiCenterStep.deco
+    def do(self):
+        targetTime = self.condTime*60.0
+        countdownTime = 0
+        startTime = time.time()
+        # do time control
+        while countdownTime<targetTime:
+            if self.stopMsgQueue.qsize()>0:
+                # stop process immediately
+                break
+            time.sleep(1)
+            endTime = time.time()
+            countdownTime = endTime - startTime
+            self.set_result(round(countdownTime,1),'Waiting')
+            self.resultCallback(self.result)
+        self.set_result(round(countdownTime,1),'PASS')
         return self.result
 
 
@@ -186,15 +224,16 @@ class ForLoopStartStep(DigiCenterStep):
         self.loopCounts = int(list(filter(lambda name: name['name'] == 'loop counts', paras))[0]['value'])
         self.loopid = list(filter(lambda name: name['name'] == 'loop id', paras))[0]['value']
     
-    def do(self,websocket):
-        def do_core(counts = self.loopCounts, steps = self.containSteps):
-            # do loop control
-            for itr in range(counts):
-                print('Loop count {} in loop {}'.format(itr,self.loopid))
-                for stp in steps:
-                    stp.do()
-            self.set_result(0,'PASS')
-        super().do(do_core)
+    @DigiCenterStep.deco
+    def do(self):
+        for itr in range(self.loopCounts):
+            print('Loop count {} in loop {}'.format(itr,self.loopid))
+            self.set_result(itr,'Waiting')
+            self.resultCallback(self.result)
+            for stp in self.containSteps:
+                stp.do()
+            
+        self.set_result(self.loopCounts,'PASS')
         return self.result
     
     def set_containedSteps(self, containSteps):
@@ -217,13 +256,12 @@ class ForLoopEndStep(DigiCenterStep):
         self.loopCounts = int(list(filter(lambda name: name['name'] == 'stop on', paras))[0]['value'])
         self.loopid = list(filter(lambda name: name['name'] == 'loop id', paras))[0]['value']
     
-    def do(self,websocket):
-        def do_core():
-            self.loopIter += 1
-            if self.loopIter >= self.loopCounts:
-                self.loopDone = True
-            self.set_result(0,'PASS')
-        super().do(do_core)
+    @DigiCenterStep.deco
+    def do(self):
+        self.loopIter += 1
+        if self.loopIter >= self.loopCounts:
+            self.loopDone = True
+        self.set_result(self.loopIter,'PASS')
         return self.result
     
     def resetLoop(self):
@@ -240,12 +278,11 @@ class SubProgramStep(DigiCenterStep):
         paras = step['subitem']['paras']
         self.prog_path = list(filter(lambda name: name['name'] == 'path', paras))[0]['value']
 
-    def do(self,websocket):
-        def do_core():
-            # do sub program control
-            time.sleep(dummy_delay)
-            self.set_result(0,'PASS')
-        super().do(do_core)
+    @DigiCenterStep.deco
+    def do(self):
+        # do sub program control
+        time.sleep(dummy_delay)
+        self.set_result(1,'FAIL')
         return self.result
 
 

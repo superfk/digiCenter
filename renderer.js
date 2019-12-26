@@ -308,3 +308,7 @@ function autoUpdateLang(){
 
 }
 
+setTimeout(()=>{
+  let tester = document.getElementById('js-plotly-tester');
+  tester.parentNode.removeChild(tester);
+},5000)
