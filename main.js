@@ -30,14 +30,19 @@ function connect() {
     init_server();
   });
 
+  ws.on('ping',()=>{
+    console.log('got ping')
+  })
+
   ws.on('message',(message)=>{
     try{
       msg = tools.parseServerMessage(message);
       let cmd = msg.cmd;
       let data = msg.data;
       switch(cmd) {
-        case 'server_drive_send':
+        case 'ping':
           console.log('got server data ' + data)
+          ws.send(tools.parseCmd('pong',data));
           break;
         case 'result_of_backendinit':
           if(data.result == 1){

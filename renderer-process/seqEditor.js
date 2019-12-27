@@ -78,25 +78,33 @@ function connect() {
         initSeq();
     });
     
+    ws.on('ping',()=>{
+        console.log('got ping')
+      })
+      
     ws.on('message', function incoming(message) {
 
-    try{
-        msg = tools.parseServerMessage(message);
-        let cmd = msg.cmd;
-        let data = msg.data;
-        switch(cmd) {
-        case 'update_sequence':
-            updateSequence(data)
-            break;
-        case 'update_sys_default_config':
-            updateServerSeqFolder(data);
-            break;
-        default:
-            console.log('Not found this cmd' + cmd)
+        try{
+            msg = tools.parseServerMessage(message);
+            let cmd = msg.cmd;
+            let data = msg.data;
+            switch(cmd) {
+            case 'ping':
+                console.log('got server data ' + data)
+                ws.send(tools.parseCmd('pong',data));
+                break;
+            case 'update_sequence':
+                updateSequence(data)
+                break;
+            case 'update_sys_default_config':
+                updateServerSeqFolder(data);
+                break;
+            default:
+                console.log('Not found this cmd' + cmd)
+            }
+        }catch(e){
+            console.error(e)
         }
-    }catch(e){
-        console.error(e)
-    }
 
     });
     

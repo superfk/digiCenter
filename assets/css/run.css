@@ -59,7 +59,7 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
     bottom: 10px;
     background-color: white;
     color:  var(--color-c5);
-    width: 650px;
+    width: 750px;
     margin: 10px;
 }
 
@@ -69,7 +69,7 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
     display: flex;
     flex-flow: column;
     position: absolute;
-    left: 670px;
+    left: 770px;
     top:0;
     right: 10px;
     bottom: 0px;
@@ -116,6 +116,7 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
 
 #testSeqContainer li a { padding: 5px; }
 #testSeqContainer .active-item { background: #F39814; color: white; }
+#testSeqContainer li.disabledStep {background: gray!important; color: white;}
 
 .cardContent > ul {
     list-style-type: none;
@@ -139,12 +140,12 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
 .lopCount{
   font-size: 14px;
   margin:0px 0px 0px 0px!important;
-  padding: 7px 5px 5px 2px !important;
+  padding: 12px 2px 5px 2px !important;
   text-align:center;
   background-color:#3498db;
   color:#fff;
   visibility: hidden;
-  width:20px!important;}
+  width:26px!important;}
   
 .lopCount-enabled{visibility: visible;}
 .lopCount-start-enabled{
@@ -154,13 +155,18 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
   border-top: 2px solid !important;
 }
 
+.stepParas{
+    font-size:14px;
+    width:460px;
+}
+
 .stepResult{
     font-size: 14px;
     color: var(--color-c1);
     font-weight: bold;
     text-align:left;
     visibility: visible;
-    width:120px!important;
+    width:140px!important;
     overflow-x: hidden;
 }
 

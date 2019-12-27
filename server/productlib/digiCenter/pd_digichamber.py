@@ -6,6 +6,7 @@ import random
 import asyncio
 import types
 import threading, queue
+import time
 
 class DigiChamberProduct(pd_product.Product):
     def __init__(self, pd_name,seqPath=r"C:\\data_exports",msg_callback=None):
@@ -24,6 +25,8 @@ class DigiChamberProduct(pd_product.Product):
         self.ws = None
         self.testStop = False
         self.interruptStop = False
+        self.batchInfo = None
+        self.dChamb = None
 
     async def run_script(self,websocket, scriptName, data=None):
         if scriptName=='ini_seq':
@@ -62,6 +65,9 @@ class DigiChamberProduct(pd_product.Product):
         self.default_seq_folder = path
         util.newPathIfNotExist(self.default_seq_folder)
     
+    def setBatchInfo(self,batchInfo):
+        self.batchInfo = batchInfo
+    
     def create_seq(self):
         setup = self.script['setup']
         main = self.script['main']
@@ -71,100 +77,96 @@ class DigiChamberProduct(pd_product.Product):
         for s in main:
             if s['cat']=='temperature':
                 stepObj = seqClass.TemperatureStep()
-                stepObj.set_paras(step=s)
-                stepObj.set_sockect_callback(self.socketCallback)
-                self.mainClass.append(stepObj)
             elif s['cat']=='hardness':
                 stepObj = seqClass.HardnessStep()
-                stepObj.set_paras(step=s)
-                stepObj.set_sockect_callback(self.socketCallback)
-                self.mainClass.append(stepObj)
             elif s['cat']=='waiting':
                 stepObj = seqClass.WaitingStep()
-                stepObj.set_paras(step=s)
-                stepObj.set_sockect_callback(self.socketCallback)
-                self.mainClass.append(stepObj)
             elif s['cat']=='loop':
                 item = s['subitem']['item']
                 if item == 'loop start':
                     stepObj = seqClass.ForLoopStartStep()
-                    stepObj.set_paras(step=s)
-                    stepObj.set_sockect_callback(self.socketCallback)
-                    self.mainClass.append(stepObj)
                 elif item == 'loop end':
-                    stepObj = seqClass.ForLoopEndStep()
-                    stepObj.set_paras(step=s)
-                    stepObj.set_sockect_callback(self.socketCallback)
-                    self.mainClass.append(stepObj)              
+                    stepObj = seqClass.ForLoopEndStep()           
             elif s['cat']=='subprog':
                 stepObj = seqClass.SubProgramStep()
-                stepObj.set_paras(step=s)
-                stepObj.set_sockect_callback(self.socketCallback)
-                self.mainClass.append(stepObj)
             else:
-                pass               
+                pass
+            stepObj.set_paras(step=s)
+            stepObj.set_digiChamber_hw_control(self.dChamb)                
+            self.mainClass.append(stepObj)         
         
         # combine setup main teardown steps
         stepObj = seqClass.SetupStep()
         stepObj.set_paras(step=setup)
-        stepObj.set_sockect_callback(self.socketCallback)
+        stepObj.set_digiChamber_hw_control(self.dChamb)     
         self.stepsClass.append(stepObj)
         for m in self.mainClass:
             self.stepsClass.append(m)
         stepObj = seqClass.TeardownStep()
         stepObj.set_paras(step=teardown)
-        stepObj.set_sockect_callback(self.socketCallback)
+        stepObj.set_digiChamber_hw_control(self.dChamb)
         self.stepsClass.append(stepObj)
 
     async def run_seq(self,websocket):
-        self.stopMsgQueue = queue.Queue()
-        self.testStop=False
-        self.interruptStop=False
-        self.create_result_callback_loop()
-        self.ws = websocket
-        totalStepsCounts = len(self.stepsClass)
-        print(totalStepsCounts)
-        cursor = 0
-        while cursor < totalStepsCounts and not self.testStop:
-            print('current cursor: {}'.format(cursor))
-            step = self.stepsClass[cursor]
-            step.set_result_callback(self.sendResultCallback)
-            step.stopMsgQueue = self.stopMsgQueue
-            await self.socketCallback(websocket,'update_cursor',cursor) 
-            if step.category == 'loop' and step.itemname == 'loop end':
-                testResult = step.do()
-                if not step.loopDone:
-                    # starting after loop start
-                    startIdx, endIdx = self.findLoopPair(step.loopid, self.stepsClass)
-                    cursor = startIdx + 1
-                else:
-                    '''reset loop because if another loop run this loop again 
-                    that not lead to immediately stop''' 
-                    step.resetLoop()
-                    cursor += 1
-            else:
-                testResult = step.do()
-                if testResult['status'] in ['PASS','FAIL']:
-                    cursor += 1
-            if cursor >= totalStepsCounts:
-                self.testStop=True
         try:
+            self.stopMsgQueue = queue.Queue()
+            self.testStop=False
+            self.interruptStop=False
+            self.create_result_callback_loop()
+            self.ws = websocket
+            self.errorMsg = None
+            startTime = time.time()
+            totalStepsCounts = len(self.stepsClass)
+            cursor = 0
+            while cursor < totalStepsCounts and not self.testStop:
+                print('current cursor: {}'.format(cursor))
+                step = self.stepsClass[cursor]
+                step.set_initTime(startTime)
+                step.set_result_callback(self.sendResultCallback)
+                step.stopMsgQueue = self.stopMsgQueue
+                if step.category == 'loop' and step.itemname == 'loop end':
+                    testResult = step.do()
+                    if not step.loopDone:
+                        # starting after loop start
+                        startIdx, endIdx = self.findLoopPair(step.loopid, self.stepsClass)
+                        cursor = startIdx + 1
+                    else:
+                        '''reset loop because if another loop run this loop again 
+                        that not lead to immediately stop''' 
+                        step.resetLoop()
+                        cursor += 1
+                else:
+                    testResult = step.do()
+                    if testResult['status'] in ['PASS','FAIL','SKIP']:
+                        cursor += 1
+                if cursor >= totalStepsCounts:
+                    self.testStop=True
+        except Exception as e:
+            print(e)
+            self.errorMsg = '{}'.format(e)
+            self.interruptStop
+        finally:
             if self.interruptStop:
                 item = self.stopMsgQueue.get()
                 self.stopMsgQueue.task_done()
                 print('reached end_of_test, interrupted')
-                await self.socketCallback(websocket,'end_of_test','test interrupted')
+                if self.errorMsg:
+                    await self.socketCallback(websocket,'end_of_test',
+                    {'interrupted':True,'reason':self.errorMsg})
+                else:
+                    await self.socketCallback(websocket,'end_of_test',
+                    {'interrupted':True,'reason':'Manually stop'})
             else:
                 print('reached end_of_test, all done')
-                await self.socketCallback(websocket,'end_of_test','test all done') 
-            self.loop.stop()
-            
-        except Exception as e:
-            print(e)             
+                await self.socketCallback(websocket,'end_of_test',{'interrupted':False,'reason':'tests all done'})
 
     async def get_cur_temp_and_humi(self, websocket):
-        status = {'temp':random.random()*0.2 + self.curT, 'hum':random.random()*1 + self.curH}
-        await self.socketCallback(websocket,'update_cur_status',status)
+        try:
+            self.curT = self.dChamb.get_real_temperature()
+            status = {'temp':self.curT, 'hum':random.random()*1 + self.curH}
+            await self.socketCallback(websocket,'update_cur_status',status)
+        except:
+            print('digiChamber get temperature error')
 
     def findLoopPair(self, loopid, mainClass):
         for i,s in enumerate(mainClass):
@@ -190,5 +192,19 @@ class DigiChamberProduct(pd_product.Product):
         self.testStop=True
         self.interruptStop=True
         self.stopMsgQueue.put(True)
+    
+    def init_digiChamber_controller(self,obj_digiChmaber):
+        try:
+            self.dChamb = obj_digiChmaber
+            conn = self.dChamb.connect()
+            return conn
+        except:
+            print('digichamber connection failed')
+            return False
 
+    def close_digiChamber_controller(self):
+        try:
+            self.dChamb.close()
+        except:
+            pass
     

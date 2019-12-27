@@ -1,6 +1,6 @@
 module.exports = {
     parseServerMessage: function (message) {
-        // console.log(message);
+        console.log(message);
         if(typeof(message)=='string'){
           msg = JSON.parse(message)
         }else{

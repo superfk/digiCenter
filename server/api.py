@@ -7,7 +7,7 @@ sys.path.append('server/corelib')
 sys.path.append('server/instrClass')
 sys.path.append('server/productlib')
 import zerorpc
-from corelib.hardwarelib.digiChamber import DigiChamber
+from corelib.hardwarelib.digiChamber import DigiChamber, DummyChamber
 from corelib.hardwarelib.instrClass.digitest import Digitest
 from corelib.logging_module.baLogger import TimeRotateLogger
 from corelib.UserManagement.user_login import UserManag
@@ -61,8 +61,8 @@ class PyServerAPI(object):
                 msg = json.loads(message)
                 cmd = msg["cmd"]
                 data = msg["data"]
-                if cmd == 'hello':
-                    print('client connected')
+                if cmd == 'pong':
+                    print('client pong: {}'.format(data))
                 elif cmd == 'load_sys_config':
                     await self.load_sys_config(websocket,data)
                 elif cmd == 'load_default_lang':
@@ -141,6 +141,8 @@ class PyServerAPI(object):
                     await self.machine_connect(websocket)
                 elif cmd == 'run_cmd':
                     await self.run_cmd(websocket,data)
+                elif cmd == 'init_hw':
+                    self.init_hw(websocket)
                 elif cmd == 'run_seq':
                     loop = asyncio.new_event_loop()
                     def f(loop):
@@ -175,16 +177,17 @@ class PyServerAPI(object):
             await websocket.send(json.dumps(msg))
         except Exception as e:
             print('error: {}'.format(e))
+            
         
     async def continousSend(self):
         while True:
             try:
                 if self.users:
-                    await asyncio.wait([self.sendMsg(user,'server_drive_send', random.random()) for user in self.users])
+                    await asyncio.wait([self.sendMsg(user,'ping', random.random()) for user in self.users])
             except Exception as e:
                 print(e)
             finally:
-                await asyncio.sleep(1)
+                await asyncio.sleep(10)
             
 
     async def load_sys_config(self, websocket, path):
@@ -333,6 +336,12 @@ class PyServerAPI(object):
         except Exception as e:
             self.lg.error(e)
     
+    def init_hw(self, websocket):
+        ip = self.config['system']['machine_ip']
+        port = self.config['system']['machine_port']
+        digiChamber_obj = DummyChamber(ip,port)
+        self.productProcess.init_digiChamber_controller(digiChamber_obj)
+
     async def run_seq(self, websocket):
         self.productProcess.create_seq()
         await self.productProcess.run_seq(websocket)
@@ -437,7 +446,7 @@ class PyServerAPI(object):
         except:
             pass
         try:
-            await self.digiChamber.close()
+            await self.productProcess.close_digiChamber_controller()
         except:
             pass
         try:
@@ -488,7 +497,7 @@ def main():
     # s.bind(addr)
     # s.run()
 
-    start_server = websockets.serve(sokObj.handler, "localhost", port)
+    start_server = websockets.serve(sokObj.handler, "localhost", port, ping_interval=10)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(start_server)
     # loop.create_task(sokObj.load_sys_config(None,r'C:\\digiCenter\config.json'))

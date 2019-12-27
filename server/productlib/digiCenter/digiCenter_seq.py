@@ -7,6 +7,7 @@ import asyncio
 import json
 import types
 import queue
+import datetime
 
 dummy_delay = 0.1
 
@@ -18,29 +19,37 @@ class DigiCenterStep(object):
         self.stepid = None
         self.contained_steps = []
         self.paras = []
-        self.result = {'stepid':0,'name':None, 'value': None, 'status': 'FAIL','startT':None,'endT':None,'exeT':0}
+        self.result = {}
         self.enabled = True
         self.startTime = None
         self.endTime = None
         self.insideLoop = False
-        self.socketCallback = None
         self.resultCallback = None
-        self.stopMsgQueue = False
+        self.stopMsgQueue = None
+        self.hwDigichamber = None
+        self.initTime = None
+
+    def initResult(self):
+        self.result = {'stepid':0,'name':None, 'value': None,'unit':None, 'status': 'FAIL','startT':None,'endT':None,'exeT':0, 'relTime':0}
 
     def set_paras(self,step):
         self.stepid = step['id']
         self.category = step['cat']
         self.itemname = step['subitem']['item']
+        self.paras = step['subitem']['paras']
         self.enabled = step['subitem']['enabled']
     
     @staticmethod
     def deco(func):
         def wrapper(self,*args ):
             print('start of do process')
-            self.result = {'stepid':0,'name':None, 'value': None, 'status': 'FAIL','startT':None,'endT':None,'exeT':0}
+            self.initResult()
             self.set_startTime()
             self.result['startT']=self.startTime
-            self.result = func(self,*args)
+            if self.enabled:
+                self.result = func(self,*args)
+            else:
+                self.set_result('','SKIP',unit='')
             self.set_endTime()
             self.result['endT']=self.endTime
             self.result['exeT']=self.endTime-self.startTime
@@ -49,6 +58,9 @@ class DigiCenterStep(object):
             return self.result 
         return wrapper
     
+    def set_digiChamber_hw_control(self, digiChamberController):
+        self.hwDigichamber = digiChamberController
+
     def do(self):
         return self.result
 
@@ -66,18 +78,24 @@ class DigiCenterStep(object):
         # print('single test interval: {}'.format(t))
         return t
     
-    def set_result(self, value, status):
+    def set_result(self, value, status, unit=None):
         self.result['stepid'] = self.stepid
         self.result['name'] = self.itemname
         self.result['value'] = value
+        self.result['unit'] = unit
         self.result['status'] = status
+        self.result['relTime'] = time.time() - self.initTime
+        try:
+            self.result['actTemp'] = self.hwDigichamber.get_real_temperature()
+        except:
+            self.result['actTemp'] = None
         return self.result
-
-    def set_sockect_callback(self,socketCallback):
-        self.socketCallback = socketCallback
     
     def set_result_callback(self,resultCallback):
         self.resultCallback = resultCallback
+
+    def set_initTime(self,initTime):
+        self.initTime = initTime
 
 class SetupStep(DigiCenterStep):
     def __init__(self):
@@ -114,9 +132,8 @@ class TemperatureStep(DigiCenterStep):
 
     def set_paras(self,step):
         super().set_paras(step)
-        paras = step['subitem']['paras']
-        self.targetTemp = float(list(filter(lambda name: name['name'] == 'target temperature', paras))[0]['value'])
-        self.slope = float(list(filter(lambda name: name['name'] == 'slope', paras))[0]['value'])
+        self.targetTemp = float(list(filter(lambda name: name['name'] == 'target temperature', self.paras))[0]['value'])
+        self.slope = float(list(filter(lambda name: name['name'] == 'slope', self.paras))[0]['value'])
     
     @DigiCenterStep.deco
     def do(self):
@@ -130,8 +147,9 @@ class TemperatureStep(DigiCenterStep):
                 # stop process immediately
                 break
             time.sleep(1)
-            self.set_result(round(curT,1),'Waiting')
+            self.set_result(round(curT,1),'Waiting',unit='&#8451')
             self.resultCallback(self.result)
+            self.hwDigichamber.set_dummy_act_temp(round(curT,1))
             # yield self.result
             if (self.targetTemp-curT)<0:
                 signSlope = -self.slope
@@ -141,7 +159,7 @@ class TemperatureStep(DigiCenterStep):
             curT = curT + signSlope/60*1 + random.random()*0.02
             if curT<=UL and curT>=CL:
                 break
-        self.set_result(round(curT,1),'PASS')
+        self.set_result(round(curT,1),'PASS',unit='&#8451')
         return self.result
 
 
@@ -155,11 +173,10 @@ class HardnessStep(DigiCenterStep):
 
     def set_paras(self,step):
         super().set_paras(step)
-        paras = step['subitem']['paras']
-        self.port = list(filter(lambda name: name['name'] == 'port', paras))[0]['value']
-        self.method = list(filter(lambda name: name['name'] == 'method', paras))[0]['value']
-        self.mode = list(filter(lambda name: name['name'] == 'mode', paras))[0]['value']
-        self.mearTime = float(list(filter(lambda name: name['name'] == 'measuring time', paras))[0]['value'])
+        self.port = list(filter(lambda name: name['name'] == 'port', self.paras))[0]['value']
+        self.method = list(filter(lambda name: name['name'] == 'method', self.paras))[0]['value']
+        self.mode = list(filter(lambda name: name['name'] == 'mode', self.paras))[0]['value']
+        self.mearTime = float(list(filter(lambda name: name['name'] == 'measuring time', self.paras))[0]['value'])
 
     @DigiCenterStep.deco
     def do(self):
@@ -189,8 +206,7 @@ class WaitingStep(DigiCenterStep):
 
     def set_paras(self,step):
         super().set_paras(step)
-        paras = step['subitem']['paras']
-        self.condTime = float(list(filter(lambda name: name['name'] == 'conditioning time', paras))[0]['value'])
+        self.condTime = float(list(filter(lambda name: name['name'] == 'conditioning time', self.paras))[0]['value'])
 
     @DigiCenterStep.deco
     def do(self):
@@ -202,12 +218,12 @@ class WaitingStep(DigiCenterStep):
             if self.stopMsgQueue.qsize()>0:
                 # stop process immediately
                 break
-            time.sleep(1)
+            time.sleep(0.27)
             endTime = time.time()
             countdownTime = endTime - startTime
-            self.set_result(round(countdownTime,1),'Waiting')
+            self.set_result(round(countdownTime,1),'Waiting',unit='s')
             self.resultCallback(self.result)
-        self.set_result(round(countdownTime,1),'PASS')
+        self.set_result(round(countdownTime,1),'PASS',unit='s')
         return self.result
 
 
@@ -217,23 +233,20 @@ class ForLoopStartStep(DigiCenterStep):
         self.loopCounts = 0
         self.containSteps = []
         self.loopid = 0
+        self.loopIter = 0
 
     def set_paras(self,step):
         super().set_paras(step)
-        paras = step['subitem']['paras']
-        self.loopCounts = int(list(filter(lambda name: name['name'] == 'loop counts', paras))[0]['value'])
-        self.loopid = list(filter(lambda name: name['name'] == 'loop id', paras))[0]['value']
+        self.loopCounts = int(list(filter(lambda name: name['name'] == 'loop counts', self.paras))[0]['value'])
+        self.loopid = list(filter(lambda name: name['name'] == 'loop id', self.paras))[0]['value']
     
     @DigiCenterStep.deco
     def do(self):
-        for itr in range(self.loopCounts):
-            print('Loop count {} in loop {}'.format(itr,self.loopid))
-            self.set_result(itr,'Waiting')
-            self.resultCallback(self.result)
-            for stp in self.containSteps:
-                stp.do()
-            
-        self.set_result(self.loopCounts,'PASS')
+        self.loopIter += 1
+        print('Loop count {} in loop {}'.format(self.loopIter,self.loopid))            
+        self.set_result(self.loopIter,'PASS')
+        if self.loopIter >= self.loopCounts:
+            self.loopIter = 0
         return self.result
     
     def set_containedSteps(self, containSteps):
@@ -252,9 +265,8 @@ class ForLoopEndStep(DigiCenterStep):
 
     def set_paras(self,step):
         super().set_paras(step)
-        paras = step['subitem']['paras']
-        self.loopCounts = int(list(filter(lambda name: name['name'] == 'stop on', paras))[0]['value'])
-        self.loopid = list(filter(lambda name: name['name'] == 'loop id', paras))[0]['value']
+        self.loopCounts = int(list(filter(lambda name: name['name'] == 'stop on', self.paras))[0]['value'])
+        self.loopid = list(filter(lambda name: name['name'] == 'loop id', self.paras))[0]['value']
     
     @DigiCenterStep.deco
     def do(self):
@@ -275,8 +287,7 @@ class SubProgramStep(DigiCenterStep):
 
     def set_paras(self,step):
         super().set_paras(step)
-        paras = step['subitem']['paras']
-        self.prog_path = list(filter(lambda name: name['name'] == 'path', paras))[0]['value']
+        self.prog_path = list(filter(lambda name: name['name'] == 'path', self.paras))[0]['value']
 
     @DigiCenterStep.deco
     def do(self):

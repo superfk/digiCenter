@@ -11,10 +11,7 @@ let ws
 // **************************************
 // variable define
 // **************************************
-let h_data_x = Array.from({length: 40}, () => Math.floor(Math.random() * 40));
-let h_data_y = [];
-let datapoints_x = Array.from({length: 40}, () => Math.floor(Math.random() * 40));
-let datapoints_y = Array.from({length: 40}, () => Math.floor(Math.random() * 40));
+
 let defaultSeqPath = null;
 let startSeqBtn = document.getElementById('start_test');
 let stopSeqBtn = document.getElementById('stop_test');
@@ -40,56 +37,39 @@ const config = {
 // **************************************
 // init functions
 // **************************************
-generateHardnessVsTempPlot()
+generateEventPlot()
 generateHardnessPlot()
 repositionChart()
 generateGauge('actualTempGauge', 23, -40, 200,'Temperature');
 generateGauge('actualHumGauge', 50, 0, 100,'Humidity');
 
 
+
 // **************************************
 // generate graph functions
 // **************************************
 
-function generateHardnessVsTempPlot(){
-  
-      function createTrace(curDeg, baseHard){
-        var trace = {
-          // x: datapoints_x,
-          y: Array.from({length: 40}, () => Math.floor(Math.random() * 20)+baseHard),
-        type: 'box',
-        name: curDeg,
-        boxpoints: 'all',
-        jitter: 0.1,
-        pointpos: -1.8,
+function generateEventPlot(){
+
+  var trace = {
+        // x: h_data_x,
+        type: "scattergl",
+        x:[],
+        y: [],
+        mode: 'lines+markers',
         line: {
           width: 2
         }
       };
-      return trace;
-    }
-
-    let data = [];
-
-    for(let i = 0; i<10;i++){
-      const startDeg = 20;
-      const increDeg = 5;
-      const starthard = 80;
-      const decreHard = 1;
-      let curDeg = startDeg + increDeg*i;
-      let curHard = starthard - decreHard*i
-      let newTrace = createTrace(curDeg, curHard);
-      data.push(newTrace);
-    }
-  
+    
+    var data = [trace];
 
     var layout = {
       xaxis: {
-        title: 'degree Celsius ℃'
+        title: 'Time(s)'
       },
       yaxis: {
-        title: 'hardness',
-        range: [0, 100]
+        title: '℃'
       },
       width: 400,
       height: 300,
@@ -98,15 +78,17 @@ function generateHardnessVsTempPlot(){
       font: { color: "dimgray", family: "Arial", size: 10}
     };
     
-    Plotly.newPlot('hardnessVStemp_graph', data, layout,config);
-  }
+    Plotly.newPlot('event_graph', data, layout,config);
+}
 
   function generateHardnessPlot(){
   
     var trace = {
       // x: h_data_x,
-      y: h_data_y,
-      mode: 'lines+markers',
+      type: "scattergl",
+      x:[],
+      y: [],
+      mode: 'markers',
       line: {
         width: 2
       }
@@ -140,11 +122,11 @@ function repositionChart(){
   if (!$('#hardness_graph').html()===''){
     // check if chart has data, if no data, the following function will throw error
     Plotly.relayout('hardness_graph', update);
-    Plotly.relayout('hardnessVStemp_graph', update);
+    Plotly.relayout('event_graph', update);
   }
 
   Plotly.relayout('hardness_graph', update);
-  Plotly.relayout('hardnessVStemp_graph', update);
+  Plotly.relayout('event_graph', update);
 
   var update = {
     autosize: true,
@@ -152,12 +134,16 @@ function repositionChart(){
   if (!$('#hardness_graph').html()===''){
     // check if chart has data, if no data, the following function will throw error
     Plotly.relayout('hardness_graph', update);
-    Plotly.relayout('hardnessVStemp_graph', update);
+    Plotly.relayout('event_graph', update);
   }
 
   Plotly.relayout('hardness_graph', update);
-  Plotly.relayout('hardnessVStemp_graph', update);
+  Plotly.relayout('event_graph', update);
 
+}
+
+function addNewDataToPlot(locationID, xval,yval){
+  Plotly.extendTraces(locationID, {x: [[xval]],y: [[yval]]}, [0])
 }
 
 // **************************************
@@ -232,15 +218,21 @@ function connect() {
     init();
   });
 
+  ws.on('ping',()=>{
+    console.log('got ping')
+  })
+
   ws.on('message', function incoming(message) {
 
     try{
+      
       msg = tools.parseServerMessage(message);
       let cmd = msg.cmd;
       let data = msg.data;
       switch(cmd) {
-        case 'server_drive_send':
-          console.log('got server data ' + data)
+        case 'ping':
+          // console.log('got server data ' + data)
+          ws.send(tools.parseCmd('pong',data));
           break;
         case 'update_sequence':
           updateSequence(data)
@@ -312,6 +304,7 @@ startSeqBtn.addEventListener('click',()=>{
   $('#start_test').css('pointer-events', 'none');
   $('#testSeqContainer li').css('background-color', 'white');
   clearInterval(monitorValue);
+  getBatchInfo();
   ws.send(tools.parseCmd('run_seq',''));
 })
 
@@ -324,6 +317,7 @@ stopSeqBtn.addEventListener('click',()=>{
 // **************************************
 function init(){
   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_default_seq_path')));
+  ws.send(tools.parseCmd('init_hw'));
 }
 
 function updateServerSeqFolder(path){
@@ -349,21 +343,32 @@ function updateSequence(res){
   sortSeq();
 }
 
+function getBatchInfo(){
+  let batchData = $('#batchInfoForm').serializeArray();
+  console.log(batchData)
+  return batchData;
+}
+
 function updateSingleStep(res){
   let stepid = res.stepid;
   let stepname = res.name;
   let value = res.value;
+  let unit = res.unit;
   let result = res.status;
+  let timestamp = res.timestamp;
+  let actTemp = res.actTemp;
 
   updateStepByCat(res);
 
   let curstep = $('#testSeqContainer').find(`[data-stepid='${stepid}']`);
   let curResult = $(curstep).find('.stepResult');
-  curResult.html(value)
+  curResult.html(value + unit)
   if (result == 'PASS'){
     curstep.css('background-color', 'lightgreen');
   }else if (result == 'Waiting'){
     curstep.css('background-color', 'orange');
+  }else if (result == 'SKIP'){
+    curstep.css('background-color', 'gray');
   }else{
     curstep.css('background-color', 'red');
   }
@@ -375,16 +380,22 @@ function updateStepByCat(res){
   let stepname = res.name;
   let value = res.value;
   let result = res.status;
+  let relTime = res.relTime;
+  let actTemp = res.actTemp;
 
   switch(stepname) {
     case 'ramp':
       updateValue('actualTempGauge', value);
+      addNewDataToPlot('event_graph',relTime,actTemp)
       break;
     case 'measure':
-      h_data_y.push(value)
-      updateValue('hardness_graph', value);
+      // h_data_y.push(value)
+      addNewDataToPlot('hardness_graph',actTemp,value)
+      addNewDataToPlot('event_graph',relTime,actTemp)
+      // updateValue('hardness_graph', value);
       break;
-    case 'time':
+    case 'time':      
+      addNewDataToPlot('event_graph',relTime,actTemp)
       break;
     default:
       console.log('Not found this stepname: ' + stepname)
@@ -393,12 +404,18 @@ function updateStepByCat(res){
 
 }
 
-function endOfTest(reason){
+function endOfTest(res){
+  let interrupted = res.interrupted;
+  let reason = res.reason;
   clearInterval(monitorValue);
   console.log(reason);
   monitorValue = setInterval(monitorFunction,1000);
   $('#start_test').css('pointer-events', 'auto');
-  ipcRenderer.send('show-info-alert','Test Finished',reason);
+  if (!interrupted){
+    ipcRenderer.send('show-info-alert','Test Finished',reason);
+  }else{
+    ipcRenderer.send('show-warning-alert','Test Interrupted',reason);
+  }
 }
 
 // **************************************
@@ -548,12 +565,12 @@ function generateSeq() {
       seq[index].id = index;
       let {cat, subitem} = seq[index];
       let parms = genParas(subitem['paras']);
-      let en = subitem['enabled']?'':'disabled';
+      let en = subitem['enabled']?'':'disabledStep';
       let stepParaText = genShortParaText(cat,subitem);
       curstr += `
-      <li data-stepid=${index} data-sortable=true class='w3-bar'>
+      <li data-stepid=${index} data-sortable=true class='w3-bar ${en}' >
           
-              <a href="#" style="font-size:14px;width:450px;" class='w3-bar-item'>
+              <a href="#" class='w3-bar-item stepParas'>
                   ${genIconByCat(cat,subitem['paras'])}${stepTitles[index]}${stepParaText}
               </a>
               <div class="w3-bar-item w3-right lopCount">00</div>
