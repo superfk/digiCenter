@@ -13,9 +13,10 @@ let ws
 // **************************************
 
 let defaultSeqPath = null;
+let batchForm = document.getElementById('batchInfoForm');
 let startSeqBtn = document.getElementById('start_test');
 let stopSeqBtn = document.getElementById('stop_test');
-let loadSeqBtn = document.getElementById('open_test_seq')
+let loadSeqBtn = document.getElementById('open_test_seq');
 let setup_seq = {};
 let teardown_seq = {};
 let seq = [];
@@ -26,12 +27,14 @@ let test_flow = {
     loop: loop_seq,
     teardown: teardown_seq
 };
-const plotMargin = { t: 40, r: 50, l: 40, b: 50};
+const plotMargin = { t: 40, r: 100, l: 40, b: 50};
 const config = {
   displaylogo: false,
-  modeBarButtonsToRemove: ['toImage'],
+  modeBarButtonsToRemove: ['toImage','lasso','select'],
   responsive: true
 };
+
+let markers = [];
 
 
 // **************************************
@@ -51,18 +54,35 @@ generateGauge('actualHumGauge', 50, 0, 100,'Humidity');
 
 function generateEventPlot(){
 
-  var trace = {
+  var trace1 = {
         // x: h_data_x,
         type: "scattergl",
+        name: 'temperature',
         x:[],
         y: [],
-        mode: 'lines+markers',
+        mode: 'lines',
         line: {
-          width: 2
+          width: 2,
+          color: 'red',
+
         }
       };
-    
-    var data = [trace];
+
+    var trace2 = {
+      // x: h_data_x,
+      type: "scattergl",
+      name: 'hardness',
+      x:[],
+      y: [],
+      yaxis: 'y2',
+      mode: 'markers',
+      marker: { size: 6},
+      line: {
+        width: 2
+      }
+    };
+
+    var data = [trace1,trace2];
 
     var layout = {
       xaxis: {
@@ -70,6 +90,14 @@ function generateEventPlot(){
       },
       yaxis: {
         title: '℃'
+      },
+      yaxis2: {
+        title: 'hardness',
+        titlefont: {color: 'rgb(148, 103, 189)'},
+        tickfont: {color: 'rgb(148, 103, 189)'},
+        overlaying: 'y',
+        side: 'right',
+        range: [0, 100]
       },
       width: 400,
       height: 300,
@@ -81,7 +109,7 @@ function generateEventPlot(){
     Plotly.newPlot('event_graph', data, layout,config);
 }
 
-  function generateHardnessPlot(){
+function generateHardnessPlot(){
   
     var trace = {
       // x: h_data_x,
@@ -89,6 +117,7 @@ function generateEventPlot(){
       x:[],
       y: [],
       mode: 'markers',
+      marker: { size: 6},
       line: {
         width: 2
       }
@@ -98,7 +127,7 @@ function generateEventPlot(){
     
     var layout = {
       xaxis: {
-        title: 'samples'
+        title: '℃'
       },
       yaxis: {
         title: 'hardness',
@@ -142,8 +171,35 @@ function repositionChart(){
 
 }
 
-function addNewDataToPlot(locationID, xval,yval){
-  Plotly.extendTraces(locationID, {x: [[xval]],y: [[yval]]}, [0])
+function addNewDataToPlot(locationID, xval,yval, y2val=null){
+  if(y2val == null){
+    Plotly.extendTraces(locationID, {x: [[xval]],y: [[yval]]}, [0])
+  }else{
+    Plotly.extendTraces(locationID, {x: [[xval],[xval]],y: [[yval], [y2val]]}, [0,1])
+  }
+  
+}
+
+function addAnnotation(locationID, textin, locateX, locateY){
+  let ann = {
+    x: locateX,
+    y: locateY,
+    xref: 'x',
+    yref: 'y',
+    text: textin,
+    showarrow: true,
+    arrowhead: 3,
+    ax: 0,
+    ay: -40
+  };
+
+  markers.push(ann)
+
+  var layout = {
+    annotations: markers
+  };
+
+  Plotly.relayout('event_graph', layout);
 }
 
 // **************************************
@@ -170,23 +226,23 @@ function generateGauge(locationID, refvalue=23, min=-40, max=200, titleText='Tem
           threshold: {
             line: { color: "red", width: 5 },
             thickness: 0.8,
-            value: refvalue
+            value: refvalue+Math.random()*0.001+0.0001
           }
         }
       }
     ];
     
     var layout = {
-      width: 150,
+      width: 200,
       height: 150,
-      margin: { t: 10, r: 25, l: 25, b: 10 },
+      margin: { t: 20, r: 25, l: 25, b: 0 },
       paper_bgcolor: "transparent",
       font: { color: "dimgray", family: "Arial", size: 10}
     };
   
     Plotly.newPlot(locationID, data, layout,{
       displaylogo: false,
-      modeBarButtonsToRemove: ['toImage'],
+      modeBarButtonsToRemove: ['toImage','lasso','select'],
       responsive: true
     });
   }
@@ -200,6 +256,36 @@ function updateValue(locationID, val){
       Plotly.update(locationID, data_update);
 }
 
+function updateGaugeRefValue(locationID, refvalue, selection='t'){
+  let minRange = -40;
+  let maxRange = 200;
+  if (selection=='h'){
+    minRange = 0;
+    maxRange = 100;
+  }
+  var data_update = 
+      {
+        delta: { reference: refvalue, increasing: { color: "green" }, decreasing: { color: "red" } },
+        gauge: {
+          axis: { range: [minRange, maxRange], tickwidth: 1, tickcolor: "darkblue" },
+          bar: { color: "darkgreen"},
+          bgcolor: "lightgreen",
+          borderwidth: 0,
+          bordercolor: "lightgreen",
+          steps: [
+            { range: [minRange, refvalue], color: "limegreen" },
+            { range: [refvalue, maxRange], color: "lightgreen" }
+          ],
+          threshold: {
+            line: { color: "red", width: 5 },
+            thickness: 0.8,
+            value: refvalue+Math.random()*0.001+0.0001,
+          }
+        }
+      }
+
+      Plotly.restyle(locationID, data_update);
+}
 
 // **************************************
 // websocket functions
@@ -219,7 +305,6 @@ function connect() {
   });
 
   ws.on('ping',()=>{
-    console.log('got ping')
   })
 
   ws.on('message', function incoming(message) {
@@ -250,6 +335,11 @@ function connect() {
           break;
         case 'update_cursor':
           console.log(data);
+          break;
+        case 'update_gauge_ref':
+          console.log('update Gauge Ref')
+          console.log(data)
+          updateGaugeRefValue('actualTempGauge', data,'t');
           break;
         case 'end_of_test':
           console.log('end of test')
@@ -284,6 +374,11 @@ connect()
 // event functions
 // **************************************
 
+batchForm.addEventListener('submit',(e)=>{
+  e.preventDefault();
+  getBatchInfo();
+})
+
 loadSeqBtn.addEventListener('click', ()=>{
     loadSeqFromServer();
 })
@@ -305,6 +400,10 @@ startSeqBtn.addEventListener('click',()=>{
   $('#testSeqContainer li').css('background-color', 'white');
   clearInterval(monitorValue);
   getBatchInfo();
+  generateEventPlot();
+  generateHardnessPlot();
+  repositionChart();
+  markers=[];
   ws.send(tools.parseCmd('run_seq',''));
 })
 
@@ -382,6 +481,7 @@ function updateStepByCat(res){
   let result = res.status;
   let relTime = res.relTime;
   let actTemp = res.actTemp;
+  let eventName = res.eventName;
 
   switch(stepname) {
     case 'ramp':
@@ -391,7 +491,11 @@ function updateStepByCat(res){
     case 'measure':
       // h_data_y.push(value)
       addNewDataToPlot('hardness_graph',actTemp,value)
-      addNewDataToPlot('event_graph',relTime,actTemp)
+      addNewDataToPlot('event_graph',relTime,actTemp,value)
+      if (eventName !== null){
+        console.log(eventName)
+        addAnnotation('event_graph',eventName,relTime,actTemp)
+      }
       // updateValue('hardness_graph', value);
       break;
     case 'time':      
@@ -519,7 +623,9 @@ function genShortParaText(cat,subitem){
   if (cat === 'temperature'){
       let tTempPara = paras.filter(item=>item.name=='target temperature')[0];
       let slopePara = paras.filter(item=>item.name=='slope')[0];
-      mainText = `target:${tTempPara.value} ${tTempPara.unit}, slope:${slopePara.value} ${slopePara.unit}`;
+      let increPara = paras.filter(item=>item.name=='increment')[0];
+      mainText = `target:${tTempPara.value} ${tTempPara.unit}, slope:${slopePara.value} ${slopePara.unit}, 
+      incre:${increPara.value} ${increPara.unit}`;
   }else if (cat === 'hardness'){
       let methodPara = paras.filter(item=>item.name=='method')[0];
       let modePara = paras.filter(item=>item.name=='mode')[0];

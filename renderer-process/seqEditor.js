@@ -79,7 +79,6 @@ function connect() {
     });
     
     ws.on('ping',()=>{
-        console.log('got ping')
       })
       
     ws.on('message', function incoming(message) {
@@ -303,7 +302,9 @@ function genShortParaText(cat,subitem){
     if (cat === 'temperature'){
         let tTempPara = paras.filter(item=>item.name=='target temperature')[0];
         let slopePara = paras.filter(item=>item.name=='slope')[0];
-        mainText = `target:${tTempPara.value} ${tTempPara.unit}, slope:${slopePara.value} ${slopePara.unit}`;
+        let increPara = paras.filter(item=>item.name=='increment')[0];
+        mainText = `target:${tTempPara.value} ${tTempPara.unit}, slope:${slopePara.value} ${slopePara.unit}, 
+        incre:${increPara.value} ${increPara.unit}`;
     }else if (cat === 'hardness'){
         let methodPara = paras.filter(item=>item.name=='method')[0];
         let modePara = paras.filter(item=>item.name=='mode')[0];
@@ -546,6 +547,13 @@ tempBox.addEventListener('click', () =>{
             unit: 'K/min',
             type: 'number',
             readOnly: false
+        },
+        {
+            name: 'increment',
+            value: '0',
+            unit: '&#8451',
+            type: 'number',
+            readOnly: false
         }
     ]
     // UIkit.modal('#parasModal').show();
@@ -771,7 +779,7 @@ function makeSortable(){
         handle: "a",
         start: function(event, ui) {
             preArray = [];
-            let allSteps = document.querySelectorAll('li[data-sortable=true]');
+            let allSteps = document.querySelectorAll('#seqContainer li[data-sortable=true]');
             allSteps.forEach((elem)=>{
                 let stepText = elem.innerText;
                 if(stepText!==''){preArray.push(stepText);}
@@ -784,7 +792,7 @@ function makeSortable(){
         stop: function( event, ui ) {
 
             postArray = [];
-            let allSteps = document.querySelectorAll('li[data-sortable=true]');
+            let allSteps = document.querySelectorAll('#seqContainer li[data-sortable=true]');
             allSteps.forEach((elem)=>{
                 let stepText = elem.innerText;
                 if(stepText!==''){postArray.push(stepText);}
@@ -937,16 +945,14 @@ applyParaBtn.addEventListener('click',()=>{
     let paraCollection = null;
     if (cat === 'temperature'){
         paraCollection = $('#paraContainer input');
-        let newTemp = paraCollection[0].value;
-        let newSlope = paraCollection[1].value;
-        seq[id].subitem.paras[0].value = newTemp;
-        seq[id].subitem.paras[1].value = newSlope;
+        $.each(paraCollection,(index,item)=>{
+           seq[id].subitem.paras[index].value = $(item).val()
+        })
     }else if (cat === 'hardness'){
         paraCollection = $('#paraContainer input');
-        let newCOM = paraCollection[0].value;
-        let newTime = paraCollection[1].value;
-        seq[id].subitem.paras[0].value = newCOM;
-        seq[id].subitem.paras[3].value = newTime;
+        $.each(paraCollection,(index,item)=>{
+            seq[id].subitem.paras[index].value = $(item).val()
+         })
         paraCollection = $('#paraContainer select');
         let newMethod = $(paraCollection[0]).find('option:selected').text();
         let newMode = $(paraCollection[1]).find('option:selected').text();
@@ -954,8 +960,9 @@ applyParaBtn.addEventListener('click',()=>{
         seq[id].subitem.paras[2].value = newMode;
     }else if (cat === 'waiting'){
         paraCollection = $('#paraContainer input');
-        let newCondTime = paraCollection[0].value;
-        seq[id].subitem.paras[0].value = newCondTime;
+        $.each(paraCollection,(index,item)=>{
+            seq[id].subitem.paras[index].value = $(item).val()
+         })
     }else if (cat === 'loop'){
         let loopid = paras.filter(item=>item.name=='loop id')[0].value;
         let ids = searchLoopStartEndByID(loopid);
@@ -966,8 +973,9 @@ applyParaBtn.addEventListener('click',()=>{
         seq[endloopindex].subitem.paras[0].value = newLoopCounts;
     }else if (cat === 'subprog'){
         paraCollection = $('#paraContainer input');
-        let newPath = paraCollection[0].value;
-        seq[id].subitem.paras[0].value = newPath;
+        $.each(paraCollection,(index,item)=>{
+            seq[id].subitem.paras[index].value = $(item).val()
+         })
     }
 
     sortSeq();

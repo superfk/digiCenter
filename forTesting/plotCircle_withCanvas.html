@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<div>
+<canvas id="myCanvas" width="300" height="300" style="border:1px solid #d3d3d3;">
+Your browser does not support the HTML5 canvas tag.</canvas>
+</div>
+<div id='log'> </div>
+<script>
+var c = document.getElementById("myCanvas");
+var log = document.getElementById("log");
+var ctx = c.getContext("2d");
+let circles = [];
+let baseR = 120;
+let uutN = 25;
+let childR = 100;
+let radius = 10;
+
+function plotBaseTable(){
+    ctx.beginPath();
+    ctx.arc(150, 150, baseR, 0, 2 * Math.PI);
+    ctx.shadowBlur = 2;
+    ctx.shadowColor = "black";
+    ctx.fillStyle = "lightyellow";
+    ctx.fill();
+}
+
+function plotSmallHoles( circleN = 25){
+    circles = [];
+    for (i=0;i<circleN;i++){
+        
+        ctx.beginPath();
+        let cx = 150+childR*Math.cos(i*2*Math.PI/circleN);
+        let cy = 150+childR*Math.sin(i*2*Math.PI/circleN);
+        
+        ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+        ctx.fillStyle = "lightgray";
+        ctx.fill();
+        singleCircle = {'cx':cx, 'cy':cy, 'radius':radius};
+        circles.push(singleCircle);
+
+        ctx.font = "12px Comic Sans MS";
+        ctx.fillStyle = "red";
+        ctx.textAlign = "center";
+        ctx.fillText(i, cx, cy+6);
+
+    }
+}
+
+plotBaseTable();
+plotSmallHoles(uutN);
+
+c.addEventListener('mousemove', function(e) { 
+    let isActive = false;
+    let activeIndx = -1;
+
+	var rect = this.getBoundingClientRect(),
+                x = e.clientX - rect.left,
+                y = e.clientY - rect.top,
+                i = 0, r;
+            
+            ctx.clearRect(0, 0, c.width, c.height);
+
+            plotBaseTable();
+
+            for (i=0; i<circles.length; i++) {
+                ctx.beginPath();
+                let cx = 150+childR*Math.cos(i*2*Math.PI/uutN);
+                let cy = 150+childR*Math.sin(i*2*Math.PI/uutN);
+                
+                ctx.arc(cx, cy, radius, 0, 2 * Math.PI);
+                let isActive = ctx.isPointInPath(x,y);
+                ctx.fillStyle = isActive ? "green":"lightgray";
+                ctx.fill();
+                ctx.font = "12px Comic Sans MS";
+                ctx.fillStyle = isActive ? "white":"red";
+                ctx.textAlign = "center";
+                ctx.fillText(i, cx, cy+6);
+            }
+            
+
+}, false);
+
+
+</script> 
+
+</body>
+</html>

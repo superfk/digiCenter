@@ -7,6 +7,7 @@ import asyncio
 import types
 import threading, queue
 import time
+import math
 
 class DigiChamberProduct(pd_product.Product):
     def __init__(self, pd_name,seqPath=r"C:\\data_exports",msg_callback=None):
@@ -129,13 +130,27 @@ class DigiChamberProduct(pd_product.Product):
                     if not step.loopDone:
                         # starting after loop start
                         startIdx, endIdx = self.findLoopPair(step.loopid, self.stepsClass)
+                        for s in range(startIdx,endIdx-startIdx):
+                            self.stepsClass[s].incre_one_loopiter()
                         cursor = startIdx + 1
                     else:
                         '''reset loop because if another loop run this loop again 
-                        that not lead to immediately stop''' 
+                        that not lead to immediately stop'''
+                        startIdx, endIdx = self.findLoopPair(step.loopid, self.stepsClass)
+                        for s in range(startIdx,endIdx-startIdx):
+                            self.stepsClass[s].reset_loopiter()
                         step.resetLoop()
                         cursor += 1
                 else:
+                    # only for demo, MUST remove later
+                    curStepName = step.__class__.__name__
+                    if curStepName == 'HardnessStep':
+                        senCoeff = 5
+                        step.dummyHardBase = 50 - senCoeff*math.log10(self.dChamb.get_real_temperature()/23)
+                    elif curStepName == 'TemperatureStep':
+                        step.update_actTarget()
+                        print('sent temperature ref value: {}'.format(step.actTarget))
+                        future = asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,'update_gauge_ref',step.actTarget), self.loop)
                     testResult = step.do()
                     if testResult['status'] in ['PASS','FAIL','SKIP']:
                         cursor += 1
@@ -144,7 +159,7 @@ class DigiChamberProduct(pd_product.Product):
         except Exception as e:
             print(e)
             self.errorMsg = '{}'.format(e)
-            self.interruptStop
+            self.interruptStop = True
         finally:
             if self.interruptStop:
                 item = self.stopMsgQueue.get()

@@ -28,9 +28,20 @@ class DigiCenterStep(object):
         self.stopMsgQueue = None
         self.hwDigichamber = None
         self.initTime = None
+        self.loopIter = 0
 
     def initResult(self):
-        self.result = {'stepid':0,'name':None, 'value': None,'unit':None, 'status': 'FAIL','startT':None,'endT':None,'exeT':0, 'relTime':0}
+        self.result = {'stepid':0,
+        'name':None, 
+        'value': None,
+        'unit':None, 
+        'status': 'FAIL',
+        'startT':None,
+        'endT':None,
+        'exeT':0, 
+        'relTime':0,
+        'actTemp':0}
+        
 
     def set_paras(self,step):
         self.stepid = step['id']
@@ -78,12 +89,13 @@ class DigiCenterStep(object):
         # print('single test interval: {}'.format(t))
         return t
     
-    def set_result(self, value, status, unit=None):
+    def set_result(self, value, status, unit=None, eventName=None):
         self.result['stepid'] = self.stepid
         self.result['name'] = self.itemname
         self.result['value'] = value
         self.result['unit'] = unit
         self.result['status'] = status
+        self.result['eventName'] = eventName
         self.result['relTime'] = time.time() - self.initTime
         try:
             self.result['actTemp'] = self.hwDigichamber.get_real_temperature()
@@ -96,6 +108,12 @@ class DigiCenterStep(object):
 
     def set_initTime(self,initTime):
         self.initTime = initTime
+    
+    def incre_one_loopiter(self):
+        self.loopIter += 1
+    
+    def reset_loopiter(self):
+        self.loopIter = 0
 
 class SetupStep(DigiCenterStep):
     def __init__(self):
@@ -129,19 +147,25 @@ class TemperatureStep(DigiCenterStep):
         super(TemperatureStep,self).__init__()
         self.targetTemp = 0.0
         self.slope = 0.0 #K/min -> 1/60 K/s
+        self.incre = 0.0
+        self.actTarget = 0.0
 
     def set_paras(self,step):
         super().set_paras(step)
         self.targetTemp = float(list(filter(lambda name: name['name'] == 'target temperature', self.paras))[0]['value'])
         self.slope = float(list(filter(lambda name: name['name'] == 'slope', self.paras))[0]['value'])
+        self.incre = float(list(filter(lambda name: name['name'] == 'increment', self.paras))[0]['value'])
+        self.actTarget = self.targetTemp
     
     @DigiCenterStep.deco
     def do(self):
         # do digichamber temperature control
-        curT = random.random()*0.5 + 23
-        tol = 0.5
-        UL = self.targetTemp+tol
-        CL = self.targetTemp-tol
+        curT = self.hwDigichamber.get_real_temperature()
+        tol = 0.03
+        incre = self.loopIter*self.incre
+        self.actTarget = self.targetTemp+incre
+        UL = self.actTarget * (1+tol)
+        CL = self.actTarget * (1-tol)
         while curT>UL or curT<CL:
             if self.stopMsgQueue.qsize()>0:
                 # stop process immediately
@@ -149,19 +173,22 @@ class TemperatureStep(DigiCenterStep):
             time.sleep(1)
             self.set_result(round(curT,1),'Waiting',unit='&#8451')
             self.resultCallback(self.result)
-            self.hwDigichamber.set_dummy_act_temp(round(curT,1))
             # yield self.result
-            if (self.targetTemp-curT)<0:
+            if (self.actTarget-curT)<0:
                 signSlope = -self.slope
             else:
                 signSlope = self.slope
             print('signSlope: {}'.format(signSlope))
             curT = curT + signSlope/60*1 + random.random()*0.02
+            self.hwDigichamber.set_dummy_act_temp(round(curT,1))
             if curT<=UL and curT>=CL:
                 break
         self.set_result(round(curT,1),'PASS',unit='&#8451')
         return self.result
 
+    def update_actTarget(self):
+        incre = self.loopIter*self.incre
+        self.actTarget = self.targetTemp + incre
 
 class HardnessStep(DigiCenterStep):
     def __init__(self):
@@ -170,6 +197,7 @@ class HardnessStep(DigiCenterStep):
         self.method = None
         self.mode = None
         self.mearTime = None # sec
+        self.dummyHardBase = 50
 
     def set_paras(self,step):
         super().set_paras(step)
@@ -184,6 +212,10 @@ class HardnessStep(DigiCenterStep):
         targetTime = self.mearTime
         countdownTime = 0
         startTime = time.time()
+        # send start mear event text
+        dummpyHard = random.random()*2 + self.dummyHardBase
+        self.set_result(round(dummpyHard,1),'Waiting',None,'M_S')
+        self.resultCallback(self.result)
         # do time control
         while countdownTime<targetTime:
             if self.stopMsgQueue.qsize()>0:
@@ -192,10 +224,10 @@ class HardnessStep(DigiCenterStep):
             time.sleep(0.25)
             endTime = time.time()
             countdownTime = endTime - startTime
-            dummpyHard = random.random()*10 + 50
+            dummpyHard = random.random()*2 + self.dummyHardBase
             self.set_result(round(dummpyHard,1),'Waiting')
             self.resultCallback(self.result)
-        self.set_result(round(dummpyHard,1),'PASS')
+        self.set_result(round(dummpyHard,1),'PASS',None,'M_E')
         return self.result
 
 
@@ -233,7 +265,6 @@ class ForLoopStartStep(DigiCenterStep):
         self.loopCounts = 0
         self.containSteps = []
         self.loopid = 0
-        self.loopIter = 0
 
     def set_paras(self,step):
         super().set_paras(step)
@@ -242,11 +273,11 @@ class ForLoopStartStep(DigiCenterStep):
     
     @DigiCenterStep.deco
     def do(self):
-        self.loopIter += 1
+        self.incre_one_loopiter()
         print('Loop count {} in loop {}'.format(self.loopIter,self.loopid))            
         self.set_result(self.loopIter,'PASS')
         if self.loopIter >= self.loopCounts:
-            self.loopIter = 0
+            self.reset_loopiter()
         return self.result
     
     def set_containedSteps(self, containSteps):
@@ -260,7 +291,6 @@ class ForLoopEndStep(DigiCenterStep):
         super(ForLoopEndStep,self).__init__()
         self.loopCounts = 0
         self.loopid = 0
-        self.loopIter = 0
         self.loopDone = False
 
     def set_paras(self,step):
@@ -270,15 +300,15 @@ class ForLoopEndStep(DigiCenterStep):
     
     @DigiCenterStep.deco
     def do(self):
-        self.loopIter += 1
+        self.incre_one_loopiter()
         if self.loopIter >= self.loopCounts:
             self.loopDone = True
         self.set_result(self.loopIter,'PASS')
         return self.result
     
     def resetLoop(self):
+        self.reset_loopiter()
         self.loopDone = False
-        self.loopIter = 0
 
 class SubProgramStep(DigiCenterStep):
     def __init__(self):

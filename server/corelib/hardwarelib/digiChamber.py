@@ -191,12 +191,12 @@ class DigiChamber(object):
 
 class DummyChamber(DigiChamber):
     def __init__(self, ip='192.168.0.1', port=2049):
+        super(DummyChamber, self).__init__(ip,port)
         self.ip = ip
         self.port = port
         self.s = None
         self.connected = False
         self.dummySetPoint = 0
-        self.dummyCurTemp = 23.0
         self.gradientUp = 0
         self.gradientDown = 0
     
@@ -325,8 +325,7 @@ class DummyChamber(DigiChamber):
         return self.dummySetPoint + random.random()*0.2
     
     def get_real_temperature(self):
-        cmd = self.create_cmd('12002', ['1'])
-        return self.dummyCurTemp + random.random()*0.2
+        return self.dummyT + random.random()*0.2
     
     def set_gradient_up(self, value_k_per_min=0):
         cmd = self.create_cmd('11068', ['1', str(value_k_per_min)])
@@ -343,7 +342,6 @@ class DummyChamber(DigiChamber):
         return self.gradientDown
     
     def get_gradient_down(self):
-        cmd = self.create_cmd('11070', ['1'])
         return self.gradientDown
     
     def close(self):

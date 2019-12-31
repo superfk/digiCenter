@@ -31,7 +31,6 @@ function connect() {
   });
 
   ws.on('ping',()=>{
-    console.log('got ping')
   })
 
   ws.on('message',(message)=>{
@@ -41,7 +40,6 @@ function connect() {
       let data = msg.data;
       switch(cmd) {
         case 'ping':
-          console.log('got server data ' + data)
           ws.send(tools.parseCmd('pong',data));
           break;
         case 'result_of_backendinit':
