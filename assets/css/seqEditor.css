@@ -183,3 +183,13 @@ div.paraText {
   border-top: 2px solid !important;
 }
 
+.timeHsitorySection {
+  overflow: auto;
+  background-color: var(--color-bg);
+  border: 1px solid lightsteelblue;
+  width: 500px;
+  height: 400px;
+  position: absolute;
+  left: 950px;
+  top:44px;
+}

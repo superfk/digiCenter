@@ -27,7 +27,7 @@ let test_flow = {
     loop: loop_seq,
     teardown: teardown_seq
 };
-const plotMargin = { t: 40, r: 100, l: 40, b: 50};
+const plotMargin = { t: 40, r: 80, l: 40, b: 50};
 const config = {
   displaylogo: false,
   modeBarButtonsToRemove: ['toImage','lasso','select'],
@@ -99,6 +99,8 @@ function generateEventPlot(){
         side: 'right',
         range: [0, 100]
       },
+      showlegend: true,
+      legend: {"orientation": "h",x:0, xanchor: 'left',y:1.2,yanchor: 'top'},
       width: 400,
       height: 300,
       margin: plotMargin,
@@ -171,15 +173,6 @@ function repositionChart(){
 
 }
 
-function addNewDataToPlot(locationID, xval,yval, y2val=null){
-  if(y2val == null){
-    Plotly.extendTraces(locationID, {x: [[xval]],y: [[yval]]}, [0])
-  }else{
-    Plotly.extendTraces(locationID, {x: [[xval],[xval]],y: [[yval], [y2val]]}, [0,1])
-  }
-  
-}
-
 function addAnnotation(locationID, textin, locateX, locateY){
   let ann = {
     x: locateX,
@@ -199,7 +192,7 @@ function addAnnotation(locationID, textin, locateX, locateY){
     annotations: markers
   };
 
-  Plotly.relayout('event_graph', layout);
+  Plotly.relayout(locationID, layout);
 }
 
 // **************************************
@@ -486,12 +479,12 @@ function updateStepByCat(res){
   switch(stepname) {
     case 'ramp':
       updateValue('actualTempGauge', value);
-      addNewDataToPlot('event_graph',relTime,actTemp)
+      tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp)
       break;
     case 'measure':
       // h_data_y.push(value)
-      addNewDataToPlot('hardness_graph',actTemp,value)
-      addNewDataToPlot('event_graph',relTime,actTemp,value)
+      tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value)
+      tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp,value)
       if (eventName !== null){
         console.log(eventName)
         addAnnotation('event_graph',eventName,relTime,actTemp)
@@ -499,7 +492,7 @@ function updateStepByCat(res){
       // updateValue('hardness_graph', value);
       break;
     case 'time':      
-      addNewDataToPlot('event_graph',relTime,actTemp)
+      tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp)
       break;
     default:
       console.log('Not found this stepname: ' + stepname)

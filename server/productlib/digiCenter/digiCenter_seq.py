@@ -227,7 +227,7 @@ class HardnessStep(DigiCenterStep):
             dummpyHard = random.random()*2 + self.dummyHardBase
             self.set_result(round(dummpyHard,1),'Waiting')
             self.resultCallback(self.result)
-        self.set_result(round(dummpyHard,1),'PASS',None,'M_E')
+        self.set_result(round(dummpyHard,1),'PASS')
         return self.result
 
 

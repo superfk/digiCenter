@@ -17,6 +17,21 @@ function refresh_systemtime(intv) {
 
 refresh_systemtime(1000);
 
+function hidePlot(){
+  let charts = document.querySelectorAll('#run-section .svg-container');
+  if(e.target.id !=='button-run'){
+     
+    charts.forEach((item,index)=>{
+      $(item).hide()
+    })
+  }else{
+    let charts = document.querySelectorAll('#run-section .svg-container');
+    charts.forEach((item,index)=>{
+      $(item).show()
+    })
+  }
+}
+
 // change section event
 list = document.getElementsByClassName("nav-button");
 for (var i = 0; i < list.length; i++) {
@@ -24,19 +39,6 @@ for (var i = 0; i < list.length; i++) {
     ipcRenderer.send('save_log',`Click ${e.target.textContent} nav button`, 'info', 1);
     e.preventDefault();
     ipcRenderer.send('updateFootStatus',"");
-    let charts = document.querySelectorAll('#run-section .svg-container');
-    // in order to avoid plotly mouse occupy
-    if(e.target.id !=='button-run'){
-     
-      charts.forEach((item,index)=>{
-        $(item).hide()
-      })
-    }else{
-      let charts = document.querySelectorAll('#run-section .svg-container');
-      charts.forEach((item,index)=>{
-        $(item).show()
-      })
-    }
   });
 }
 
@@ -307,8 +309,3 @@ function autoUpdateLang(){
   });
 
 }
-
-setTimeout(()=>{
-  let tester = document.getElementById('js-plotly-tester');
-  tester.parentNode.removeChild(tester);
-},5000)

@@ -87,17 +87,35 @@ function addClassProcess(id){
 }
 
 $('#button-config').on('click',(e)=>{
+  hideChart()
   addClassProcess('button-config');
 })
 
 $('#button-seqEditor').on('click',(e)=>{
+  hideChart()
   addClassProcess('button-seqEditor');
 })
 
 $('#button-run').on('click',(e)=>{
+  showChart()
   addClassProcess('button-run');
 })
 
 $('#button-report').on('click',(e)=>{
+  hideChart();
   addClassProcess('button-report');
 })
+
+function hideChart(){
+  let charts = document.querySelectorAll('#run-section .svg-container');
+  charts.forEach((item,index)=>{
+    $(item).hide()
+  })
+}
+
+function showChart(){
+  let charts = document.querySelectorAll('#run-section .svg-container');
+  charts.forEach((item,index)=>{
+    $(item).show()
+  })
+}

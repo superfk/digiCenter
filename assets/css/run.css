@@ -119,11 +119,11 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
 #testSeqContainer .active-item { background: #F39814; color: white; }
 #testSeqContainer li.disabledStep {background: gray!important; color: white;}
 
-.cardContent > ul {
+.seqSection > .cardContent > ul {
     list-style-type: none;
   }
   
-.cardContent > ul > li {
+.seqSection > .cardContent > ul > li {
     /* You need to turn on relative positioning so the line is placed relative to the item rather than absolutely on the page */
     position: relative;
 

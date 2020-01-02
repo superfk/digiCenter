@@ -122,6 +122,55 @@ function connect() {
 
 connect();
   
+// **************************************
+// generate graph functions
+// **************************************
+generateTempTimePlot();
+
+function generateTempTimePlot(){
+
+    var trace1 = {
+          // x: h_data_x,
+          type: "scattergl",
+          name: 'temperature',
+          x:[],
+          y: [],
+          mode: 'lines+markers',
+          line: {
+            width: 2,
+            color: 'red',
+  
+          }
+        };
+  
+      var data = [trace1];
+  
+      var layout = {
+        xaxis: {
+          title: 'Time(min)'
+        },
+        yaxis: {
+          title: '℃'
+        },
+        showlegend: true,
+        legend: {"orientation": "h",x:0, xanchor: 'left',y:1.2,yanchor: 'top'},
+        width: 480,
+        height: 380,
+        margin: { t: 40, r: 80, l: 50, b: 50},
+        paper_bgcolor:'rgba(0,0,0,0)',
+        plot_bgcolor:'rgba(0,0,0,0)',
+        autosize: true,
+        font: { color: "dimgray", family: "Arial", size: 14}
+      };
+
+      const config = {
+        displaylogo: false,
+        modeBarButtonsToRemove: ['toImage','lasso','select'],
+        responsive: true
+      };
+      
+      Plotly.newPlot('tempTime_graph', data, layout,config);
+  }
 
 // **************************************
 // general functions
@@ -144,18 +193,6 @@ saveSeq.addEventListener('click', ()=>{
     saveSeqInServer()
 })
 
-function random_rgb() {
-    var r = Math.floor(Math.random()*256);          // Random between 0-255
-    var g = Math.floor(Math.random()*256);          // Random between 0-255
-    var b = Math.floor(Math.random()*256);          // Random between 0-255
-    var rgb = 'rgb(' + r + ',' + g + ',' + b + ')'; // Collect all to a string
-    return rgb;
-}
-
-function random_hsl(){
-    return "hsla(" + ~~(360 * Math.random()) + "," + "100%,"+ "50%,1)"
-}
-
 function pick_color_hsl(){
     let colorArr = ['red', 'blue', 'green', 'orange', 'brown', 'sienna', 'blueviolet', 'darkcyan', 'hotpink'];
     let ouputColor = colorArr[alwayIncrLoopColorIdx % colorArr.length];
@@ -167,6 +204,70 @@ const capitalize = (s) => {
     if (typeof s !== 'string') return ''
     return s.charAt(0).toUpperCase() + s.slice(1)
   }
+
+function updateTempTimeChart(){
+    generateTempTimePlot();
+    let iniTemp = 20;
+    let curTemp = 20;
+    let xTime = 0.0;
+    let cursor = 0;
+    let loopArr = []; // [{id:313, iter:0}]
+    while (cursor < seq.length){
+        console.log('loop array')
+        console.log(loopArr)
+        console.log('cursor: ' + cursor)
+        let item = seq[cursor];
+        if (item.cat==='loop' && item.subitem['item']=='loop start'){
+            let loopid = item.subitem.paras.filter(item=>item.name=='loop id')[0].value;
+            let loopCounts = parseInt(item.subitem.paras.filter(item=>item.name=='loop counts')[0].value);
+            loopArr.push({
+                id: loopid,
+                iter:0,
+                counts: loopCounts
+            })
+            cursor += 1
+        }else if (item.cat==='loop' && item.subitem['item']=='loop end'){
+            let loopid = item.subitem.paras.filter(item=>item.name=='loop id')[0].value;
+            let ids = searchLoopStartEndByID(loopid);
+            let curIter = parseInt(loopArr.filter(item=>item.id==loopid)[0].iter);
+            curIter += 1
+            let curLoopIndex = parseInt(loopArr.findIndex(item=>item.id==loopid));
+            if (curIter < loopArr[curLoopIndex].counts){
+                loopArr[curLoopIndex].iter += 1
+                cursor = ids[0]+1
+            }else{
+                if (curLoopIndex>-1){
+                    loopArr.splice(curLoopIndex, 1);
+                }                
+                cursor += 1;
+            }
+        }else if (item.cat==='waiting'){
+            let watiMin = item.subitem.paras.filter(item=>item.name=='conditioning time')[0].value;
+            xTime += parseFloat(watiMin)
+            tools.plotly_addNewDataToPlot('tempTime_graph',xTime,parseFloat(curTemp));
+            cursor += 1;
+        }else if (item.cat==='temperature'){
+            let tarTemp = parseFloat(item.subitem.paras.filter(item=>item.name=='target temperature')[0].value);
+            let slope = item.subitem.paras.filter(item=>item.name=='slope')[0].value;
+            let incre = item.subitem.paras.filter(item=>item.name=='increment')[0].value;
+            let xMin = Math.abs((tarTemp-curTemp) / slope);
+            xTime += xMin
+            curTemp = tarTemp;
+            tools.plotly_addNewDataToPlot('tempTime_graph',xTime,parseFloat(curTemp));
+            cursor += 1;
+        }else if (item.cat==='hardness'){
+            let mearSec = item.subitem.paras.filter(item=>item.name=='measuring time')[0].value;
+            let mearMin = mearSec / 60;
+            xTime += parseFloat(mearMin)
+            tools.plotly_addNewDataToPlot('tempTime_graph',xTime,parseFloat(curTemp));
+            cursor += 1;
+        }else{
+            cursor += 1;
+        }
+        console.log(xTime,curTemp);
+
+    }
+}
 
 function sortSeq(){
     let middleSeqs =  generateSeq();
@@ -190,6 +291,7 @@ function sortSeq(){
         }
         
     })
+    updateTempTimeChart();
     
 }
 
@@ -950,14 +1052,16 @@ applyParaBtn.addEventListener('click',()=>{
         })
     }else if (cat === 'hardness'){
         paraCollection = $('#paraContainer input');
-        $.each(paraCollection,(index,item)=>{
-            seq[id].subitem.paras[index].value = $(item).val()
-         })
+        let newCOM = paraCollection[0].value;
+        let newMearT = paraCollection[1].value;
+        seq[id].subitem.paras[0].value = newCOM;
+        seq[id].subitem.paras[3].value = newMearT;
         paraCollection = $('#paraContainer select');
         let newMethod = $(paraCollection[0]).find('option:selected').text();
         let newMode = $(paraCollection[1]).find('option:selected').text();
         seq[id].subitem.paras[1].value = newMethod;
         seq[id].subitem.paras[2].value = newMode;
+        
     }else if (cat === 'waiting'){
         paraCollection = $('#paraContainer input');
         $.each(paraCollection,(index,item)=>{
