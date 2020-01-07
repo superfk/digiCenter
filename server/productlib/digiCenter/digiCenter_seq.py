@@ -198,6 +198,8 @@ class HardnessStep(DigiCenterStep):
         self.mode = None
         self.mearTime = None # sec
         self.dummyHardBase = 50
+        self.numTests = 3
+        self.numericMethod = 'mean'
 
     def set_paras(self,step):
         super().set_paras(step)
@@ -205,6 +207,8 @@ class HardnessStep(DigiCenterStep):
         self.method = list(filter(lambda name: name['name'] == 'method', self.paras))[0]['value']
         self.mode = list(filter(lambda name: name['name'] == 'mode', self.paras))[0]['value']
         self.mearTime = float(list(filter(lambda name: name['name'] == 'measuring time', self.paras))[0]['value'])
+        self.numTests = int(list(filter(lambda name: name['name'] == 'number of measurement', self.paras))[0]['value'])
+        self.numericMethod = list(filter(lambda name: name['name'] == 'numerical method', self.paras))[0]['value']
 
     @DigiCenterStep.deco
     def do(self):
@@ -214,7 +218,7 @@ class HardnessStep(DigiCenterStep):
         startTime = time.time()
         # send start mear event text
         dummpyHard = random.random()*2 + self.dummyHardBase
-        self.set_result(round(dummpyHard,1),'Waiting',None,'M_S')
+        self.set_result(round(dummpyHard,1),'Waiting',None,'MS')
         self.resultCallback(self.result)
         # do time control
         while countdownTime<targetTime:

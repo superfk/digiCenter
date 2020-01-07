@@ -33,6 +33,9 @@ let test_flow = {
 let activePara = null;
 let defaultSeqPath = null;
 let alwayIncrLoopColorIdx = 0;
+
+
+
 // 
 // singleStep = {
     // id: 0,
@@ -61,6 +64,44 @@ let alwayIncrLoopColorIdx = 0;
     // }
     // 
 // }
+
+// **************************************
+// input paras constructor
+// **************************************
+function BooleanPara(name, value, unit='', readOnly=false) {
+    this.name = name;
+    this.value = value;
+    this.unit = unit;
+    this.type = 'bool';
+    this.readOnly = readOnly;
+  }
+
+function NumberPara(name, value, unit='', max=null, min=null, readOnly=false) {
+    this.name = name;
+    this.value = value;
+    this.unit = unit;
+    this.max = max;
+    this.min = min;
+    this.type = 'number';
+    this.readOnly = readOnly;
+  }
+
+function TextPara(name, value, unit='', readOnly=false) {
+    this.name = name;
+    this.value = value;
+    this.unit = unit;
+    this.type = 'text';
+    this.readOnly = readOnly;
+}
+
+function OptionPara(name, value, options, unit='', readOnly=false) {
+    this.name = name;
+    this.value = value;
+    this.unit = unit;
+    this.options = options;
+    this.type = 'select';
+    this.readOnly = readOnly;
+}
 
 // **************************************
 // websocket functions
@@ -127,14 +168,14 @@ connect();
 // **************************************
 generateTempTimePlot();
 
-function generateTempTimePlot(){
+function generateTempTimePlot(xarr=[],yarr=[]){
 
     var trace1 = {
           // x: h_data_x,
           type: "scattergl",
           name: 'temperature',
-          x:[],
-          y: [],
+          x: xarr,
+          y: yarr,
           mode: 'lines+markers',
           line: {
             width: 2,
@@ -152,20 +193,21 @@ function generateTempTimePlot(){
         yaxis: {
           title: '℃'
         },
-        showlegend: true,
+        showlegend: false,
         legend: {"orientation": "h",x:0, xanchor: 'left',y:1.2,yanchor: 'top'},
-        width: 480,
-        height: 380,
-        margin: { t: 40, r: 80, l: 50, b: 50},
+        width: 800,
+        height: 280,
+        margin: { t: 20, r: 40, l: 60, b: 50},
         paper_bgcolor:'rgba(0,0,0,0)',
         plot_bgcolor:'rgba(0,0,0,0)',
         autosize: true,
-        font: { color: "dimgray", family: "Arial", size: 14}
+        font: { color: "dimgray", family: "Arial", size: 14},
+        modebar: {orientation:'h'}
       };
 
       const config = {
         displaylogo: false,
-        modeBarButtonsToRemove: ['toImage','lasso','select'],
+        modeBarButtonsToRemove: ['toImage','lasso2d','select2d', 'pan2d','zoom2d','hoverClosestCartesian','hoverCompareCartesian','toggleSpikelines'],
         responsive: true
       };
       
@@ -206,16 +248,30 @@ const capitalize = (s) => {
   }
 
 function updateTempTimeChart(){
-    generateTempTimePlot();
+    console.log('execute')
     let iniTemp = 20;
     let curTemp = 20;
     let xTime = 0.0;
     let cursor = 0;
-    let loopArr = []; // [{id:313, iter:0}]
+    let loopArr = []; // [{id:313, iter:0, counts:0}]
+    let ann = {
+        x: xTime,
+        y: iniTemp,
+        xref: 'x',
+        yref: 'y',
+        text: 'InitT',
+        showarrow: true,
+        arrowhead: 2,
+        ax: -10,
+        ay: -40
+      };
+    let markers = [ann];
+    let timeArr = [0];
+    let temperatureArr = [iniTemp];
     while (cursor < seq.length){
-        console.log('loop array')
-        console.log(loopArr)
-        console.log('cursor: ' + cursor)
+        // console.log('loop array')
+        // console.log(loopArr)
+        // console.log('cursor: ' + cursor)
         let item = seq[cursor];
         if (item.cat==='loop' && item.subitem['item']=='loop start'){
             let loopid = item.subitem.paras.filter(item=>item.name=='loop id')[0].value;
@@ -244,42 +300,67 @@ function updateTempTimeChart(){
         }else if (item.cat==='waiting'){
             let watiMin = item.subitem.paras.filter(item=>item.name=='conditioning time')[0].value;
             xTime += parseFloat(watiMin)
-            tools.plotly_addNewDataToPlot('tempTime_graph',xTime,parseFloat(curTemp));
+            timeArr.push(xTime)
+            temperatureArr.push(curTemp)
+            // tools.plotly_addNewDataToPlot('tempTime_graph',xTime,parseFloat(curTemp));
             cursor += 1;
         }else if (item.cat==='temperature'){
             let tarTemp = parseFloat(item.subitem.paras.filter(item=>item.name=='target temperature')[0].value);
             let slope = item.subitem.paras.filter(item=>item.name=='slope')[0].value;
             let incre = item.subitem.paras.filter(item=>item.name=='increment')[0].value;
+            
+            // check if in loop
+            curIter = 0
+            if (loopArr.length > 0){
+                let curLoop = loopArr.slice(-1)[0];
+                curIter = curLoop.iter;
+            }
+            tarTemp = tarTemp + incre*curIter;
             let xMin = Math.abs((tarTemp-curTemp) / slope);
             xTime += xMin
             curTemp = tarTemp;
-            tools.plotly_addNewDataToPlot('tempTime_graph',xTime,parseFloat(curTemp));
+            timeArr.push(xTime)
+            temperatureArr.push(curTemp)
+            // tools.plotly_addNewDataToPlot('tempTime_graph',xTime,parseFloat(curTemp));
             cursor += 1;
         }else if (item.cat==='hardness'){
+            ann = {
+                x: xTime,
+                y: curTemp,
+                xref: 'x',
+                yref: 'y',
+                text: 'MS',
+                showarrow: true,
+                arrowhead: 3,
+                ax: -10,
+                ay: -40
+              };
+
+              markers.push(ann)
+            
             let mearSec = item.subitem.paras.filter(item=>item.name=='measuring time')[0].value;
             let mearMin = mearSec / 60;
             xTime += parseFloat(mearMin)
-            tools.plotly_addNewDataToPlot('tempTime_graph',xTime,parseFloat(curTemp));
+            timeArr.push(xTime)
+            temperatureArr.push(curTemp)
+            // tools.plotly_addNewDataToPlot('tempTime_graph',xTime,curTemp);
             cursor += 1;
         }else{
             cursor += 1;
         }
-        console.log(xTime,curTemp);
+        // console.log(xTime,curTemp);
 
     }
+    generateTempTimePlot(timeArr,temperatureArr);
+    var layout = {
+        annotations: markers
+      };
+    Plotly.relayout('tempTime_graph', layout);
 }
 
 function sortSeq(){
     let middleSeqs =  generateSeq();
     $('#seqContainer').html(generateStartSeq() + middleSeqs + generateEndSeq())
-    // $( "#seqContainer" ).accordion('refresh');
-    // $( "#seqContainer" ).accordion({
-    //     header: "> li > a",
-    //     collapsible: true,
-    //     heightStyle: "content",
-    //     active: false
-    // });
-    // seqContainer.innerHTML = generateStartSeq() + middleSeqs + generateEndSeq();
     makeSortable();
     test_flow.main = seq;
     let revSeq = seq.slice();
@@ -348,7 +429,7 @@ function genParas (paras,input=false) {
             if (t === 'text'){
                 c += `<li><label>${capitalize(item['name'])} ${genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='text' ${ronly}></li>`;
             }else if (t === 'number'){
-                c += `<li><label>${capitalize(item['name'])} ${genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='number' ${ronly}></li>`;
+                c += `<li><label>${capitalize(item['name'])} ${genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='number' max='${item['max']}' min='${item['min']}' ${ronly} ></li>`;
 
             }else if (t === 'bool'){
                 c += `<li><input class='w3-check w3-border-bottom w3-cell' checked=${item['value']} type='checkbox' ${ronly}><label> ${capitalize(item['name'])} ${genUnit(item['unit'])}
@@ -411,7 +492,9 @@ function genShortParaText(cat,subitem){
         let methodPara = paras.filter(item=>item.name=='method')[0];
         let modePara = paras.filter(item=>item.name=='mode')[0];
         let mtPara = paras.filter(item=>item.name=='measuring time')[0];
-        mainText = `${methodPara.value}, ${modePara.value}, mearTime:${mtPara.value} ${mtPara.unit}`;
+        let nomearPara = paras.filter(item=>item.name=='number of measurement')[0];
+        let nummethodPara = paras.filter(item=>item.name=='numerical method')[0];
+        mainText = `${methodPara.value}, ${modePara.value}, mearTime:${mtPara.value} ${mtPara.unit}, mearCounts:${nomearPara.value}, ${nummethodPara.value} `;
     }else if (cat === 'waiting'){
         let cdtPara = paras.filter(item=>item.name=='conditioning time')[0];
         mainText = `conditioningTime:${cdtPara.value} ${cdtPara.unit}`;
@@ -508,7 +591,7 @@ function generateSeq() {
         curstr += `
         <li data-stepid=${index} data-sortable=true class='w3-bar'>
             
-                <a href="#" style="font-size:14px;width:450px;" class='w3-bar-item'>
+                <a href="#" class='w3-bar-item'>
                     ${genIconByCat(cat,subitem['paras'])}${stepTitles[index]}${stepParaText}
                 </a>
                 <div class="w3-bar-item w3-right lopCount">00</div>
@@ -524,30 +607,30 @@ function generateSeq() {
 
 
 function genSetupTest(){
-    let paras= [
-        {
-            name: 'Number of samples',
-            value: '25',
-            unit: '',
-            type: 'number',
-            readOnly: false
-        },
-        {
-            name: 'Number of test position',
-            value: '3',
-            unit: '',
-            type: 'number',
-            readOnly: false
-        },
-        {
-            name: 'Number of test cycle',
-            value: '10',
-            unit: '',
-            type: 'number',
-            readOnly: false
-        }
-    ]
-    setup_seq = makeSingleStep('setup','batch',paras, true, -1);
+    // let paras= [
+    //     {
+    //         name: 'Number of samples',
+    //         value: '25',
+    //         unit: '',
+    //         type: 'number',
+    //         readOnly: false
+    //     },
+    //     {
+    //         name: 'Number of test position',
+    //         value: '3',
+    //         unit: '',
+    //         type: 'number',
+    //         readOnly: false
+    //     },
+    //     {
+    //         name: 'Number of test cycle',
+    //         value: '10',
+    //         unit: '',
+    //         type: 'number',
+    //         readOnly: false
+    //     }
+    // ]
+    setup_seq = makeSingleStep('setup','batch',[], true, -1);
     test_flow.setup = setup_seq;
     // let parms = genParas(setup_seq['subitem']['paras']);
     // return `<div style='margin:0px;padding:5px;'><ul class='w3-ul'>${parms}</ul></div>`
@@ -565,23 +648,23 @@ function generateStartSeq() {
 }
 
 function genTeardownTest(){
-    let paras= [
-        {
-            name: 'Motor Home',
-            value: 'true',
-            unit: '',
-            type: 'bool',
-            readOnly: false
-        },
-        {
-            name: 'Turn off chamber',
-            value: 'true',
-            unit: '',
-            type: 'bool',
-            readOnly: false
-        }
-    ]
-    teardown_seq = makeSingleStep('teardown','batch', paras, true, 9999);
+    // let paras= [
+    //     {
+    //         name: 'Motor Home',
+    //         value: 'true',
+    //         unit: '',
+    //         type: 'bool',
+    //         readOnly: false
+    //     },
+    //     {
+    //         name: 'Turn off chamber',
+    //         value: 'true',
+    //         unit: '',
+    //         type: 'bool',
+    //         readOnly: false
+    //     }
+    // ]
+    teardown_seq = makeSingleStep('teardown','batch', [], true, 9999);
     test_flow.teardown = teardown_seq;
     // let parms = genParas(teardown_seq['subitem']['paras']);
     // return `<div style='margin:0px;padding:5px;'><ul class='w3-ul'>${parms}</ul></div>`
@@ -636,27 +719,9 @@ function updateSequence(res){
 
 tempBox.addEventListener('click', () =>{
     let paras= [
-        {
-            name: 'target temperature',
-            value: '20',
-            unit: '&#8451',
-            type: 'number',
-            readOnly: false
-        },
-        {
-            name: 'slope',
-            value: '5',
-            unit: 'K/min',
-            type: 'number',
-            readOnly: false
-        },
-        {
-            name: 'increment',
-            value: '0',
-            unit: '&#8451',
-            type: 'number',
-            readOnly: false
-        }
+        new NumberPara('target temperature',20,unit='&#8451',max=190,min=-40,readOnly=false),
+        new NumberPara('slope',5,'K/min',max=null,min=null,readOnly=false),
+        new NumberPara('increment',0,'&#8451',max=null,min=0,readOnly=false)
     ]
     // UIkit.modal('#parasModal').show();
     let step = makeSingleStep('temperature', 'ramp', paras, true);
@@ -667,36 +732,12 @@ tempBox.addEventListener('click', () =>{
 
 hardBox.addEventListener('click', () =>{
     let paras= [
-        {
-            name: 'port',
-            value: 'COM3',
-            unit: '',
-            type: 'text',
-            readOnly: false
-        },
-        {
-            name: 'method',
-            value: 'shoreA',
-            unit: '',
-            type: 'select',
-            options: 'shoreA,shore0',
-            readOnly: false
-        },
-        {
-            name: 'mode',
-            value: 'STANDARD_M',
-            unit: '',
-            type: 'select',
-            options: 'STANDARD_M,STANDARD_M_GRAPH',
-            readOnly: false
-        },
-        {
-            name: 'measuring time',
-            value: '5',
-            unit: 'sec',
-            type: 'number',
-            readOnly: false
-        }
+        new TextPara('port','COM3',unit='',readOnly=false),
+        new OptionPara('method','shoreA','shoreA,shore0',unit='',readOnly=false),
+        new OptionPara('mode','STANDARD_M','STANDARD_M,STANDARD_M_GRAPH',unit='',readOnly=false),
+        new NumberPara('measuring time',5,unit='sec',max=null,min=0,readOnly=false),
+        new NumberPara('number of measurement',3,unit='',max=null,min=1,readOnly=false),
+        new OptionPara('numerical method','mean','mean,median',unit='',readOnly=false)
     ]
     let step = makeSingleStep('hardness', 'measure', paras);
     appendSeq(step);
@@ -705,13 +746,7 @@ hardBox.addEventListener('click', () =>{
 
 waitBox.addEventListener('click', () =>{
     let paras= [
-        {
-            name: 'conditioning time',
-            value: '5',
-            unit: 'min',
-            type: 'number',
-            readOnly: false
-        }
+        new NumberPara('conditioning time',5,unit='minute',max=null,min=0,readOnly=false)
     ]
     let step = makeSingleStep('waiting', 'time', paras);
     appendSeq(step);
@@ -725,52 +760,17 @@ loopBox.addEventListener('click', () =>{
     let loopColor = pick_color_hsl();
     let loop_counts = 5;
     let paras= [
-        {
-            name: 'loop id',
-            value: loopID,
-            unit: '',
-            type: 'number',
-            readOnly: true
-        },               
-        {
-            name: 'loop counts',
-            value: loop_counts,
-            unit: '',
-            type: 'number'
-        },
-        {
-            name: 'loop color',
-            value: loopColor,
-            unit: '',
-            type: 'text',
-            readOnly: true
-        }
+        new NumberPara('loop id',loopID,unit='',max=null,min=0,readOnly=true),
+        new NumberPara('loop counts',loop_counts,unit='',max=null,min=0,readOnly=false),
+        new TextPara('loop color',loopColor,unit='',readOnly=true)
     ]
     let step = makeSingleStep('loop', 'loop start', paras);
     appendSeq(step);
 
     paras= [
-        {
-            name: 'stop on',
-            value: loop_counts,
-            unit: '',
-            type: 'number',
-            readOnly: true
-        },
-        {
-            name: 'loop id',
-            value: loopID,
-            unit: '',
-            type: 'number',
-            readOnly: true
-        },
-        {
-            name: 'loop color',
-            value: loopColor,
-            unit: '',
-            type: 'text',
-            readOnly: true
-        }
+        new NumberPara('stop on',loop_counts,unit='',max=null,min=0,readOnly=true),
+        new NumberPara('loop id',loopID,unit='',max=null,min=0,readOnly=true),
+        new TextPara('loop color',loopColor,unit='',readOnly=true)
     ];
         
     step = makeSingleStep('loop', 'loop end', paras);
@@ -781,13 +781,7 @@ loopBox.addEventListener('click', () =>{
 
 subprogBox.addEventListener('click', () =>{
     let paras= [
-        {
-            name: 'path',
-            value: 'C:\\test.prgo',
-            unit: '',
-            type: 'text',
-            readOnly: false
-        }
+        new TextPara('path','',unit='',readOnly=false)
     ]
     let step = makeSingleStep('subprog', 'program config', paras);
     appendSeq(step);
@@ -1005,9 +999,9 @@ $('body').on('click', '#seqContainer > li > a',function() {
         matches_array = nh.match(regexp);
         console.log(matches_array)
         if (matches_array !== null){
-            genParasPanel(test_flow.setup);
+            // genParasPanel(test_flow.setup);
         }else{
-            genParasPanel(test_flow.teardown);
+            // genParasPanel(test_flow.teardown);
         }
     }
 
@@ -1054,13 +1048,17 @@ applyParaBtn.addEventListener('click',()=>{
         paraCollection = $('#paraContainer input');
         let newCOM = paraCollection[0].value;
         let newMearT = paraCollection[1].value;
+        let newNumOfTest = paraCollection[2].value;
         seq[id].subitem.paras[0].value = newCOM;
         seq[id].subitem.paras[3].value = newMearT;
+        seq[id].subitem.paras[4].value = newNumOfTest;
         paraCollection = $('#paraContainer select');
         let newMethod = $(paraCollection[0]).find('option:selected').text();
         let newMode = $(paraCollection[1]).find('option:selected').text();
+        let newNumericMethod = $(paraCollection[2]).find('option:selected').text();
         seq[id].subitem.paras[1].value = newMethod;
         seq[id].subitem.paras[2].value = newMode;
+        seq[id].subitem.paras[5].value = newNumericMethod;
         
     }else if (cat === 'waiting'){
         paraCollection = $('#paraContainer input');

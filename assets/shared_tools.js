@@ -32,5 +32,26 @@ module.exports = {
         console.log('no trace in plot')
       }
       
+    },
+    plotly_addAnnotation: function (locationID, textin, locateX, locateY, markerArr=[]){
+      let ann = {
+        x: locateX,
+        y: locateY,
+        xref: 'x',
+        yref: 'y',
+        text: textin,
+        showarrow: true,
+        arrowhead: 3,
+        ax: 0,
+        ay: -40
+      };
+    
+      markerArr.push(ann)
+    
+      var layout = {
+        annotations: markerArr
+      };
+    
+      Plotly.relayout(locationID, layout);
     }
   };

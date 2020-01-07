@@ -30,7 +30,7 @@ let test_flow = {
 const plotMargin = { t: 40, r: 80, l: 40, b: 50};
 const config = {
   displaylogo: false,
-  modeBarButtonsToRemove: ['toImage','lasso','select'],
+  modeBarButtonsToRemove: ['toImage','lasso2d','select2d', 'pan2d','zoom2d','hoverClosestCartesian','hoverCompareCartesian','toggleSpikelines'],
   responsive: true
 };
 
@@ -173,27 +173,6 @@ function repositionChart(){
 
 }
 
-function addAnnotation(locationID, textin, locateX, locateY){
-  let ann = {
-    x: locateX,
-    y: locateY,
-    xref: 'x',
-    yref: 'y',
-    text: textin,
-    showarrow: true,
-    arrowhead: 3,
-    ax: 0,
-    ay: -40
-  };
-
-  markers.push(ann)
-
-  var layout = {
-    annotations: markers
-  };
-
-  Plotly.relayout(locationID, layout);
-}
 
 // **************************************
 // generate gauge functions
@@ -407,9 +386,13 @@ stopSeqBtn.addEventListener('click',()=>{
 // **************************************
 // general functions
 // **************************************
+
+let monitorValue;
+
 function init(){
   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_default_seq_path')));
   ws.send(tools.parseCmd('init_hw'));
+  monitorValue = setInterval(monitorFunction,1000);
 }
 
 function updateServerSeqFolder(path){
@@ -423,8 +406,6 @@ function loadSeqFromServer(){
 function monitorFunction(){
   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_cur_temp_and_humi')));
 }
-
-let monitorValue = setInterval(monitorFunction,1000);
 
 function updateSequence(res){
   test_flow.setup = res.setup;
@@ -487,7 +468,7 @@ function updateStepByCat(res){
       tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp,value)
       if (eventName !== null){
         console.log(eventName)
-        addAnnotation('event_graph',eventName,relTime,actTemp)
+        tools.plotly_addAnnotation('event_graph',eventName,relTime,actTemp,markers)
       }
       // updateValue('hardness_graph', value);
       break;
@@ -623,7 +604,9 @@ function genShortParaText(cat,subitem){
       let methodPara = paras.filter(item=>item.name=='method')[0];
       let modePara = paras.filter(item=>item.name=='mode')[0];
       let mtPara = paras.filter(item=>item.name=='measuring time')[0];
-      mainText = `${methodPara.value}, ${modePara.value}, mearTime:${mtPara.value} ${mtPara.unit}`;
+      let nomearPara = paras.filter(item=>item.name=='number of measurement')[0];
+      let nummethodPara = paras.filter(item=>item.name=='numerical method')[0];
+      mainText = `${methodPara.value}, ${modePara.value}, mearTime:${mtPara.value} ${mtPara.unit}, mearCounts:${nomearPara.value}, ${nummethodPara.value} `;
   }else if (cat === 'waiting'){
       let cdtPara = paras.filter(item=>item.name=='conditioning time')[0];
       mainText = `conditioningTime:${cdtPara.value} ${cdtPara.unit}`;

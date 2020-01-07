@@ -21,19 +21,7 @@
   
 }
 
-div.paraText {
-  position: relative;
-  top: .45em;
-  white-space: nowrap;
-  overflow-x: hidden;
-  text-overflow: ellipsis;
-  width: auto !important;
-  max-width: 250px;
-  margin-left: 10px;
-  color: rgb(11, 17, 100);
-  font-size: smaller;
-  display:inline-block;
-}
+
 
 .toolSection > .secTitle {
   color: var(--color-c4);
@@ -52,11 +40,11 @@ div.paraText {
 .mainSeqSection {
   overflow: auto;
   background-color: var(--color-bg);
-  width: 700px;
   position: absolute;
+  width: 1000px;
   left: 300px;
-  top:0;
-  bottom: 0;
+  top:0px;
+  bottom: 0px;
 }
 
 
@@ -68,10 +56,44 @@ div.paraText {
   overflow: auto;
   position: absolute;
   top: 56px;
-  width: 90%;
-  bottom:16px;
-  padding: 10px
+  width: 98%;
+  bottom: 350px;
+  padding: 10px 10px 10px 10px;
   /* border: 1px solid lightsteelblue; */
+}
+
+.mainSeqContainer > li > a{
+  font-size: 14px;
+  width: 100%;
+
+}
+
+.paraText {
+  position: relative;
+  top: .45em;
+  white-space: nowrap;
+  overflow-x: hidden;
+  text-overflow: ellipsis;
+  width: auto !important;
+  max-width: 600px;
+  margin-left: 10px;
+  color: rgb(11, 17, 100);
+  font-size: smaller;
+  display:inline-block;
+}
+
+.timeHsitorySection {
+  overflow: hidden;
+  background-color: var(--color-bg);
+  position: absolute;
+  left: 0;
+  bottom: 0px;
+  width: 100%;
+  padding: 10px 16px 10px 16px;
+}
+
+.timeHsitorySection >  .secTitle{
+  color: var(--color-c2);
 }
 
 .seqbox {
@@ -183,13 +205,4 @@ div.paraText {
   border-top: 2px solid !important;
 }
 
-.timeHsitorySection {
-  overflow: auto;
-  background-color: var(--color-bg);
-  border: 1px solid lightsteelblue;
-  width: 500px;
-  height: 400px;
-  position: absolute;
-  left: 950px;
-  top:44px;
-}
+

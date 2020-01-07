@@ -61,12 +61,12 @@
                         </div>
                     </div>     
                 </div>
-
-                </div>
+            <!-- end of tool section -->
             </div>
 
+            <!-- start of mainSeqSection -->
             <div class='w3-container w3-cell mainSeqSection'>
-                <div class='w3-bar w3-large w3-border-bottom w3-border-lightgray' style="width: 92%;">
+                <div class='w3-bar w3-large w3-border-bottom w3-border-lightgray'>
                     <div class="w3-bar-item">Main Sequence</div>
                     <a href="#" id='save_seq' class="w3-bar-item w3-button w3-right" ><i class="far fa-save"></i></a>
                     <a href="#" id='open_seq' class="w3-bar-item w3-button w3-right"><i class="far fa-folder-open"></i></a>
@@ -76,19 +76,25 @@
                 </div>
                 
                 
-                <div class='w3-container w3-padding mainSeqContainer'>
+                <div class='w3-container mainSeqContainer'>
                     <ul id='seqContainer'>
                     </ul>
                 </div>
+
+                <!-- graph section -->
+                <div class='timeHsitorySection'>
+                    <div class='w3-bar w3-large w3-border-bottom w3-border-lightgray'>
+                        <div class="w3-bar-item">Temperature History Chart</div>
+                    </div>
+                    <div id="tempTime_graph"></div>
+
+                <!-- end of graph section -->
+                </div>
+
+            <!-- end of mainSeqSection -->
             </div>
 
-            <!-- graph section -->
-            <div class='timeHsitorySection'>
-
-                <div id="tempTime_graph" class="w3-container cardContent"></div>
-
-            <!-- end of graph section -->
-            </div>
+            
 
             <div class='w3-container w3-cell'>
                 
