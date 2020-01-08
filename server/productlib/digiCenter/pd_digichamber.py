@@ -110,6 +110,7 @@ class DigiChamberProduct(pd_product.Product):
 
     async def run_seq(self,websocket):
         try:
+            # preinit process
             self.stopMsgQueue = queue.Queue()
             self.testStop=False
             self.interruptStop=False
@@ -119,61 +120,73 @@ class DigiChamberProduct(pd_product.Product):
             startTime = time.time()
             totalStepsCounts = len(self.stepsClass)
             cursor = 0
-            while cursor < totalStepsCounts and not self.testStop:
+            
+            for s in self.stepsClass:
+                # set inital start time to calculate relative time
+                s.set_initTime(startTime)
+                s.set_result_callback(self.sendResultCallback)
+                s.set_communicate_callback(self.sendCommunicateCallback)
+                s.stopMsgQueue = self.stopMsgQueue
+
+            # main process 
+            while True:
+                # check whether stop this loop
+                if cursor >= totalStepsCounts or self.testStop:
+                    break
+                # continuous process
                 print('current cursor: {}'.format(cursor))
+                # get payload step
                 step = self.stepsClass[cursor]
-                step.set_initTime(startTime)
-                step.set_result_callback(self.sendResultCallback)
-                step.stopMsgQueue = self.stopMsgQueue
-                if step.category == 'loop' and step.itemname == 'loop end':
-                    testResult = step.do()
-                    if not step.loopDone:
-                        # starting after loop start
-                        startIdx, endIdx = self.findLoopPair(step.loopid, self.stepsClass)
-                        for s in range(startIdx,endIdx-startIdx):
-                            self.stepsClass[s].incre_one_loopiter()
-                        cursor = startIdx + 1
-                    else:
-                        '''reset loop because if another loop run this loop again 
-                        that not lead to immediately stop'''
-                        startIdx, endIdx = self.findLoopPair(step.loopid, self.stepsClass)
-                        for s in range(startIdx,endIdx-startIdx):
-                            self.stepsClass[s].reset_loopiter()
-                        step.resetLoop()
-                        cursor += 1
-                else:
+
+                curStepName = step.__class__.__name__
+
+                if curStepName == 'HardnessStep':
                     # only for demo, MUST remove later
-                    curStepName = step.__class__.__name__
-                    if curStepName == 'HardnessStep':
-                        senCoeff = 5
-                        step.dummyHardBase = 50 - senCoeff*math.log10(self.dChamb.get_real_temperature()/23)
-                    elif curStepName == 'TemperatureStep':
-                        step.update_actTarget()
-                        print('sent temperature ref value: {}'.format(step.actTarget))
-                        future = asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,'update_gauge_ref',step.actTarget), self.loop)
-                    testResult = step.do()
-                    if testResult['status'] in ['PASS','FAIL','SKIP']:
+                    senCoeff = 5
+                    step.dummyHardBase = 50 - senCoeff*math.log10(self.dChamb.get_real_temperature()/23)
+
+                # do step
+                testResult = step.do()
+
+                # handle result
+                if testResult['status'] in ['PASS','FAIL','SKIP']:
+                    if curStepName != 'ForLoopEndStep':
                         cursor += 1
+                    else:
+                        if not step.loopDone:
+                            # starting from loop start
+                            startIdx, endIdx = self.findLoopPair(step.loopid, self.stepsClass)
+                            cursor = startIdx
+                        else:
+                            '''reset loop because if another loop run this loop again 
+                            that not lead to immediately stop'''
+                            startIdx, endIdx = self.findLoopPair(step.loopid, self.stepsClass)
+                            for s in range(startIdx,endIdx+1):
+                                self.stepsClass[s].reset_loopiter()
+                            step.resetLoop()
+                            cursor += 1
+
+                # check if finish final step
                 if cursor >= totalStepsCounts:
                     self.testStop=True
+
         except Exception as e:
             print(e)
             self.errorMsg = '{}'.format(e)
             self.interruptStop = True
+
         finally:
             if self.interruptStop:
                 item = self.stopMsgQueue.get()
                 self.stopMsgQueue.task_done()
                 print('reached end_of_test, interrupted')
                 if self.errorMsg:
-                    await self.socketCallback(websocket,'end_of_test',
-                    {'interrupted':True,'reason':self.errorMsg})
+                    self.sendCommunicateCallback('end_of_test',{'interrupted':True,'reason':self.errorMsg})
                 else:
-                    await self.socketCallback(websocket,'end_of_test',
-                    {'interrupted':True,'reason':'Manually stop'})
+                    self.sendCommunicateCallback('end_of_test',{'interrupted':True,'reason':'Manually stop'})
             else:
                 print('reached end_of_test, all done')
-                await self.socketCallback(websocket,'end_of_test',{'interrupted':False,'reason':'tests all done'})
+                self.sendCommunicateCallback('end_of_test',{'interrupted':False,'reason':'tests all done'})
 
     async def get_cur_temp_and_humi(self, websocket):
         try:
@@ -202,6 +215,9 @@ class DigiChamberProduct(pd_product.Product):
 
     def sendResultCallback(self,result):
         future = asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,'update_step_result',result), self.loop)
+    
+    def sendCommunicateCallback(self,cmd, data):
+        future = asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,cmd,data), self.loop)
     
     def set_test_stop(self):
         self.testStop=True

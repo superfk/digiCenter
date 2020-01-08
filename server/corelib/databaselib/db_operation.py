@@ -5,7 +5,7 @@ import pyodbc
 import time
 import datetime
 import calendar
-import utility as util
+import corelib.utility as util
 import json
  
 class DB():

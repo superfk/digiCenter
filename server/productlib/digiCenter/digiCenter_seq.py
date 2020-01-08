@@ -25,6 +25,7 @@ class DigiCenterStep(object):
         self.endTime = None
         self.insideLoop = False
         self.resultCallback = None
+        self.commCallback = None
         self.stopMsgQueue = None
         self.hwDigichamber = None
         self.initTime = None
@@ -59,6 +60,7 @@ class DigiCenterStep(object):
             self.result['startT']=self.startTime
             if self.enabled:
                 self.result = func(self,*args)
+                self.incre_one_loopiter()
             else:
                 self.set_result('','SKIP',unit='')
             self.set_endTime()
@@ -105,6 +107,9 @@ class DigiCenterStep(object):
     
     def set_result_callback(self,resultCallback):
         self.resultCallback = resultCallback
+    
+    def set_communicate_callback(self,commCallback):
+        self.commCallback = commCallback
 
     def set_initTime(self,initTime):
         self.initTime = initTime
@@ -162,8 +167,10 @@ class TemperatureStep(DigiCenterStep):
         # do digichamber temperature control
         curT = self.hwDigichamber.get_real_temperature()
         tol = 0.03
-        incre = self.loopIter*self.incre
-        self.actTarget = self.targetTemp+incre
+        self.update_actTarget()
+        # update new target ref to client
+        self.commCallback('update_gauge_ref',self.actTarget)
+
         UL = self.actTarget * (1+tol)
         CL = self.actTarget * (1-tol)
         while curT>UL or curT<CL:
@@ -277,11 +284,8 @@ class ForLoopStartStep(DigiCenterStep):
     
     @DigiCenterStep.deco
     def do(self):
-        self.incre_one_loopiter()
         print('Loop count {} in loop {}'.format(self.loopIter,self.loopid))            
-        self.set_result(self.loopIter,'PASS')
-        if self.loopIter >= self.loopCounts:
-            self.reset_loopiter()
+        self.set_result(self.loopIter+1,'PASS')
         return self.result
     
     def set_containedSteps(self, containSteps):
@@ -304,10 +308,9 @@ class ForLoopEndStep(DigiCenterStep):
     
     @DigiCenterStep.deco
     def do(self):
-        self.incre_one_loopiter()
-        if self.loopIter >= self.loopCounts:
+        if self.loopIter >= self.loopCounts-1:
             self.loopDone = True
-        self.set_result(self.loopIter,'PASS')
+        self.set_result(self.loopIter+1,'PASS')
         return self.result
     
     def resetLoop(self):

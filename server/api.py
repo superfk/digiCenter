@@ -14,7 +14,7 @@ from corelib.UserManagement.user_login import UserManag
 from productlib.digiCenter.pd_digichamber import DigiChamberProduct
 import ctypes  # An included library with Python install.
 import struct
-from db_operation import DB
+from corelib.databaselib.db_operation import DB
 import json
 from corelib.utility import utility as util
 import datetime,time
