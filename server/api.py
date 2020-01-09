@@ -151,6 +151,9 @@ class PyServerAPI(object):
                     t = threading.Thread(target=f, args=(loop,))
                     t.start()
                     future = asyncio.run_coroutine_threadsafe(self.run_seq(websocket), loop)
+                elif cmd == 'continue_seq':
+                    isRetry = data
+                    self.productProcess.continuous_mear(isRetry)
                 elif cmd == 'stop_seq':
                     self.stop_seq()
                 elif cmd == 'export_test_data':

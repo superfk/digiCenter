@@ -240,11 +240,11 @@ ipcMain.on('open-file-dialog', (event, default_Path, calback) => {
     ],
     properties: ['openFile'],
     defaultPath: default_Path,
-  }, (files) => {
-    if (files) {
-      event.sender.send(calback, files[0])
+  }).then(result => {
+    if (!result.canceled) {
+      event.reply(calback, result.filePaths[0])
     }
-  })
+  }).catch(err => {console.log(err)})
 })
 
 
@@ -254,12 +254,13 @@ ipcMain.on('save-file-dialog', (event, default_Path, calback) => {
       { name: 'Sequence', extensions: ['seq'] }
     ],
     defaultPath: default_Path,
-  }, (file) => {
-    console.log(file)
-    if (file) {
-      event.sender.send(calback, file)
+  }).then(result => {
+    console.log(result)
+    if (!result.canceled) {
+      console.log('callback is: ' + calback)
+      event.reply(calback, result.filePath)
     }
-  })
+  }).catch(err => {console.log(err)})
 })
 
 ipcMain.on('open-folder-dialog', (event, default_Path, calback) => {

@@ -8,6 +8,7 @@ import json
 import types
 import queue
 import datetime
+import numpy as np
 
 dummy_delay = 0.1
 
@@ -178,7 +179,7 @@ class TemperatureStep(DigiCenterStep):
                 # stop process immediately
                 break
             time.sleep(1)
-            self.set_result(round(curT,1),'Waiting',unit='&#8451')
+            self.set_result(round(curT,1),'WAITING',unit='&#8451')
             self.resultCallback(self.result)
             # yield self.result
             if (self.actTarget-curT)<0:
@@ -207,6 +208,8 @@ class HardnessStep(DigiCenterStep):
         self.dummyHardBase = 50
         self.numTests = 3
         self.numericMethod = 'mean'
+        self.singleResult = {'dataset':[], 'result':0, 'std':0.0, 'done':False, 'method':self.numericMethod}
+        self.retry = False
 
     def set_paras(self,step):
         super().set_paras(step)
@@ -221,26 +224,70 @@ class HardnessStep(DigiCenterStep):
     def do(self):
         # do digiTest temperature control
         targetTime = self.mearTime
-        countdownTime = 0
-        startTime = time.time()
         # send start mear event text
-        dummpyHard = random.random()*2 + self.dummyHardBase
-        self.set_result(round(dummpyHard,1),'Waiting',None,'MS')
-        self.resultCallback(self.result)
-        # do time control
-        while countdownTime<targetTime:
-            if self.stopMsgQueue.qsize()>0:
+        dummpyHard = round(random.random()*2 + self.dummyHardBase, 1)
+        if len(self.singleResult['dataset']) == 0:
+            self.set_result(dummpyHard,'WAITING',None,'MS')
+            self.resultCallback(self.result)
+        # do measurement
+        accTime = 0
+        startTime = time.time()
+        while True:
+            accTime = time.time()-startTime
+            print(accTime)
+            print('retry? {}'.format(self.retry))
+            if accTime >= targetTime:
+                dummpyHard = round(random.random()*2 + self.dummyHardBase, 1)
+                # retry process, remove last data from list
+                if self.retry:
+                    try:
+                        self.retry = False
+                        self.singleResult['dataset'].pop()
+                        self.singleResult['done'] = False
+                    except Exception as e:
+                        print(e)
+                        pass
+
+                # check if all data mearsured
+                if self.singleResult['done']:
+                    self.set_result(self.singleResult['result'],'PASS')
+                    self.reset_result()
+                    break
+
+                # add new data
+                self.add_data(dummpyHard)
+                self.set_result(self.singleResult['result'],'PAUSE') 
+                self.resultCallback(self.result)
+                self.commCallback('show_move_sample_dialog',self.singleResult)
+                break
+                    
+            elif self.stopMsgQueue.qsize()>0:
                 # stop process immediately
                 break
-            time.sleep(0.25)
-            endTime = time.time()
-            countdownTime = endTime - startTime
-            dummpyHard = random.random()*2 + self.dummyHardBase
-            self.set_result(round(dummpyHard,1),'Waiting')
-            self.resultCallback(self.result)
-        self.set_result(round(dummpyHard,1),'PASS')
+            else:
+                time.sleep(0.1)
+        
         return self.result
 
+    def add_data(self, value):
+        self.singleResult['dataset'].append(value)
+        print('single test result')
+        print(self.singleResult)
+
+        if len(self.singleResult['dataset']) >= self.numTests:
+            self.singleResult['done'] = True
+
+        if self.numericMethod == 'median':
+            result = np.median(self.singleResult['dataset'])
+        else:
+            result = np.mean(self.singleResult['dataset'])
+        stdev = np.std(self.singleResult['dataset'])
+        self.singleResult['result'] = round(result,1)
+        self.singleResult['std'] = round(stdev,1)
+        self.singleResult['method'] = self.numericMethod
+    
+    def reset_result(self):
+        self.singleResult = {'dataset':[], 'result':0, 'std':0.0, 'done':False, 'method':self.numericMethod}
 
 class WaitingStep(DigiCenterStep):
     def __init__(self):
@@ -264,7 +311,7 @@ class WaitingStep(DigiCenterStep):
             time.sleep(0.27)
             endTime = time.time()
             countdownTime = endTime - startTime
-            self.set_result(round(countdownTime,1),'Waiting',unit='s')
+            self.set_result(round(countdownTime,1),'WAITING',unit='s')
             self.resultCallback(self.result)
         self.set_result(round(countdownTime,1),'PASS',unit='s')
         return self.result

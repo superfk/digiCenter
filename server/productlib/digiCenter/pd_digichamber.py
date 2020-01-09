@@ -28,6 +28,7 @@ class DigiChamberProduct(pd_product.Product):
         self.interruptStop = False
         self.batchInfo = None
         self.dChamb = None
+        self.retry = False
 
     async def run_script(self,websocket, scriptName, data=None):
         if scriptName=='ini_seq':
@@ -117,6 +118,8 @@ class DigiChamberProduct(pd_product.Product):
             self.create_result_callback_loop()
             self.ws = websocket
             self.errorMsg = None
+            self.pause = False
+            self.retry = False
             startTime = time.time()
             totalStepsCounts = len(self.stepsClass)
             cursor = 0
@@ -133,6 +136,10 @@ class DigiChamberProduct(pd_product.Product):
                 # check whether stop this loop
                 if cursor >= totalStepsCounts or self.testStop:
                     break
+                if self.pause:
+                    # if this process pause, ignore remain procedure and go back to beginning of while loop
+                    time.sleep(0.2)
+                    continue
                 # continuous process
                 print('current cursor: {}'.format(cursor))
                 # get payload step
@@ -141,6 +148,8 @@ class DigiChamberProduct(pd_product.Product):
                 curStepName = step.__class__.__name__
 
                 if curStepName == 'HardnessStep':
+                    step.retry = self.retry
+                    self.retry = False
                     # only for demo, MUST remove later
                     senCoeff = 5
                     step.dummyHardBase = 50 - senCoeff*math.log10(self.dChamb.get_real_temperature()/23)
@@ -165,6 +174,8 @@ class DigiChamberProduct(pd_product.Product):
                                 self.stepsClass[s].reset_loopiter()
                             step.resetLoop()
                             cursor += 1
+                elif testResult['status'] in ['PAUSE']:
+                    self.pause = True
 
                 # check if finish final step
                 if cursor >= totalStepsCounts:
@@ -218,6 +229,10 @@ class DigiChamberProduct(pd_product.Product):
     
     def sendCommunicateCallback(self,cmd, data):
         future = asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,cmd,data), self.loop)
+    
+    def continuous_mear(self,retry=False):
+        self.pause = False
+        self.retry = retry
     
     def set_test_stop(self):
         self.testStop=True

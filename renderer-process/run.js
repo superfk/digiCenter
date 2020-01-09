@@ -31,7 +31,7 @@ const plotMargin = { t: 40, r: 80, l: 40, b: 50};
 const config = {
   displaylogo: false,
   modeBarButtonsToRemove: ['toImage','lasso2d','select2d', 'pan2d','zoom2d','hoverClosestCartesian','hoverCompareCartesian','toggleSpikelines'],
-  responsive: true
+  responsive: false
 };
 
 let markers = [];
@@ -104,7 +104,7 @@ function generateEventPlot(){
       width: 400,
       height: 300,
       margin: plotMargin,
-      autosize: true,
+      autosize: false,
       font: { color: "dimgray", family: "Arial", size: 10}
     };
     
@@ -313,6 +313,11 @@ function connect() {
           console.log(data)
           updateGaugeRefValue('actualTempGauge', data,'t');
           break;
+        case 'show_move_sample_dialog':
+          console.log('show move sample dialog')
+          console.log(data)
+          showMovingSampleDialog(data);
+          break;
         case 'end_of_test':
           console.log('end of test')
           endOfTest(data)
@@ -431,18 +436,22 @@ function updateSingleStep(res){
   let timestamp = res.timestamp;
   let actTemp = res.actTemp;
 
-  updateStepByCat(res);
-
   let curstep = $('#testSeqContainer').find(`[data-stepid='${stepid}']`);
   let curResult = $(curstep).find('.stepResult');
   curResult.html(value + unit)
   if (result == 'PASS'){
+    updateStepByCat(res);
     curstep.css('background-color', 'lightgreen');
-  }else if (result == 'Waiting'){
+  }else if (result == 'WAITING'){
+    updateStepByCat(res);
     curstep.css('background-color', 'orange');
+  }else if (result == 'PAUSE'){
+    curstep.css('background-color', 'yellow');
   }else if (result == 'SKIP'){
+    updateStepByCat(res);
     curstep.css('background-color', 'gray');
   }else{
+    updateStepByCat(res);
     curstep.css('background-color', 'red');
   }
   
@@ -464,10 +473,11 @@ function updateStepByCat(res){
       break;
     case 'measure':
       // h_data_y.push(value)
-      tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value)
-      tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp,value)
+      if (result == 'PASS'){
+        tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value)
+        tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp,value)
+      }      
       if (eventName !== null){
-        console.log(eventName)
         tools.plotly_addAnnotation('event_graph',eventName,relTime,actTemp,markers)
       }
       // updateValue('hardness_graph', value);
@@ -480,6 +490,58 @@ function updateStepByCat(res){
       break;
   }
 
+}
+
+function listDataset(data){
+  let liComponent = `
+    <thead>
+    <tr class="w3-black">
+      <th>No.</th>
+      <th>Value</th>
+    </tr>
+    </thead>
+  `;
+  data.forEach((item,index)=>{
+    liComponent += `
+    <tr>
+      <td>${index+1}</td>
+      <td>${item}</td>
+    </tr>
+    `
+  })
+  return liComponent
+}
+
+function showMovingSampleDialog(data){
+  let dialog = document.getElementById('modal_moving_sample_dialog');
+  let dialog_text = document.getElementById('modal_moving_sample_dialog_text');
+  let dialog_dataset_list = document.getElementById('modal_moving_sample_dialog_dataset');
+  let dialog_dataset_mean = document.getElementById('dataset_mean');
+  let dialog_dataset_stdev = document.getElementById('dataset_stdev');
+  let start_btn = document.getElementById('start_mear_after_move_sample');
+  let retry_btn = document.getElementById('retry_mear_after_move_sample');
+  let curData = data;
+  dialog_dataset_list.innerHTML = listDataset(curData.dataset);
+  dialog_dataset_mean.innerHTML = `${curData.method}: ${curData.result}`;
+  dialog_dataset_stdev.innerHTML = `stdev: ${curData.std}`
+  dialog_text.innerHTML = `
+  <h3>Press <strong>Retry</strong> if last value is not acceptable!</h3>
+  <h3>Press <strong>Next</strong> to mearsure at next position!</h3>
+  `;
+
+  dialog.style.display='block';
+  start_btn.addEventListener('click',()=>{
+    start_mear_after_move_sample();
+  })
+  retry_btn.addEventListener('click',()=>{
+    start_mear_after_move_sample(true);
+  })
+}
+
+function start_mear_after_move_sample(isRetry=false){
+  let dialog = document.getElementById('modal_moving_sample_dialog');
+  dialog.style.display='none';
+  ws.send(tools.parseCmd('continue_seq',isRetry));
 }
 
 function endOfTest(res){

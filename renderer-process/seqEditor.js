@@ -200,7 +200,7 @@ function generateTempTimePlot(xarr=[],yarr=[]){
         margin: { t: 20, r: 40, l: 60, b: 50},
         paper_bgcolor:'rgba(0,0,0,0)',
         plot_bgcolor:'rgba(0,0,0,0)',
-        autosize: true,
+        autosize: false,
         font: { color: "dimgray", family: "Arial", size: 14},
         modebar: {orientation:'h'}
       };
@@ -208,7 +208,7 @@ function generateTempTimePlot(xarr=[],yarr=[]){
       const config = {
         displaylogo: false,
         modeBarButtonsToRemove: ['toImage','lasso2d','select2d', 'pan2d','zoom2d','hoverClosestCartesian','hoverCompareCartesian','toggleSpikelines'],
-        responsive: true
+        responsive: false
       };
       
       Plotly.newPlot('tempTime_graph', data, layout,config);
@@ -701,6 +701,7 @@ function loadSeqFromServer(){
 };
 
 ipcRenderer.on('save-seq', (event, path) => {
+    console.log(path)
     ws.send(tools.parseCmd('run_cmd',tools.parseCmd('save_seq',{path: path,seq: test_flow})));
 })
 

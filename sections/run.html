@@ -1,8 +1,8 @@
-<link rel="stylesheet" type="text/css" href="../assets/css/run.css">
-<script src="../assets/d3/d3.min.js"></script>
-
  <!-- template -->
  <template class="task-template">
+    <link rel="stylesheet" type="text/css" href="assets/css/run.css">
+    <script src="assets/d3/d3.min.js"></script>
+    
         <section id="run-section" class="section js-section u-category-windows" draggable="true">
             
             <!-- batch info -->
@@ -104,6 +104,46 @@
      
       
         </section>
+
+        <!-- Showing Moving Sample Dialog Modal -->
+        <div id="modal_moving_sample_dialog" class="w3-modal" style='z-index:20'>
+            <div class="w3-modal-content w3-animate-opacity w3-card-4">
+                <div class="w3-container w3-yellow"> 
+                    <h2 id="modal_moving_sample_dialog_title" data-lang='modal_moving_sample_dialog_title' data-lang_type='innertext' style="margin-top: 1rem">Moving Sample</h2>
+                </div>
+                
+                    <div class="w3-container" style="padding-top: 16px;height:320px;">
+                        <div class="w3-cell-row">
+                            <div class='w3-container w3-cell' style="height:100%;">
+                                <div class='w3-large'>Measured Data</div>
+                                <div class='w3-row w3-padding-8'>
+                                    <div id='dataset_mean' class='w3-quarter'></div>
+                                    <div id='dataset_stdev' class='w3-quarter'></div>
+                                </div>
+                                <div class='dataset-table-container'>
+                                    <table id='modal_moving_sample_dialog_dataset' class="w3-table-all w3-hoverable">
+                                    </table>
+                                </div>
+                                
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <div id="modal_moving_sample_dialog_text" class="w3-container w3-large w3-padding-16"></div>
+                    <div class="w3-container">
+                        <div class='w3-bar w3-padding-16' style="margin-left: 0px;">
+                            <div class='w3-bar-item'>
+                                <button id='retry_mear_after_move_sample' class="w3-btn w3-orange" style="width:200px">Retry</a>
+                            </div>
+                            <div class='w3-bar-item'>
+                                <button id='start_mear_after_move_sample' class="w3-btn w3-green" style="width:200px">Next</a>
+                            </div>
+                        </div>
+                    </div>
+                
+            
+            </div>
+        </div>
         
         <script>
             require('./renderer-process/run.js');
