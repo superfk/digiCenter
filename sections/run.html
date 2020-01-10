@@ -111,14 +111,15 @@
                 <div class="w3-container w3-yellow"> 
                     <h2 id="modal_moving_sample_dialog_title" data-lang='modal_moving_sample_dialog_title' data-lang_type='innertext' style="margin-top: 1rem">Moving Sample</h2>
                 </div>
-                
-                    <div class="w3-container" style="padding-top: 16px;height:320px;">
+                <div class='w3-row'>
+                    <!-- left side -->
+                    <div class="w3-container w3-half" style="padding-top: 16px;height:320px;">
                         <div class="w3-cell-row">
                             <div class='w3-container w3-cell' style="height:100%;">
-                                <div class='w3-large'>Measured Data</div>
+                                <div id='dataset_counter' class='w3-large'></div>
                                 <div class='w3-row w3-padding-8'>
-                                    <div id='dataset_mean' class='w3-quarter'></div>
-                                    <div id='dataset_stdev' class='w3-quarter'></div>
+                                    <div id='dataset_mean' class='w3-half'></div>
+                                    <div id='dataset_stdev' class='w3-half'></div>
                                 </div>
                                 <div class='dataset-table-container'>
                                     <table id='modal_moving_sample_dialog_dataset' class="w3-table-all w3-hoverable">
@@ -129,6 +130,15 @@
                             
                         </div>
                     </div>
+                    <!-- right side -->
+                    <div class="w3-container w3-half">
+                        <div class="scaling-svg-container">
+                            <svg id="indentor-svg" version="1.1" viewBox="0.0 0.0 30 188" fill="none" stroke="none" stroke-linecap="square" stroke-miterlimit="10" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"><clipPath id="p.0"><path d="m0 0l30.236221 0l0 188.97638l-30.236221 0l0 -188.97638z" clip-rule="nonzero"/></clipPath><g clip-path="url(#p.0)"><path fill="#000000" fill-opacity="0.0" d="m0 0l30.236221 0l0 188.97638l-30.236221 0z" fill-rule="evenodd"/><path fill="#cfe2f3" d="m1.8608583 2.1630204l24.555061 0l0 162.57835l-24.555061 0z" fill-rule="evenodd"/><path stroke="#434343" stroke-width="1.0" stroke-linejoin="round" stroke-linecap="butt" d="m1.8608583 2.1630204l24.555061 0l0 162.57835l-24.555061 0z" fill-rule="evenodd"/><path fill="#cfe2f3" d="m4.630789 164.74138l9.5076 20.77623l9.5076 -20.77623z" fill-rule="evenodd"/><path stroke="#434343" stroke-width="1.0" stroke-linejoin="round" stroke-linecap="butt" d="m4.630789 164.74138l9.5076 20.77623l9.5076 -20.77623z" fill-rule="evenodd"/></g></svg>
+                            <svg id='sample-svg' width="174" height="48" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" overflow="hidden"><defs><clipPath id="clip0"><path d="M0 1 174 1 174 49 0 49Z" fill-rule="evenodd" clip-rule="evenodd"/></clipPath></defs><g clip-path="url(#clip0)" transform="matrix(1 0 0 1 -0 -1)"><path d="M1.50005 10.1667C1.50005 5.93254 40.0036 2.50005 87.5 2.50005 134.997 2.50005 173.5 5.93254 173.5 10.1667L173.5 40.8334C173.5 45.0676 134.997 48.5 87.5 48.5 40.0036 48.5 1.50005 45.0676 1.50005 40.8334Z" fill="#D9D9D9" fill-rule="evenodd"/><path d="M173.5 10.1667C173.5 14.4009 134.997 17.8334 87.5 17.8334 40.0036 17.8334 1.50005 14.4009 1.50005 10.1667" stroke="#595959" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/><path d="M1.50005 10.1667C1.50005 5.93254 40.0036 2.50005 87.5 2.50005 134.997 2.50005 173.5 5.93254 173.5 10.1667L173.5 40.8334C173.5 45.0676 134.997 48.5 87.5 48.5 40.0036 48.5 1.50005 45.0676 1.50005 40.8334Z" stroke="#595959" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/></g></svg>
+                        </div>
+                    </div>
+                </div>
+
                     <div id="modal_moving_sample_dialog_text" class="w3-container w3-large w3-padding-16"></div>
                     <div class="w3-container">
                         <div class='w3-bar w3-padding-16' style="margin-left: 0px;">
@@ -140,6 +150,8 @@
                             </div>
                         </div>
                     </div>
+                    
+                    
                 
             
             </div>

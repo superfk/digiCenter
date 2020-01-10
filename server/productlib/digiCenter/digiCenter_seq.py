@@ -208,7 +208,7 @@ class HardnessStep(DigiCenterStep):
         self.dummyHardBase = 50
         self.numTests = 3
         self.numericMethod = 'mean'
-        self.singleResult = {'dataset':[], 'result':0, 'std':0.0, 'done':False, 'method':self.numericMethod}
+        self.singleResult = {'dataset':[], 'result':0, 'std':0.0, 'done':False, 'method':self.numericMethod, 'totalCounts':self.numTests}
         self.retry = False
 
     def set_paras(self,step):
@@ -285,9 +285,10 @@ class HardnessStep(DigiCenterStep):
         self.singleResult['result'] = round(result,1)
         self.singleResult['std'] = round(stdev,1)
         self.singleResult['method'] = self.numericMethod
+        self.singleResult['totalCounts'] = self.numTests
     
     def reset_result(self):
-        self.singleResult = {'dataset':[], 'result':0, 'std':0.0, 'done':False, 'method':self.numericMethod}
+        self.singleResult = {'dataset':[], 'result':0, 'std':0.0, 'done':False, 'method':self.numericMethod, 'totalCounts':self.numTests}
 
 class WaitingStep(DigiCenterStep):
     def __init__(self):

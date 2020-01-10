@@ -186,3 +186,44 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
     font-size: small;
     border: 2px solid lightslategray;
 }
+
+.scaling-svg-container {
+    position: relative; 
+    height: 300px; 
+    width: 300px;
+    /* override this inline for aspect ratio other than square */
+}
+
+#indentor-svg {
+    position: absolute; 
+    height: 200px; 
+    width: 30px;
+    top: 20px;
+    left: 50%;
+    -ms-transform: translateX(-50%);
+    transform: translateX(-50%);
+    fill: rgb(175, 184, 179);
+}
+
+@keyframes sample-moving {
+    0%   {transform: translateX(-50%)}
+    50% {transform: translateX(-25%)}
+    100% {transform: translateX(-25%)}
+  }
+
+#sample-svg {
+    position: absolute; 
+    top: 240px;
+    left: 50%;
+    -ms-transform: translateX(-50%);
+    transform: translateX(-50%);
+    animation: sample-moving 2s linear infinite alternate;
+}
+
+#indentor-svg:hover {
+    fill: lightgreen;
+}
+
+#sample-svg:hover {
+    fill: lightgreen;
+}

@@ -516,11 +516,13 @@ function showMovingSampleDialog(data){
   let dialog = document.getElementById('modal_moving_sample_dialog');
   let dialog_text = document.getElementById('modal_moving_sample_dialog_text');
   let dialog_dataset_list = document.getElementById('modal_moving_sample_dialog_dataset');
+  let dialog_dataset_counter = document.getElementById('dataset_counter');
   let dialog_dataset_mean = document.getElementById('dataset_mean');
   let dialog_dataset_stdev = document.getElementById('dataset_stdev');
   let start_btn = document.getElementById('start_mear_after_move_sample');
   let retry_btn = document.getElementById('retry_mear_after_move_sample');
   let curData = data;
+  dialog_dataset_counter.innerHTML = `Measured Data (${curData.dataset.length} / ${curData.totalCounts})`
   dialog_dataset_list.innerHTML = listDataset(curData.dataset);
   dialog_dataset_mean.innerHTML = `${curData.method}: ${curData.result}`;
   dialog_dataset_stdev.innerHTML = `stdev: ${curData.std}`
@@ -530,6 +532,7 @@ function showMovingSampleDialog(data){
   `;
 
   dialog.style.display='block';
+
   start_btn.addEventListener('click',()=>{
     start_mear_after_move_sample();
   })
