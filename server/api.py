@@ -37,9 +37,10 @@ class PyServerAPI(object):
         self.lg = TimeRotateLogger('syslog', 'M', 5)
         self.db = DB(r"SHAWNNB\SQLEXPRESS", 'BareissAdmin', 'BaAdmin')
         self.userMang = UserManag(self.db,"Guest", "Guest", 0, True)
-        self.config = read_system_config(r'C:\\digiCenter\config.json')
+        self.config = util.read_system_config(r'C:\\digiCenter\config.json')
         self.productProcess = DigiChamberProduct('digiCenter',r"C:\\data_exports",self.sendMsg)
         self.initialized = False
+        self.langFolder = ''
 
     async def register(self,websocket):
         self.users.add(websocket)
@@ -58,6 +59,7 @@ class PyServerAPI(object):
             self.initialized=True
         try:
             async for message in websocket:
+                print(message)
                 msg = json.loads(message)
                 cmd = msg["cmd"]
                 data = msg["data"]
@@ -101,11 +103,14 @@ class PyServerAPI(object):
                     role = data['role']
                     await self.add_new_user(websocket,userid,role)
                 elif cmd == 'delete_user':
-                    await self.delete_user(websocket,data)
+                    userid = data['userid']
+                    await self.delete_user(websocket,userid)
                 elif cmd == 'activate_user':
-                    await self.activate_user(websocket,data)
+                    userid = data['userid']
+                    await self.activate_user(websocket,userid)
                 elif cmd == 'deactivate_user':
-                    await self.deactivate_user(websocket,data)
+                    userid = data['userid']
+                    await self.deactivate_user(websocket,userid)
                 elif cmd == 'give_new_password':
                     userid = data['userid']
                     role = data['role']
@@ -113,7 +118,8 @@ class PyServerAPI(object):
                 elif cmd == 'get_user_role_list':
                     await self.get_user_role_list(websocket)
                 elif cmd == 'get_function_list':
-                    await self.get_function_list(websocket,data)
+                    role = data['role']
+                    await self.get_function_list(websocket,role)
                 elif cmd == 'update_fnc_of_role':
                     role = data['role']
                     funcs = data['funcs']
@@ -125,7 +131,8 @@ class PyServerAPI(object):
                     role = data['role']
                     await self.add_role(websocket,role,level)
                 elif cmd == 'delete_role':
-                    await self.delete_role(websocket,data)
+                    role = data['role']
+                    await self.delete_role(websocket,role)
                 elif cmd == 'set_new_password_when_first_login':
                     userid = data['userid']
                     curpw = data['curpw']
@@ -194,21 +201,24 @@ class PyServerAPI(object):
             
 
     async def load_sys_config(self, websocket, path):
-        self.config = read_system_config(path)
+        self.config = util.read_system_config(path)
         self.config_path = path
         self.productProcess.setDefaultSeqFolder(self.config['system']['default_seq_folder'])
 
     async def load_default_lang(self, websocket, appRoot):
         lang = self.config['system']['default_lang']
-        path = os.path.join(appRoot, 'lang')
-        lang_data = util.readLang(path, lang)
-        await self.sendMsg(websocket,'update_default_lang',lang_data)
+        self.langFolder = os.path.join(appRoot, 'lang')
+        lang_data = util.readLang(self.langFolder, lang)
+        self.userMang.set_lang(self.config_path, self.langFolder)
+        await self.sendMsg(websocket,'reply_update_default_lang',lang_data)
     
     async def update_default_lang(self, websocket, appRoot, lang):
         self.config['system']['default_lang'] = lang
-        write_system_config(path=self.config_path, data = self.config)
-        lang = self.load_default_lang(websocket, appRoot)
-        await self.sendMsg(websocket,'update_default_lang',lang)
+        util.write_system_config(path=self.config_path, data = self.config)
+        self.langFolder = os.path.join(appRoot, 'lang')
+        lang_data = util.readLang(self.langFolder, lang)
+        self.userMang.set_lang(self.config_path, self.langFolder)
+        await self.sendMsg(websocket,'reply_update_default_lang', lang_data)
     
     async def get_server_time(self, websocket):
         now = datetime.datetime.now().strftime(r"%Y/%m/%d %H:%M:%S")
@@ -225,28 +235,25 @@ class PyServerAPI(object):
 
     async def update_machine_remote(self, websocket, ip):
         self.config['system']['machine_ip'] = ip
-        write_system_config(path=self.config_path, data = self.config)
-        await self.sendMsg(websocket,'update_machine_ip',self.load_sys_config(websocket, self.config_path))
+        util.write_system_config(path=self.config_path, data = self.config)
 
     async def update_default_export_folder(self, websocket, folder):
         self.config['system']['default_export_folder'] = folder
-        write_system_config(path=self.config_path, data = self.config)
-        await self.sendMsg(websocket,'update_machine_ip',self.load_sys_config(websocket, self.config_path))
+        util.write_system_config(path=self.config_path, data = self.config)
     
     async def update_database_server(self, websocket, servername):
         self.config['system']['database']["server"] = servername
-        write_system_config(path=self.config_path, data = self.config)
-        await self.sendMsg(websocket,self.load_sys_config(websocket, self.config_path))
+        util.write_system_config(path=self.config_path, data = self.config)
     
     async def check_config_updated(self, websocket, configs):
         results = []
         results.append(configs['machine_ip'] == self.config['system']['machine_ip'])
         results.append(configs['export_folder'] == self.config['system']['default_export_folder'])
         results.append(configs['db_server'] == self.config['system']['database']["server"]) 
-        await self.sendMsg(websocket,all(results))
+        await self.sendMsg(websocket,'reply_checking_config',all(results))
     
     async def getHostName(self, websocket):
-        await self.sendMsg(websocket,os.environ['COMPUTERNAME'])
+        await self.sendMsg(websocket,'get_hostname',os.environ['COMPUTERNAME'])
     
     async def backend_init(self, websocket):
         # self.db = DB(self.config['system']['database']['server'], 'BareissAdmin', 'BaAdmin')
@@ -259,55 +266,55 @@ class PyServerAPI(object):
         else:
             res['result']=1
             res['resp']="database connected"
-            self.userMang = UserManag(self.db,"Guest", "Guest", 0, True)
+            self.userMang.db = self.db
             await self.sendMsg(websocket,cmd='result_of_backendinit',data=res)
 
     async def login(self, websocket, username, password):
-        await self.sendMsg(websocket,self.userMang.login(username, password))
+        await self.sendMsg(websocket,'reply_login',self.userMang.login(username, password))
         
     async def get_user_account_list(self, websocket):
-        await self.sendMsg(websocket,self.userMang.get_user_account_list())
+        await self.sendMsg(websocket,'reply_get_user_account_list',self.userMang.get_user_account_list())
     
     async def add_new_user(self, websocket,userID, role):
-        await self.sendMsg(websocket,self.userMang.add_new_user(userID, role))
+        await self.sendMsg(websocket,'reply_add_new_user',self.userMang.add_new_user(userID, role, self.config['system']['default_export_folder']))
         
     async def delete_user(self, websocket, userID):
-        await self.sendMsg(websocket,self.userMang.delete_user(userID))
+        await self.sendMsg(websocket,'reply_delete_user',self.userMang.delete_user(userID))
 
     async def activate_user(self, websocket, userID):
-        await self.sendMsg(websocket,self.userMang.activate_user(userID))
+        await self.sendMsg(websocket,'reply_activate_user',self.userMang.activate_user(userID))
     
     async def deactivate_user(self, websocket, userID):
-        await self.sendMsg(websocket,self.userMang.deactivate_user(userID))
+        await self.sendMsg(websocket,'reply_deactivate_user',self.userMang.deactivate_user(userID))
 
     async def give_new_password(self, websocket, userID, role):
-        await self.sendMsg(websocket,self.userMang.give_new_password(userID, role))
+        await self.sendMsg(websocket,'reply_give_new_password',self.userMang.give_new_password(userID, role))
     
     async def get_user_role_list(self, websocket):
-        await self.sendMsg(websocket,self.userMang.get_user_role_list())
+        await self.sendMsg(websocket,'reply_get_user_role_list',self.userMang.get_user_role_list())
     
     async def get_function_list(self, websocket, userrole='Guest'):
-        await self.sendMsg(websocket,self.userMang.get_function_list(userrole='Guest'))
+        await self.sendMsg(websocket,'reply_get_function_list',self.userMang.get_function_list(userrole='Guest'))
 
     async def update_fnc_of_role(self, websocket,role,funcs,enabled,visibled):
-        await self.sendMsg(websocket,self.userMang.update_fnc_of_role(role,funcs,enabled,visibled))
+        await self.sendMsg(websocket,'reply_update_fnc_of_role',self.userMang.update_fnc_of_role(role,funcs,enabled,visibled))
     
     async def add_role(self, websocket, role, level):
-        await self.sendMsg(websocket,self.userMang.add_role(role, level))
+        await self.sendMsg(websocket,'reply_add_role',self.userMang.add_role(role, level))
                
     async def delete_role(self, websocket,role):
-        await self.sendMsg(websocket,self.userMang.delete_role(role))
+        await self.sendMsg(websocket,'reply_delete_role',self.userMang.delete_role(role))
 
     async def set_new_password_when_first_login(self, websocket,userID, curPW, newPW, newPWagain):
-        await self.sendMsg(websocket,self.userMang.set_new_password_when_first_login(userID, curPW, newPW, newPWagain))
+        await self.sendMsg(websocket,'reply_set_new_password_when_first_login',
+        self.userMang.set_new_password_when_first_login(userID, curPW, newPW, newPWagain))
 
     async def log_to_db(self, websocket, msg, msg_type='info', audit=False):
-        pass
-        # fields = ["Timestamp", "User_Name", "User_Role", "Log_Type", "Log_Message", "Audit"]
-        # now = datetime.datetime.now().strftime(r"%Y/%m/%d %H:%M:%S.%f")
-        # values = [now, self.user.username, self.user.role, msg_type, msg, audit]
-        # self.db.insert('System_log', fields, values)
-        # return str(values)
+        fields = ["Timestamp", "User_Name", "User_Role", "Log_Type", "Log_Message", "Audit"]
+        now = datetime.datetime.now().strftime(r"%Y/%m/%d %H:%M:%S.%f")
+        values = [now, self.userMang.user.username, self.userMang.user.role, msg_type, msg, audit]
+        self.db.insert('System_log', fields, values)
+        await self.sendMsg(websocket,'reply_log_to_db',str(values))
 
     async def machine_connect(self, websocket):
         """Connnect to DigiChamber"""
@@ -458,18 +465,6 @@ class PyServerAPI(object):
         except:
             pass
         
-
-def string_onlyPrintable(text):
-    return ''.join(filter(lambda x: x in string.printable, text)).strip()
-
-def read_system_config(path='config.json'):
-    with open(path, 'r', encoding= 'utf-8') as f:
-        data = json.load(f)
-    return data
-
-def write_system_config(path, data):
-    with open(path, 'w', encoding='utf-8') as f:
-        json.dump(data, f, ensure_ascii=False, indent=4)
 
 def Mbox(title='Ipnfo', text='', style=0):
     return ctypes.windll.user32.MessageBoxW(0, text, title, style)

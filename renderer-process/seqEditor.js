@@ -120,6 +120,8 @@ function connect() {
     });
     
     ws.on('ping',()=>{
+        
+        ws.send(tools.parseCmd('pong','from seqEditor'));
       })
       
     ws.on('message', function incoming(message) {
@@ -132,6 +134,9 @@ function connect() {
             case 'ping':
                 console.log('got server data ' + data)
                 ws.send(tools.parseCmd('pong',data));
+                break;
+            case 'reply_log_to_db':
+                console.log(data);
                 break;
             case 'update_sequence':
                 updateSequence(data)

@@ -14,6 +14,18 @@ import json
 import re
 import openpyxl as opx
 
+def string_onlyPrintable(text):
+    return ''.join(filter(lambda x: x in string.printable, text)).strip()
+
+def read_system_config(path='config.json'):
+    with open(path, 'r', encoding= 'utf-8') as f:
+        data = json.load(f)
+    return data
+
+def write_system_config(path, data):
+    with open(path, 'w', encoding='utf-8') as f:
+        json.dump(data, f, ensure_ascii=False, indent=4)
+
 def isPW_complex(pw):
     z = re.match("^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$", pw)
     if z:
@@ -136,6 +148,16 @@ class CSV_ExportWorker(ExportWorker):
     def save(self, path):
         self.df.to_csv(path,index=0, encoding = "utf-8", sep=';')
 
+
+class Language(object):
+    def __init__(self, config_file,lang_folder):
+        self.configFile = config_file
+        self.langFolder = lang_folder
+    
+    def get_lang(self,key):
+        config = read_system_config(self.configFile)
+        curlang = config['system']['default_lang']
+        return readLang(self.langFolder, curlang)[key]
 
 class Excel_ExportWorker(ExportWorker):
     def __init__(self, tabledata):

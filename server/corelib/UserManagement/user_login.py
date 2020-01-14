@@ -15,7 +15,12 @@ class UserManag(object):
     def __init__(self,dbinstance, username="", role="", level=0, enabled=False):
         self.db = dbinstance
         self.user = User("Guest", "Guest", 0, True)
-
+        self.pw_export_folder = None
+        self.lang = None
+    
+    def set_lang(self,config_file,lang_folder):
+        self.lang = util.Language(config_file,lang_folder)
+    
     def login(self, username, password):
         login_ok = False
         reason = ""
@@ -27,14 +32,14 @@ class UserManag(object):
         if username == "":
             # user is empty
             login_ok = False
-            reason = "Please keyin username!"
+            reason = self.lang.get_lang('server_pls_keyin_username')
             role = ""
             user = ''
             return login_ok, reason, user, role, fn_list
         if password == "" and username != "Guest":
             # password is empty
             login_ok = False
-            reason = "Please keyin password!"
+            reason = self.lang.get_lang('server_pls_keyin_pw')
             role = ""
             user = ''
             return login_ok, reason, user, role, fn_list
@@ -56,7 +61,7 @@ class UserManag(object):
             if result["Status"] == 0:
                 # user not enabled
                 login_ok = False
-                reason = "User is not enabled"
+                reason = self.lang.get_lang('server_user_not_active')
                 role = ""
                 user = ''
                 return login_ok, reason, user, role, fn_list, first
@@ -66,21 +71,21 @@ class UserManag(object):
                 condition = r"WHERE User_Name='{}'".format(username)
                 self.db.update('UserList', f, [0], condition)
                 login_ok = False
-                reason = "User is expired"
+                reason = self.lang.get_lang('server_user_expired')
                 role = ""
                 user = ''
                 return login_ok, reason, user, role, fn_list, first
             if password != d_pw and username != 'Guest':
                 # user password not correct
                 login_ok = False
-                reason = "Password is not correct"
+                reason = self.lang.get_lang('server_pw_not_correct')
                 role = ""
                 user = ''
                 return login_ok, reason, user, role, fn_list, first
             if result['First_login']:
                 # user first login, need to change pw
                 login_ok = False
-                reason = "First Login, Please Change Password!"
+                reason = self.lang.get_lang('server_first_login_change_pw')
                 role = ""
                 user = ''
                 first = True
@@ -100,7 +105,7 @@ class UserManag(object):
                     fn['visible']=q['Visibled']
                     fn_list.append(fn)
                 login_ok = True if username != "Guest" else False
-                reason = "Login ok" if username != "Guest" else "Guest login"
+                reason = self.lang.get_lang('server_login_ok') if username != "Guest" else "Guest login"
                 role = result["User_Role"]
                 user = username
                 self.user = User(username, role, role_level, login_ok)
@@ -108,7 +113,7 @@ class UserManag(object):
         else:
             # user not found
             login_ok = False
-            reason = "The '{}' user is not found".format(username)
+            reason = self.lang.get_lang('server_user_not_found').format(username)
             role = ""
             user = ""
             return login_ok, reason, user, role, fn_list, first
@@ -132,19 +137,19 @@ class UserManag(object):
             new_user_list.append(item)
         return new_user_list
     
-    def add_new_user(self,userID, role):
+    def add_new_user(self,userID, role, pw_export_folder=None):
         # check if this user exsisted
         fields = ['User_Name']
         condition = r"WHERE User_Name = '{}' AND Status < 2".format(userID)
         user_lists = self.db.select('UserList',fields, condition)
         if len(user_lists) > 0:
-            return 0,"This User already exsisted!", ''
+            return 0, self.lang.get_lang('server_user_exist'), ''
         # check if this role exsisted
         fields = ["User_Role"]
         condition = r" WHERE User_Role = '{}'".format(role)
         user_role = self.db.select('UserRoleList', fields, condition)
         if len(user_role) == 0:
-            return 0,"Please assign user role!", ''
+            return 0, self.lang.get_lang('server_user_assign_role'), ''
         
         # generate random pw
         rnd_pw = util.randomStringDigits(6)
@@ -159,64 +164,67 @@ class UserManag(object):
         values = [userID, ency_pw, role, creat_time, exp_time, 1, 1]
         try:
             self.db.insert("UserList",fields,values)
-            folder_path = os.path.join(self.config['system']['default_export_folder'], 'first_pw')
-            util.save_password_to_json(folder_path, userID, role, rnd_pw)
-            return 1, 'Adding User Successfully!', rnd_pw
+            if pw_export_folder:
+                folder_path = os.path.join(pw_export_folder, 'first_pw')
+                util.save_password_to_json(folder_path, userID, role, rnd_pw)
+            return 1, self.lang.get_lang('server_user_add_ok'), rnd_pw
         except Exception as e:
-            return 0, 'Error: adding user error ({})'.format(e), ''
+            return 0, self.lang.get_lang('server_user_add_error').format(e), ''
         
     def delete_user(self, userID):
         if userID == 'Guest':
-            return 0,"Guest user cannot be deleted!"
+            return 0, self.lang.get_lang('server_guest_not_delete')
         if userID == 'BareissAdmin':
-            return 0,"Super user cannot be deleted!"
+            return 0, self.lang.get_lang('server_superuser_not_delete')
         if userID == '':
-            return 0,"Please selected one user first!"
+            return 0, self.lang.get_lang('server_select_one_user')
+        if userID == self.user.username:
+            return 0, self.lang.get_lang('server_cannot_delete_self')
         condition = r"WHERE User_Name = '{}'".format(userID)
         try:
             fields = ["Status"]
             self.db.update("UserList", fields,[2],condition)
-            return 1, 'User Deleted Successfully!'
+            return 1, self.lang.get_lang('server_user_delete_ok')
         except Exception as e:
             return 0, 'Error: deleting user error ({})'.format(e)
 
     def activate_user(self, userID):
         if userID == 'Guest':
-            return 0,"Guest is always activated!"
+            return 0, self.lang.get_lang('server_guest_aws_active')
         if userID == 'BareissAdmin':
-            return 0,"Super user is always activated!"
+            return 0, self.lang.get_lang('server_superuuser_aws_active')
         if userID == '':
-            return 0,"Please selected one user first!"
+            return 0, self.lang.get_lang('server_select_one_user')
         fields = ["Status"]
         condition = r" WHERE User_Name = '{}' AND Status < 2".format(userID)
         try:
             self.db.update("UserList", fields,[1],condition)
-            return 1, 'User Activated Successfully!'
+            return 1, self.lang.get_lang('server_user_active_ok')
         except Exception as e:
             return 0, 'Error: activating user error ({})'.format(e)
     
     def deactivate_user(self, userID):
         if userID == 'Guest':
-            return 0,"Guest user cannot be deactivated!"
+            return 0, self.lang.get_lang('server_guest_not_deactive')
         if userID == 'BareissAdmin':
-            return 0,"Super user cannot be deactivated!"
+            return 0, self.lang.get_lang('server_superuser_not_deactive')
         if userID == '':
-            return 0,"Please selected one user first!"
+            return 0, self.lang.get_lang('server_select_one_user')
         fields = ["Status"]
         condition = r" WHERE User_Name = '{}' AND Status < 2".format(userID)
         try:
             self.db.update("UserList", fields,[0],condition)
-            return 1, 'User Deactivated Successfully!'
+            return 1, self.lang.get_lang('server_user_deactive_ok')
         except Exception as e:
-            return 0, 'Error: eactivating user error ({})'.format(e)
+            return 0, 'Error: deactivating user error ({})'.format(e)
 
     def give_new_password(self, userID, role, pw_export_folder=None):
         if userID == 'Guest':
-            return 0,"Guest user don't need password!",""
+            return 0, self.lang.get_lang('server_guest_no_pw'),""
         if userID == 'BareissAdmin':
-            return 0,"Super user password is protected and do not need to be changed!",""
+            return 0, self.lang.get_lang('server_superuser_no_pw'),""
         if userID == '':
-            return 0,"Please selected one user first!",""
+            return 0, self.lang.get_lang('server_select_one_user'),""
 
         # generate random pw
         rnd_pw = util.randomStringDigits(6)
@@ -232,9 +240,9 @@ class UserManag(object):
             self.db.update("UserList", fields,values, condition)
             if pw_export_folder:
                 util.save_password_to_json(pw_export_folder, userID, role, rnd_pw)
-            return 1, 'User Reset Password Successfully!', rnd_pw
+            return 1, self.lang.get_lang('server_user_rest_pw_ok'), rnd_pw
         except Exception as e:
-            return 0, 'Error: eactivating user error ({})'.format(e),""
+            return 0, 'Error: ({})'.format(e),""
     
     def get_user_role_list(self):
         f = ["User_Role"]
@@ -269,15 +277,15 @@ class UserManag(object):
     def update_fnc_of_role(self,role,funcs,enabled,visibled):
         fields = ["Enabled", "Visibled"]
         if role=='':
-            return 0, "Please Select One Role first"
+            return 0, self.lang.get_lang('server_select_one_userrole')
         if role == "Guest":
-            return 0, "Role of Guest cannot be modified!"
+            return 0, self.lang.get_lang('server_guest_role_not_change')
 
         try:
             for f, e, v in zip(funcs, enabled, visibled):
                 condition = r"WHERE User_Role='{}' AND Functions = '{}'".format(role, f)
                 self.db.update('UserPermission', fields, [e,v], condition)
-            return 1, "Update Successfully!"
+            return 1, self.lang.get_lang('server_update_ok')
         except Exception as e:
             return 0, "Error: Updating user permission error ({})".format(e)
     
@@ -305,17 +313,17 @@ class UserManag(object):
                     enb = d['Enabled']
                     visb = d['Visibled']
                     self.db.insert("UserPermission",fields=fields,data=[role,fn,enb,visb])
-                return 1, "Add Role Successfully"
+                return 1, self.lang.get_lang('server_role_add_ok')
             except Exception as e:
                 return 0, "Error: Add Role error ({})".format(e)
         else:
-            return 0, "This Role {} already exsisted!".format(role)
+            return 0, self.lang.get_lang('server_role_exist').format(role)
                
     def delete_role(self,role):
         if role=='':
-            return 0, "Please Select One Role first"
+            return 0, self.lang.get_lang('server_select_one_userrole')
         if role == "Guest":
-            return 0, "Role of Guest cannot be deleted!"
+            return 0, self.lang.get_lang('server_guest_role_not_delete')
 
         condition = r"WHERE User_Role='{}'".format(role)
         try:
@@ -323,7 +331,7 @@ class UserManag(object):
             self.db.delete("UserRoleList",condition)
             fields = ["User_Role"]
             self.db.update("UserList", fields,['Guest'],condition)
-            return 1, "Delete Role Successfully"
+            return 1, self.lang.get_lang('server_role_delete_ok')
         except Exception as e:
             return 0, "Error: Delete Role error ({})".format(e)
 
@@ -336,15 +344,15 @@ class UserManag(object):
         pwIndb = result['PW']
 
         if not curPW == util.decrypt_password(pwIndb):
-            return 0, "Current Password is not correct" 
+            return 0, self.lang.get_lang('server_cur_pw_not_correct')
 
         # check new password policy
         if len(newPW) < 6:
-            return 0, "Length of new password should be greater than 5"
+            return 0, self.lang.get_lang('server_pw_greater_5')
         if not util.isPW_complex(newPW):
-            return 0, "New password should contain at least one capital letter, lowercase letter and number"
+            return 0, self.lang.get_lang('server_pw_contain_letter')
         if newPW != newPWagain:
-            return 0, "Repeating password is not identical to new password"
+            return 0, self.lang.get_lang('server_pw_not_match')
 
         # update passowrd
         encp_pw = util.encrypt_password(newPW)
@@ -355,6 +363,6 @@ class UserManag(object):
         condition = r"WHERE User_Name='{}'".format(userID)
         try:
             self.db.update('UserList', f, [encp_pw, exp_time, 0], condition)
-            return 1, "Password is saved successfully! Please login again!"
+            return 1, self.lang.get_lang('server_pw_save_ok')
         except Exception as e:
             return 0, "Error: First Login error ({})".format(e)

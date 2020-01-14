@@ -84,7 +84,7 @@ body {
   background-color: var(--color-bg);
 }
 
-header {
+.main-header{
   position: absolute;
   top: 0px;
   left: 0px;

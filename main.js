@@ -5,7 +5,6 @@ const path = require('path')
 const {ipcMain, dialog, shell} = require('electron')
 // const appRoot = require('electron-root-path').rootPath;
 const appRoot = app.getAppPath();
-console.log(appRoot)
 const ProgressBar = require('electron-progressbar');
 let tools = require('./assets/shared_tools');
 // const zerorpc = require("zerorpc");
@@ -31,6 +30,8 @@ function connect() {
   });
 
   ws.on('ping',()=>{
+    
+    ws.send(tools.parseCmd('pong','from main'));
   })
 
   ws.on('message',(message)=>{
@@ -41,6 +42,9 @@ function connect() {
       switch(cmd) {
         case 'ping':
           ws.send(tools.parseCmd('pong',data));
+          break;
+        case 'reply_log_to_db':
+          console.log(data);
           break;
         case 'result_of_backendinit':
           if(data.result == 1){
@@ -144,6 +148,7 @@ var init_server = function(){
   var curPath = path.join(appRoot, 'config.json')
   ws.send(tools.parseCmd('load_sys_config',curPath));
   ws.send(tools.parseCmd('backend_init'));
+  ws.send(tools.parseCmd('load_default_lang',appRoot));
   // ws.send(JSON.stringify({cmd:"load_sys_config", data:'curPath'}), (res) => {
   //   console.log(res);
   //   ws.send(JSON.stringify({cmd:"backend_init", data:'curPath'}), (res,status) => {
@@ -296,8 +301,12 @@ function updatefoot(msg, color='w3-red'){
 
 // save_log
 ipcMain.on('save_log', (event, msg, type='info', audit=0) => {
-  // ws.send(JSON.stringify({cmd:"log_to_db", data:{ msg, type, audit}}), (res) => {})
-    
+  try{
+    ws.send(tools.parseCmd('log_to_db',{ 'msg':msg, 'msg_type':type, 'audit':audit}));
+  }catch(err){
+    console.log('save log error')
+  }
+  
 })
 
 // show info dialog

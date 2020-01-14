@@ -1,16 +1,11 @@
 const {ipcRenderer} = require("electron");
 const path = require('path');
 const { clipboard } = require('electron')
-const appRoot = require('electron-root-path').rootPath;
-const zerorpc = require("zerorpc");
-// const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
-// // // create zerorpc instance
-// client.connect("tcp://127.0.0.1:4242");
-let socket = require('socket.io-client')('http://127.0.0.1:5678/test',{transports:['WebSocket']});
-
-// ===============================================================
-// General Configuration Panel                                   |
-// ===============================================================
+const remote = require('electron').remote;
+const app = remote.app;
+const appRoot = app.getAppPath();
+let tools = require('../assets/shared_tools');
+let ws;
 
 // General config
 const machine_ip = document.getElementById("machine_ip");
@@ -21,68 +16,239 @@ const apply_change_general = document.getElementById("apply_change_general");
 const btn_getHostName = document.getElementById("auto_getHostname_btn");
 const computerName = document.getElementById("computerName");
 
+
+// **************************************
+// websocket functions
+// **************************************
+
+function connect() {
+  try{
+      const WebSocket = require('ws');
+      ws = new WebSocket('ws://127.0.0.1:5678');
+  }catch(e){
+      console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
+  }
+  ws.on('open', function open() { 
+      console.log('websocket in config connected');
+      reload_config();
+      get_user_accounts();
+      get_user_roles();
+  });
+  
+  ws.on('ping',()=>{
+    ws.send(tools.parseCmd('pong','from config'));
+  })
+    
+  ws.on('message', function incoming(message) {
+
+      try{
+          msg = tools.parseServerMessage(message);
+          let cmd = msg.cmd;
+          let data = msg.data;
+          switch(cmd) {
+            case 'ping':
+              console.log('got server data ' + data)
+              ws.send(tools.parseCmd('pong',data));
+              break;
+            case 'reply_log_to_db':
+              console.log(data);
+              break;
+            case 'get_ip':
+              machine_ip.value = data;
+              break;
+            case 'get_export_folder':
+              export_path.value = data;
+              break;
+            case 'get_db_server':
+              db_server.value = data;
+              break;
+            case 'reply_checking_config':
+              if (data){
+                ipcRenderer.send('show-info-alert', "Info","Saving Configuration OK");
+              }else{
+                ipcRenderer.send('show-alert-alert', "Error","Saving Configuration Failed");
+              }
+              break;
+            case 'get_hostname':
+              computerName.innerHTML = 'Your Computer Name:' + data ;
+              break;
+            case 'reply_get_user_account_list':
+              createUserAccountTable(data);
+              break;
+            case 'reply_add_new_user':
+              switch(data[0]) {
+                case 0:
+                  ipcRenderer.send('show-warning-alert', 'Warning', data[1])
+                  $('#new-user-account-modal').hide();
+                  break;
+                case 1:
+                  // code block
+                  $('#copy_pw').off('click',copy2clipboard);
+                  var txt = `New password is <b id='rnd_pw'>${data[2]}</b>, Please enter it when next login. <p><button id='copy_pw' class="w3-button w3-border w3-small">Copy</button></p>`;
+                  $('#rand_pw_indicator').html(txt);
+                  $('#copy_pw').on('click',copy2clipboard);
+                  $('#rand_pw_indicator').show();
+                  get_user_accounts()
+                  break;
+                default:
+                  $('#new-user-account-modal').hide();
+                  // code block
+              }
+              break;
+            case 'reply_delete_user':
+              if (data[0]===1){
+                get_user_accounts();
+              }else{
+                ipcRenderer.send('show-warning-alert', 'Warning', data[1]);
+              }
+              break;
+            case 'reply_activate_user':
+              if (data[0]===1){
+                get_user_accounts();
+              }else{
+                ipcRenderer.send('show-warning-alert', 'Warning', data[1]);
+              }
+              break;
+            case 'reply_deactivate_user':
+              if (data[0]===1){
+                get_user_accounts();
+              }else{
+                ipcRenderer.send('show-warning-alert', 'Warning', data[1]);
+              }
+              break;
+            case 'reply_give_new_password':
+              if (data[0]===1){
+                get_user_accounts();
+              }else{
+                ipcRenderer.send('show-warning-alert', 'Warning', data[1]);
+              }
+              break;
+            case 'reply_get_user_role_list':
+              console.log(data)
+              createRoleTable(data);
+              var role_list = data.map(function(obj){
+                return obj.User_Role
+              })
+              update_user_roles_in_dropdown(role_list)
+              table_role_list.row(`:contains(${selected_role})`).select();
+              break;
+            case 'reply_get_function_list':
+              createFncTable(data);
+              break;
+            case 'reply_update_fnc_of_role':
+              if (data[0] === 1){
+                // update ok
+                ipcRenderer.send('show-info-alert', "Info", data[1]);
+                get_function_list();
+              }else{
+                // update error
+                ipcRenderer.send('show-warning-alert', "Warning", data[1]);
+                get_function_list();
+              }
+              break;
+            case 'reply_add_role':
+              let new_role_val = $("#new-role-name").val();
+              if (data[0] === 1){
+                // update ok
+                // ipcRenderer.send('show-info-alert', "Info", res[1]);
+                selected_role = new_role_val;
+                get_user_roles()
+                get_function_list();
+              }else{
+                // update error
+                ipcRenderer.send('show-warning-alert', "Warning", data[1]);
+                get_function_list();
+              }
+              break;
+            case 'reply_delete_role':
+              if (data[0] === 1){
+                // update ok
+                // ipcRenderer.send('show-info-alert', "Info", res[1]);
+                get_user_roles();
+                selected_role = "Guest"
+                get_function_list();
+              }else{
+                // update error
+                ipcRenderer.send('show-warning-alert', "Warning", data[1]);
+                get_user_roles()
+                selected_role = "Guest"
+                get_function_list();
+              }
+              break;
+            case 'reply_set_new_password_when_first_login':
+              break;
+            case 'update_sys_default_config':
+              updateServerSeqFolder(data);
+              break;
+            default:
+                console.log('Not found this cmd' + cmd)
+          }
+      }catch(e){
+          console.error(e)
+      }
+
+  });
+  
+  ws.onclose = function(e) {
+      console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+      setTimeout(function() {
+      connect();
+      }, 1000);
+  };
+
+  ws.onerror = function(err) {
+  console.error('Socket encountered error: ', err.message, 'Closing socket');
+  ws.close();
+  };
+}
+
+connect();
+
+
+// ===============================================================
+// General Configuration Panel                                   |
+// ===============================================================
+
 // get current ip
 function getMachineIP() {
-  socket.emit('getIP', (res) => {
-    machine_ip.value = res;
-  })
+  ws.send(tools.parseCmd('getIP'));
 }
 // get current export folder
 function getExportFolder() {
-  socket.emit("getExportFolder", (res) => {
-    export_path.value = res;
-  })
+  ws.send(tools.parseCmd('getExportFolder'));
 }
 // get_db_server
 function getDbServer() {
-  socket.emit("getDBServer", (res) => {
-    db_server.value = res;
-  })
+  ws.send(tools.parseCmd('getDBServer'));
 }
 
 function reload_config(){
   var curPath = path.join(appRoot, 'config.json')
   console.log(curPath);
-  socket.emit("load_sys_config", curPath, (res) => {
-    console.log(res);
-    getMachineIP();
-    getExportFolder();
-    getDbServer();
-  })
+  ws.send(tools.parseCmd('load_sys_config',curPath));
+  getMachineIP();
+  getExportFolder();
+  getDbServer();
 }
-
-reload_config();
 
 
 // set machine ip
 function update_machine_remote(ip) {
-  socket.emit("update_machine_remote", ip, (res) => {
-    return true;
-  })
+  ws.send(tools.parseCmd('update_machine_remote',ip));
 }
 
 // set default export folder
 function update_default_export_folder(folder) {
-  socket.emit("update_default_export_folder", folder, (res) => {
-    return true;
-  })
+  ws.send(tools.parseCmd('update_default_export_folder',folder));
 }
 
 // set default export folder
 function update_database_server(servername) {
-  socket.emit("update_database_server", servername, (res) => {
-    return true;
-  })
+  ws.send(tools.parseCmd('update_database_server',servername));
 }
 
 function updatesChecker(configs){
-  socket.emit("check_config_updated",configs, (res) => {
-    if (res){
-      ipcRenderer.send('show-info-alert', "Info","Saving Configuration OK");
-    }else{
-      ipcRenderer.send('show-alert-alert', "Error","Saving Configuration Failed");
-    }
-  })
+  ws.send(tools.parseCmd('check_config_updated',configs));
 }
 
 btn_to_choose_expFolder.addEventListener('click', (event) => {
@@ -109,9 +275,7 @@ apply_change_general.addEventListener('click', (event) => {
 });
 
 btn_getHostName.addEventListener('click', (event) => {
-  socket.emit("getHostName", (res) => {
-    computerName.innerHTML = 'Your Computer Name:' + res ;
-  })
+  ws.send(tools.parseCmd('getHostName'));
 });
 
 // ===============================================================
@@ -153,12 +317,10 @@ ipcRenderer.on('refresh_user_accounts', (event) => {
 })
 
 function get_user_accounts(){
-  socket.emit("get_user_account_list", (res) => {
-    createUserAccountTable(res);
-  })
+  ws.send(tools.parseCmd('get_user_account_list'));
 }
 
-get_user_accounts();
+
 
 function createUserAccountTable(tableData) {
   
@@ -265,29 +427,7 @@ add_new_user_btn.on('click',function(){
 new_use_confirm_btn.on('click',function(){
   var new_username = $("#new-user-name-input").val();
   var assign_userrole = $('#please_select_role_btn').text();
-
-  socket.emit("add_new_user", new_username, assign_userrole, (res) => {
-    switch(res[0]) {
-      case 0:
-        ipcRenderer.send('show-warning-alert', 'Warning', res[1])
-        $('#new-user-account-modal').hide();
-        break;
-      case 1:
-        // code block
-        $('#copy_pw').off('click',copy2clipboard);
-        var txt = `New password is <b id='rnd_pw'>${res[2]}</b>, Please enter it when next login. <p><button id='copy_pw' class="w3-button w3-border w3-small">Copy</button></p>`;
-        $('#rand_pw_indicator').html(txt);
-        $('#copy_pw').on('click',copy2clipboard);
-        $('#rand_pw_indicator').show();
-        get_user_accounts()
-
-        break;
-      default:
-        $('#new-user-account-modal').hide();
-        // code block
-    }
-    
-  })
+  ws.send(tools.parseCmd('add_new_user',{'userid':new_username, 'role':assign_userrole}));
 })
 
 function copy2clipboard(event){
@@ -297,55 +437,19 @@ function copy2clipboard(event){
 }
 
 delete_user_btn.on('click',function(){
-  
-  socket.emit("delete_user", selected_user, (res) => {
-    if (res[0]===1){
-      get_user_accounts();
-    }else{
-      ipcRenderer.send('show-warning-alert', 'Warning', res[1]);
-    }
-
-  })
-  
+  ws.send(tools.parseCmd('delete_user',{'userid':selected_user}));
 })
 
 activate_user_btn.on('click',function(){
-
-  socket.emit("activate_user", selected_user, (res) => {
-    if (res[0]===1){
-      get_user_accounts();
-    }else{
-      ipcRenderer.send('show-warning-alert', 'Warning', res[1]);
-    }
-})
-  
+  ws.send(tools.parseCmd('activate_user',{'userid':selected_user}));  
 })
 
 deactivate_user_btn.on('click',function(){
-  
-  socket.emit("deactivate_user", selected_user, (res) => {
-    if (res[0]===1){
-      get_user_accounts();
-    }else{
-      ipcRenderer.send('show-warning-alert', 'Warning', res[1]);
-    }
-
-  })
-
+  ws.send(tools.parseCmd('deactivate_user',{'userid':selected_user}));
 })
 
 new_pw_btn.on('click',function(){
-
-  socket.emit("give_new_password", selected_user, selected_role_by_user, (res) => {
-
-    if (res[0]===1){
-      get_user_accounts();
-    }else{
-      ipcRenderer.send('show-warning-alert', 'Warning', res[1]);
-    }
-
-
-  })
+  ws.send(tools.parseCmd('give_new_password',{'userid':selected_user, 'role':selected_role_by_user}));
 })
 
 table_user_list.on( 'select', function ( e, dt, type, indexes ) {
@@ -412,22 +516,11 @@ user_role_tab.addEventListener('click', (event) =>{
 })
 
 function get_user_roles(){
-  socket.emit("get_user_role_list", (res) => {
-    createRoleTable(res);
-      var role_list = res.map(function(obj){
-        return obj.User_Role
-      })
-      update_user_roles_in_dropdown(role_list)
-      table_role_list.row(`:contains(${selected_role})`).select();
-  })
+  ws.send(tools.parseCmd('get_user_role_list'));
 }
 
-get_user_roles();
-
 function get_function_list(){
-  socket.emit("get_function_list", selected_role, (res) => {
-    createFncTable(res);
-  })
+  ws.send(tools.parseCmd('get_function_list', {'role':selected_role}));
 }
 
 
@@ -573,18 +666,7 @@ $('#apply_change_user_fnc').on( 'click', function () {
   console.log(enbs);
   console.log(visbs);
 
-  socket.emit("update_fnc_of_role", selected_role, fnc, enbs, visbs, (res) => {
-    console.log(res);
-      if (res[0] === 1){
-        // update ok
-        ipcRenderer.send('show-info-alert', "Info", res[1]);
-        get_function_list();
-      }else{
-        // update error
-        ipcRenderer.send('show-warning-alert', "Warning", res[1]);
-        get_function_list();
-      }
-  })
+  ws.send(tools.parseCmd('update_fnc_of_role', {'role':selected_role, 'funcs':fnc, 'enabled':enbs, 'visibled':visbs}));
   
 });
 
@@ -604,47 +686,14 @@ $('#new-role-add-btn').on( 'click', function () {
 
   let new_role_val = $("#new-role-name").val();
   let new_role_level = $('#new-role-level').val();
-
-  socket.emit("add_role", new_role_val, new_role_level, (res) => {
-    console.log(res);
-      if (res[0] === 1){
-        // update ok
-        // ipcRenderer.send('show-info-alert', "Info", res[1]);
-        selected_role = new_role_val;
-        get_user_roles()
-        get_function_list();
-        
-      }else{
-        // update error
-        ipcRenderer.send('show-warning-alert', "Warning", res[1]);
-        get_function_list();
-      }
-  })
-
+  ws.send(tools.parseCmd('add_role', {'level':new_role_level, 'role':new_role_val}));
   $('#new-user-role-modal').hide();
 
 });
 
 // delete role
 $('#delete_new_role_btn').on( 'click', function () {
-
-  socket.emit("delete_role", selected_role, (res) => {
-    console.log(res);
-      if (res[0] === 1){
-        // update ok
-        // ipcRenderer.send('show-info-alert', "Info", res[1]);
-        get_user_roles();
-        selected_role = "Guest"
-        get_function_list();
-      }else{
-        // update error
-        ipcRenderer.send('show-warning-alert', "Warning", res[1]);
-        get_user_roles()
-        selected_role = "Guest"
-        get_function_list();
-      }
-  })
-
+  ws.send(tools.parseCmd('delete_role', {'role':selected_role}));
 });
 
 // change level of role

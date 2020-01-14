@@ -1,47 +1,11 @@
 const { ipcRenderer } = require('electron');
 const app = require('electron').remote.app;
 const path = require('path');
+const appRoot = app.getAppPath();
 var moment = require('moment');
 var systime_hook = document.getElementById('systime');
-// const zerorpc = require("zerorpc");
-
-// const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
-// // create zerorpc instance
-// client.connect("tcp://127.0.0.1:4242");
-
-function refresh_systemtime(intv) {
-  setInterval(function(){ 
-    systime_hook.innerText = moment().format("YYYY-MM-DD HH:mm:ss");
-   }, intv);
-}
-
-refresh_systemtime(1000);
-
-function hidePlot(){
-  let charts = document.querySelectorAll('#run-section .svg-container');
-  if(e.target.id !=='button-run'){
-     
-    charts.forEach((item,index)=>{
-      $(item).hide()
-    })
-  }else{
-    let charts = document.querySelectorAll('#run-section .svg-container');
-    charts.forEach((item,index)=>{
-      $(item).show()
-    })
-  }
-}
-
-// change section event
-list = document.getElementsByClassName("nav-button");
-for (var i = 0; i < list.length; i++) {
-  list[i].addEventListener("click", function (e) {
-    ipcRenderer.send('save_log',`Click ${e.target.textContent} nav button`, 'info', 1);
-    e.preventDefault();
-    ipcRenderer.send('updateFootStatus',"");
-  });
-}
-
+let tools = require('./assets/shared_tools');
+let ws;
 
 
 // login button
@@ -52,6 +16,138 @@ const pwInput = document.getElementById('input-password');
 const confirmloginBtn = document.getElementById('confirm-login');
 const current_login_user = document.getElementById('login_username');
 const current_login_role = document.getElementById('login_userrole');
+
+
+// **************************************
+// websocket functions
+// **************************************
+function connect() {
+  try{
+    const WebSocket = require('ws');
+    ws = new WebSocket('ws://127.0.0.1:5678');
+  }catch(e){
+    console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
+  }
+
+  ws.on('open', function open() { 
+    console.log('websocket in renderer connected')
+    ws.send(tools.parseCmd('hello'));
+    getDefaultLang();
+    init_login();    
+  });
+
+  ws.on('ping',()=>{
+    
+    ws.send(tools.parseCmd('pong','from renderer'));
+  })
+
+  ws.on('message', function incoming(message) {
+
+    try{
+      
+      msg = tools.parseServerMessage(message);
+      let cmd = msg.cmd;
+      let data = msg.data;
+      switch(cmd) {
+        case 'ping':
+          // console.log('got server data ' + data)
+          ws.send(tools.parseCmd('pong',data));
+          break;
+        case 'reply_log_to_db':
+          console.log(data);
+          break;
+        case 'reply_login':
+          console.log(data)
+          let login_ok = data[0];
+          let reason = data[1];
+          let user = data[2];
+          let role = data[3];
+          let fn_list = data[4];
+          let first = data[5];
+          if (login_ok){
+            // login as guest
+            user=='Guest'?hasLogin=false:hasLogin=true;
+            current_login_user.innerHTML = user;
+            current_login_role.innerHTML = '(' + role + ")";
+            changeLoginColor(user=='Guest'?false:true);
+            changeLoginAuth(fn_list);
+            $('#modal_login').hide();
+            ipcRenderer.send('login-changed');
+            window.removeEventListener('keypress', checkkeypressLogin);
+          }else{
+            // first login
+            if (first){
+              ipcRenderer.send('show-warning-alert',"First Login!", reason);
+              $('#first_login_panel').show();
+              $('#normal_login_panel').hide();
+              window.addEventListener('keypress', checkkeypressFirstLogin);
+              hasLogin = false;
+            }else{
+              // ipcRenderer.send('show-warning-alert',"Login Failed", reason);
+              $('#modal_login').hide();
+              window.removeEventListener('keypress', checkkeypressLogin);
+            }
+          }
+          break;
+        case 'reply_set_new_password_when_first_login':
+        console.log(data)
+          if (data[0]){
+              ipcRenderer.send('show-info-alert',"Set Password OK", data[1]);
+              $('#first_login_panel').hide();
+              $('#normal_login_panel').show();
+            }else{
+              ipcRenderer.send('show-warning-alert',"Set Password Failed", data[1]);
+            }
+            window.addEventListener('keypress', checkkeypressLogin);
+            window.removeEventListener('keypress', checkkeypressFirstLogin);
+          break;
+        case 'reply_update_default_lang':
+          lang_data = data;
+          setLang(lang_data['display_name']);
+          autoUpdateLang();
+          break;
+        default:
+          console.log('Not found this cmd' + cmd)
+          break;
+      }
+    }catch(e){
+      console.error(e)
+    }
+    
+  });
+
+  ws.onclose = function(e) {
+    console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+    setTimeout(function() {
+      connect();
+    }, 1000);
+  };
+
+  ws.onerror = function(err) {
+    console.error('Socket encountered error: ', err.message, 'Closing socket');
+    ws.close();
+  };
+}
+
+connect()
+
+function refresh_systemtime(intv) {
+  setInterval(function(){ 
+    systime_hook.innerText = moment().format("YYYY-MM-DD HH:mm:ss");
+   }, intv);
+}
+
+refresh_systemtime(1000);
+
+// change section event
+list = document.getElementsByClassName("nav-button");
+for (var i = 0; i < list.length; i++) {
+  list[i].addEventListener("click", function (e) {
+    ipcRenderer.send('save_log',`Click ${e.target.textContent} nav button`, 'info', 1);
+    e.preventDefault();
+    ipcRenderer.send('updateFootStatus',"");
+  });
+}
 
 var checkkeypressLogin = function(e){
   var keyCode = e.keyCode;
@@ -115,32 +211,8 @@ var changeLoginAuth = function(fn_list){
 function init_login(){
   hasLogin = false;
   ipcRenderer.send('save_log','Initial login function', 'info', 1);
-  // client.invoke("login",  'Guest', '', (error, res) => {
-  //   if(error) {
-  //     console.error(error);
-  //     ipcRenderer.send('show-alert-alert',"Login Failed", res[1]);
-  //   }else{
-  //     // console.log(res); //login_ok, reason, user, role, fn_list
-  //     if (res[0]){
-  //       // login as guest
-  //       current_login_user.innerHTML = res[2];
-  //       current_login_role.innerHTML = '(' + res[3]+ ")";
-  //       changeLoginColor(false);
-  //       changeLoginAuth(res[4]);
-  //       ipcRenderer.send('login-changed');
-
-  //     }else{
-  //       current_login_user.innerHTML = "Please Login";
-  //       current_login_role.innerHTML = "(Guest)";
-  //       changeLoginColor(false);
-  //       changeLoginAuth(res[4]);
-  //       ipcRenderer.send('login-changed');
-  //     }
-  //   }
-  // })
+  ws.send(tools.parseCmd('login',{'username':'Guest', 'password':''}));
 }
-
-init_login();
 
 // confirm login button
 confirmloginBtn.addEventListener('click', confirm_login);
@@ -149,42 +221,8 @@ confirmloginBtn.addEventListener('click', confirm_login);
 // actual login confirmation function
 function confirm_login(){
   ipcRenderer.send('save_log','Click confirm login button', 'info', 1);
-  // client.invoke("login",  useridInput.value, pwInput.value, (error, res) => {
-  //   if(error) {
-  //     console.error(error);
-  //     ipcRenderer.send('show-alert-alert',"Login Failed", res[1]);
-  //     hasLogin = false;
-  //   }else{
-  //     console.log(res); //login_ok, reason, user, role, fn_list, first
-  //     if (res[0]){
-  //       // login ok
-  //       hasLogin = true;
-  //       current_login_user.innerHTML = res[2];
-  //       current_login_role.innerHTML = '(' + res[3]+ ")";
-  //       changeLoginColor(true);
-  //       changeLoginAuth(res[4]);
-  //       $('#modal_login').hide();
-  //       ipcRenderer.send('login-changed');
-  //     }else{
-  //       // first login
-  //       if (res[5]){
-  //         ipcRenderer.send('show-warning-alert',"First Login!", res[1]);
-  //         $('#first_login_panel').show();
-  //         $('#normal_login_panel').hide();
-  //         window.addEventListener('keypress', checkkeypressFirstLogin);
-  //         hasLogin = false;
-          
-  //       }else{
-  //         ipcRenderer.send('show-warning-alert',"Login Failed", res[1]);
-  //         init_login();
-  //         $('#modal_login').hide();
-  //       }
-        
-  //     }
-  //   }window.removeEventListener('keypress', checkkeypressLogin);
-  // })
+  ws.send(tools.parseCmd('login',{'username':useridInput.value, 'password':pwInput.value}));
 }
-
 
 
 // for first login
@@ -201,28 +239,14 @@ back_to_normal_login.addEventListener('click', function(){
   window.removeEventListener('keypress', checkkeypressFirstLogin)
 })
 
-new_pw_confirm_btn.addEventListener('click', confirm_first_login)
+new_pw_confirm_btn.addEventListener('click', ()=>{
+  confirm_first_login();
+})
 
-var confirm_first_login = function(){
-  // set_new_password_when_first_login(userID, curPW, newPW, newPWagain)
-  // client.invoke('set_new_password_when_first_login', useridInput.value, current_pw.value, new_pw.value, new_pw_again.value, (error, res) => {
-
-  //   if(error) {
-  //     console.error(error);
-  //     ipcRenderer.send('show-alert-alert',"Set Password Failed", res[1]);
-  //   }else{
-  //     console.log(res);
-  //     if (res[0]){
-  //       ipcRenderer.send('show-info-alert',"Set Password OK", res[1]);
-  //       $('#first_login_panel').hide();
-  //       $('#normal_login_panel').show();
-  //     }else{
-  //       ipcRenderer.send('show-warning-alert',"Set Password Failed", res[1]);
-  //     }
-  //   }
-  //   window.addEventListener('keypress', checkkeypressLogin);
-  //   window.removeEventListener('keypress', checkkeypressFirstLogin)
-  // } )
+function confirm_first_login() {
+  console.log('comfirmFirstLogin')
+  ws.send(tools.parseCmd('set_new_password_when_first_login',
+  {'userid':useridInput.value, 'curpw':current_pw.value, 'newpw':new_pw.value, 'newpaagain':new_pw_again.value}));
 }
 
 
@@ -238,20 +262,8 @@ var lang_data = {}
 var lang_flag = 'en'
 
 function getDefaultLang(){
-  // client.invoke('load_default_lang',appRoot, (error,res) => {
-  //   if (error){
-  //     console.error(error);
-  //   }else{
-  //     console.log(res);
-  //     lang_data = res;
-  //     setLang(lang_data['display_name']);
-  //     autoUpdateLang()
-  //   }
-  // })
+  ws.send(tools.parseCmd('load_default_lang',appRoot));
 }
-
-getDefaultLang()
-
 
 function setLang(lang){
   $('.lang-flags').each(function(index, element){
@@ -267,21 +279,8 @@ function setLang(lang){
 $('.lang-flags').on('click', function(){
   var elem = $(this);
   var langID = elem.attr('id')
-
   setLang(langID)
-
-  // Change default lang
-  // client.invoke('update_default_lang', appRoot, langID, (error, res) =>{
-  //   if (error){
-  //     console.error(error)
-  //   }else{
-  //     lang_data = res;
-  //     setLang(lang_data['display_name']);
-  //     autoUpdateLang()
-  //   }
-    
-
-  // } )
+  ws.send(tools.parseCmd('update_default_lang',{'appRoot':appRoot, 'lang':langID}));
 })
 
 function autoUpdateLang(){
