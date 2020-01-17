@@ -140,7 +140,7 @@ class UserManag(object):
     def add_new_user(self,userID, role, pw_export_folder=None):
         # check if this user exsisted
         fields = ['User_Name']
-        condition = r"WHERE User_Name = '{}' AND Status < 2".format(userID)
+        condition = r"WHERE User_Name = '{}'".format(userID)
         user_lists = self.db.select('UserList',fields, condition)
         if len(user_lists) > 0:
             return 0, self.lang.get_lang('server_user_exist'), ''

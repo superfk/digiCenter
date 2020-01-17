@@ -8,6 +8,16 @@ module.exports = {
         }
         return msg;
     },
+
+    random_hsl: function(){
+      return "hsla(" + ~~(360 * Math.random()) + "," + "100%,"+ "50%,1)"
+    },
+
+    capitalize: (s) => {
+      if (typeof s !== 'string') return ''
+      return s.charAt(0).toUpperCase() + s.slice(1)
+    },
+    
     parseCmd: function (sriptName, data=null) {
       return JSON.stringify({'cmd':sriptName, 'data':data})
     },

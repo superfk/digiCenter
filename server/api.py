@@ -29,6 +29,16 @@ import random
 import asyncio
 import websockets
 
+
+class BatchInfo(object):
+    def __init__(self,project, batch, create_date, notes, seq_name):
+        self.project = project
+        self.batch = batch
+        self.createDate = create_date
+        self.notes = notes
+        self.seq = seq_name
+
+
 class PyServerAPI(object):
     def __init__(self):
         self.users = set()
@@ -41,6 +51,7 @@ class PyServerAPI(object):
         self.productProcess = DigiChamberProduct('digiCenter',r"C:\\data_exports",self.sendMsg)
         self.initialized = False
         self.langFolder = ''
+        self.batch = None
 
     async def register(self,websocket):
         self.users.add(websocket)
@@ -161,6 +172,20 @@ class PyServerAPI(object):
                 elif cmd == 'continue_seq':
                     isRetry = data
                     self.productProcess.continuous_mear(isRetry)
+                elif cmd == 'create_batch':
+                    project = data['project']
+                    batch = data['batch']
+                    notes = data['notes']
+                    seq_name = data['seq_name']
+                    await self.create_batch(websocket,project, batch, notes, seq_name)
+                elif cmd == 'continue_batch':
+                    project = data['project']
+                    batch = data['batch']
+                    notes = data['notes']
+                    seq_name = data['seq_name']
+                    await self.continues_batch(websocket,project, batch, notes, seq_name)
+                elif cmd == 'query_batch_history':
+                    await self.query_batch_history(websocket)
                 elif cmd == 'stop_seq':
                     self.stop_seq()
                 elif cmd == 'export_test_data':
@@ -359,6 +384,46 @@ class PyServerAPI(object):
     def stop_seq(self):
         print('execute stop seq')
         self.productProcess.set_test_stop()
+
+    async def create_batch(self,websocket, project, batch, notes, seq_name):
+        # check project and batch name exsisted?
+        fields = ["Project_Name", "Batch_Name", "Creation_Date", "Note", "Last_seq_name"]
+        condition = r"WHERE Project_Name ='{}' AND Batch_Name='{}'".format(project,batch)
+        data = self.db.select('Batch_data', fields, condition)
+        if not len(data)==0:
+            # unique batch already exsisted
+            await self.sendMsg(websocket,'reply_create_batch', {'resp_code': 0, 'reason':'The Project and Batch are both exsisted! \
+                Do you want to continue this batch?'})
+        else:
+            curtime = datetime.datetime.now()
+            now = curtime.strftime(r"%Y/%m/%d %H:%M:%S.%f")
+            self.batch = BatchInfo(project, batch, curtime, notes, seq_name) 
+            values = [project, batch, now, notes, seq_name]
+            self.db.insert('Batch_data', fields, values)
+            await self.sendMsg(websocket,'reply_create_batch',{'resp_code': 1, 'reason':'Batch is created!'})
+
+    async def query_batch_history(self,websocket):
+        # check project and batch name exsisted?
+        fields = ["Project_Name", "Batch_Name", "Creation_Date", "Note", "Last_seq_name"]
+        condition = r"ORDER BY Batch_Name"
+        data = self.db.select('Batch_data', fields, condition)
+        for i,d in enumerate(data):
+            date = d['Creation_Date'].split('.')[0]
+            data[i]['Creation_Date'] = date
+            seq = os.path.split(d['Last_seq_name'])[1]
+            data[i]['Last_seq_name'] = seq
+        await self.sendMsg(websocket,'reply_query_batch_history', data)
+
+    async def continues_batch(self,websocket, project, batch, notes, seq_name):
+        curtime = datetime.datetime.now()
+        now = curtime.strftime(r"%Y/%m/%d %H:%M:%S.%f")
+        self.batch = BatchInfo(project, batch, curtime, notes, seq_name)
+        fields = ["Note", "Last_seq_name"]
+        values = [notes, seq_name]
+        condition = r"WHERE Project_Name ='{}' AND Batch_Name='{}'".format(project,batch)
+        self.db.update("Batch_data",fields,values,condition)
+        await self.sendMsg(websocket,'reply_create_batch',{'resp_code': 1, 'reason':'Batch is continued!'})
+        
 
     async def export_test_data(self, websocket,tableData, path='testdata', options=['csv']):
         try:

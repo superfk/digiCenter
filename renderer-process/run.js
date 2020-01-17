@@ -1,4 +1,5 @@
 const {ipcRenderer} = require("electron");
+const { dialog } = require('electron').remote
 // const app = require('electron').remote.app
 // const zerorpc = require("zerorpc");
 const d3 = require('d3');
@@ -14,6 +15,11 @@ let ws
 
 let defaultSeqPath = null;
 let batchForm = document.getElementById('batchInfoForm');
+let batchFormContent  = document.getElementById('batchFormContent');
+let batchNew = document.getElementById('new_a_batch');
+let batchLoad  = document.getElementById('load_a_batch');
+let selectHistoryBatch = document.getElementById('SelectBatch')
+let batchConfirmBtn = document.getElementById('batchConfirm');
 let startSeqBtn = document.getElementById('start_test');
 let stopSeqBtn = document.getElementById('stop_test');
 let loadSeqBtn = document.getElementById('open_test_seq');
@@ -173,6 +179,40 @@ function repositionChart(){
 
 }
 
+function genrateBatchHistory(batchRecords){
+
+  $('#batchHistoryTable').DataTable().destroy();
+
+  console.log(batchRecords)
+  
+  var my_columns = [
+    {data: 'Project_Name'},
+    {data: 'Batch_Name'},
+    {data: 'Creation_Date'},
+    {data: 'Note'},
+    {data: 'Last_seq_name'}
+  ];
+
+  console.log(my_columns)
+
+$('#batchHistoryTable').DataTable({
+    select: true,
+    data: batchRecords,
+    columns: my_columns,
+    deferRender:    true,
+    scrollX: true,
+    scrollY:        400,
+    scrollCollapse: true,
+    scroller:       true,
+  }).draw();
+
+  $('#batchHistoryTable tbody').on( 'click', 'tr', function () {
+    
+  } );
+
+}
+
+
 
 // **************************************
 // generate gauge functions
@@ -322,6 +362,17 @@ function connect() {
           console.log(data)
           showMovingSampleDialog(data);
           break;
+        case 'reply_query_batch_history':
+          genrateBatchHistory(data);
+          break;
+        case 'reply_create_batch':
+          if (data.resp_code == 1){
+            // confirmed batch
+            batch_confirmed();
+          }else if (data.resp_code == 0){
+            ipcRenderer.send('show-option-dialog', 'Batch Existed!', data.reason, 'continue-batch');            
+          }
+          break;
         case 'end_of_test':
           console.log('end of test')
           endOfTest(data)
@@ -357,7 +408,28 @@ connect()
 
 batchForm.addEventListener('submit',(e)=>{
   e.preventDefault();
-  getBatchInfo();
+  let batchinfo = getBatchInfo();
+  let seqName = $('#batchInfoForm input[name=SeqName]').val();
+  let proj = batchinfo.filter(item=>item.name=='Project')[0].value;
+  let batch = batchinfo.filter(item=>item.name=='Batch')[0].value;
+  let note = batchinfo.filter(item=>item.name=='Note')[0].value;
+  batchinfo = {'project':proj, 'batch':batch, 'notes':note, 'seq_name':seqName}
+  console.log(batchinfo)
+  ws.send(tools.parseCmd('create_batch',batchinfo));
+})
+
+batchNew.addEventListener('click', ()=>{
+  batchInfo_enable();
+})
+
+batchLoad.addEventListener('click', ()=>{
+  showBatchSelectDialog();
+  batchContent_disable();
+  batchConfirmBtn_enable();
+})
+
+selectHistoryBatch.addEventListener('click', ()=>{
+  selectedHistoryBatch();
 })
 
 loadSeqBtn.addEventListener('click', ()=>{
@@ -372,12 +444,17 @@ ipcRenderer.on('load-seq-run', (event, path) => {
 
 });
 
+ipcRenderer.on('continue-batch', (event)=>{
+  batch_confirmed();
+})
+
 $( window ).resize(function() {
   repositionChart();
 });
 
 startSeqBtn.addEventListener('click',()=>{
-  $('#start_test').css('pointer-events', 'none');
+  startBtn_disable();
+  stopBtn_enable();
   $('#testSeqContainer li').css('background-color', 'white');
   clearInterval(monitorValue);
   getBatchInfo();
@@ -390,6 +467,8 @@ startSeqBtn.addEventListener('click',()=>{
 
 stopSeqBtn.addEventListener('click',()=>{
   ws.send(tools.parseCmd('stop_seq',''));
+  startBtn_enable();
+  stopBtn_disable();
 })
 
 // **************************************
@@ -402,6 +481,62 @@ function init(){
   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_default_seq_path')));
   ws.send(tools.parseCmd('init_hw'));
   monitorValue = setInterval(monitorFunction,1000);
+  startBtn_disable();
+  stopBtn_disable();
+  batchInfo_disable();
+  batchSelector_enable();
+}
+
+function batchSelector_enable(){
+  $(batchNew).removeClass('btnEnable btnDisable').addClass('btnEnable');
+  $(batchLoad).removeClass('btnEnable btnDisable').addClass('btnEnable');
+}
+
+function batchSelector_disable(){
+  $(batchNew).removeClass('btnEnable btnDisable').addClass('btnDisable');
+  $(batchLoad).removeClass('btnEnable btnDisable').addClass('btnDisable');
+}
+
+function batchInfo_enable(){
+  batchContent_enable();
+  batchConfirmBtn_enable();
+}
+
+function batchInfo_disable(){
+  batchContent_disable();
+  batchConfirmBtn_disable();
+}
+
+function batchContent_enable(){
+  $(batchFormContent).removeClass('btnEnable btnDisable').addClass('btnEnable');
+}
+
+function batchContent_disable(){
+  $(batchFormContent).removeClass('btnEnable btnDisable').addClass('btnDisable');
+}
+
+function batchConfirmBtn_enable(){
+  $(batchConfirmBtn).removeClass('btnEnable btnDisable').addClass('btnEnable');
+}
+
+function batchConfirmBtn_disable(){
+  $(batchConfirmBtn).removeClass('btnEnable btnDisable').addClass('btnDisable');
+}
+
+function startBtn_disable(){
+  $(startSeqBtn).removeClass('btnEnable btnDisable').addClass('btnDisable');
+}
+
+function startBtn_enable(){
+  $(startSeqBtn).removeClass('btnEnable btnDisable').addClass('btnEnable');
+}
+
+function stopBtn_disable(){
+  $(stopSeqBtn).removeClass('btnEnable btnDisable').addClass('btnDisable');
+}
+
+function stopBtn_enable(){
+  $(stopSeqBtn).removeClass('btnEnable btnDisable').addClass('btnEnable');
 }
 
 function updateServerSeqFolder(path){
@@ -429,6 +564,27 @@ function getBatchInfo(){
   let batchData = $('#batchInfoForm').serializeArray();
   console.log(batchData)
   return batchData;
+}
+
+function selectedHistoryBatch(){
+  let table = $('#batchHistoryTable').DataTable();
+  let isSelected = table.rows( '.selected' ).any();
+  if (isSelected){
+    let selectedData = table.row( '.selected' ).data();
+    batch_confirmed();
+    let dialog = document.getElementById('modal_batch_select_dialog');
+    dialog.style.display='none';
+    return selectedData;
+  }else{
+    ipcRenderer.send('show-info-alert','Please Select Batch','Please select at least one batch');
+  }
+  
+}
+
+function batch_confirmed(){
+  startBtn_enable();
+  batchInfo_disable();
+  batchSelector_disable();
 }
 
 function updateSingleStep(res){
@@ -516,6 +672,12 @@ function listDataset(data){
   return liComponent
 }
 
+function showBatchSelectDialog(){
+  ws.send(tools.parseCmd('query_batch_history'));
+  let dialog = document.getElementById('modal_batch_select_dialog');
+  dialog.style.display='block';
+}
+
 function showMovingSampleDialog(data){
   let dialog = document.getElementById('modal_moving_sample_dialog');
   let dialog_text = document.getElementById('modal_moving_sample_dialog_text');
@@ -557,7 +719,10 @@ function endOfTest(res){
   clearInterval(monitorValue);
   console.log(reason);
   monitorValue = setInterval(monitorFunction,1000);
-  $('#start_test').css('pointer-events', 'auto');
+  startBtn_disable();
+  stopBtn_disable();
+  batchInfo_disable();
+  batchSelector_enable();
   if (!interrupted){
     ipcRenderer.send('show-info-alert','Test Finished',reason);
   }else{
@@ -568,15 +733,6 @@ function endOfTest(res){
 // **************************************
 // Sequence render functions
 // **************************************
-
-function random_hsl(){
-  return "hsla(" + ~~(360 * Math.random()) + "," + "100%,"+ "50%,1)"
-}
-
-const capitalize = (s) => {
-  if (typeof s !== 'string') return ''
-  return s.charAt(0).toUpperCase() + s.slice(1)
-}
 
 function sortSeq(){
   let middleSeqs =  generateSeq();
@@ -608,12 +764,12 @@ function genParas (paras,input=false) {
           let t = item['type'];
           let ronly = item['readOnly']?'disabled':'';
           if (t === 'text'){
-              c += `<li><label>${capitalize(item['name'])} ${genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='text' ${ronly}></li>`;
+              c += `<li><label>${tools.capitalize(item['name'])} ${genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='text' ${ronly}></li>`;
           }else if (t === 'number'){
-              c += `<li><label>${capitalize(item['name'])} ${genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='number' ${ronly}></li>`;
+              c += `<li><label>${tools.capitalize(item['name'])} ${genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='number' ${ronly}></li>`;
 
           }else if (t === 'bool'){
-              c += `<li><input class='w3-check w3-border-bottom w3-cell' checked=${item['value']} type='checkbox' ${ronly}><label> ${capitalize(item['name'])} ${genUnit(item['unit'])}
+              c += `<li><input class='w3-check w3-border-bottom w3-cell' checked=${item['value']} type='checkbox' ${ronly}><label> ${tools.capitalize(item['name'])} ${genUnit(item['unit'])}
               </label></li>`;
               
           }else if (t === 'select'){
@@ -629,11 +785,11 @@ function genParas (paras,input=false) {
                   }
                   
               })
-              c += `<li><label>${capitalize(item['name'])} ${genUnit(item['unit'])}</label> 
+              c += `<li><label>${tools.capitalize(item['name'])} ${genUnit(item['unit'])}</label> 
               <select class="w3-select w3-border" name="option">${opItems}</select></li>`;
           }
       }else{
-          c += `<li style='font-size:12px;'><label><b>${capitalize(item['name'])} ${genUnit(item['unit'])}</b></label>: ${item['value']}</li>`;
+          c += `<li style='font-size:12px;'><label><b>${tools.capitalize(item['name'])} ${genUnit(item['unit'])}</b></label>: ${item['value']}</li>`;
       }
     
   });
@@ -702,8 +858,8 @@ function genStepTitles(){
       let {cat, subitem} = seq[i];
       let parms = genParas(subitem['paras']);
       let en = subitem['enabled'];
-      // titles.push(`Step ${i+1} :: ${capitalize(cat)} :: ${capitalize(subitem['item'])}`);
-      titles.push(`Step ${i+1} :: ${capitalize(cat)}`);
+      // titles.push(`Step ${i+1} :: ${tools.capitalize(cat)} :: ${tools.capitalize(subitem['item'])}`);
+      titles.push(`Step ${i+1} :: ${tools.capitalize(cat)}`);
   }
 
   return titles;

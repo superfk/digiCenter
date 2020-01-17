@@ -1,15 +1,16 @@
  <!-- template -->
  <template class="task-template">
+  <link rel="stylesheet" type="text/css" href="assets/css/config.css">
         <section id="config-section" class="section js-section u-category-config">
           <!-- side bar of configurations -->
-          <div class="w3-sidebar w3-bar-block w3-flat-midnight-blue w3-card w3-center w3-small" style="width:180px;height:100%">
+          <div class="configSidebar w3-sidebar w3-bar-block w3-flat-midnight-blue w3-card w3-center w3-small">
             <h5 class="w3-bar-item config-sidebar"> </h5>
             <button data-lang='side_general' data-lang_type='innertext' class="w3-bar-item w3-button config-tablink" onclick="openLink(event, 'General')">General</button>
             <button data-lang='side_userMang' data-lang_type='innertext' class="w3-bar-item w3-button config-tablink" onclick="openLink(event, 'Users')">User Managment</button>
           </div>
           
           <!-- Content of config item -->
-          <div style="margin-left:180px">
+          <div class='configContent'>
             <!-- General config item -->
             <div id="General" class="w3-container config-tab w3-animate-opacity" style="display:none">
 

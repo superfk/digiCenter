@@ -5,7 +5,7 @@
         "locale_num_format": "fr_FR.UTF-8",
         "default_export_folder": "C:\\data_exports",
         "default_seq_folder": "C:\\data_exports",
-        "default_lang": "zh-tw",
+        "default_lang": "en",
         "database": {
             "server": "SHAWNNB\\SQLEXPRESS",
             "main_db": "DigiChamber",

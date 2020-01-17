@@ -355,15 +355,21 @@ ipcMain.on('show-file-export', (event) => {
   mainWindow.webContents.executeJavaScript(code);
 })
 
-ipcMain.on('show-option-dialog', (event, title, msg) => {
+ipcMain.on('show-option-dialog', (event, title, msg, callback) => {
   const options = {
     type: 'info',
     title: title,
     message: msg,
     buttons: ['Yes', 'No']
   }
-  dialog.showMessageBox(options, (index) => {
-    event.returnValue = index;
+  dialog.showMessageBox(mainWindow, options)
+  .then(result => {
+    console.log(result.response)
+    if (result.response == 0){
+      event.reply(callback, result.response);
+    }
+  }).catch(err => {
+    console.log(err)
   })
 })
 

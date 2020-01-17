@@ -90,7 +90,7 @@
     "server_login_ok": "登入成功!",
     "server_user_not_found": "找不到此使用者!",
 
-    "server_user_exist": "此使用者名稱已存在!",
+    "server_user_exist": "該用戶已經被註冊!",
     "server_user_assign_role": "請指定使用者權限!",
     "server_user_add_ok": "新增使用者成功!",
     "server_user_add_error": "錯誤: 新增使用者錯誤:",

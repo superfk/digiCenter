@@ -1,0 +1,16 @@
+.configSidebar{
+    position: absolute;
+    left: 0;
+    top:0;
+    bottom: 0;
+    width: 180px;
+}
+
+.configContent{
+    position: absolute;
+    left: 180px !important;
+    top:0 !important;
+    bottom: 0 !important;
+    right:0;
+    overflow: auto;
+}

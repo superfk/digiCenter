@@ -247,10 +247,6 @@ function pick_color_hsl(){
     return ouputColor
 }
 
-const capitalize = (s) => {
-    if (typeof s !== 'string') return ''
-    return s.charAt(0).toUpperCase() + s.slice(1)
-  }
 
 function updateTempTimeChart(){
     console.log('execute')
@@ -432,12 +428,12 @@ function genParas (paras,input=false) {
             let t = item['type'];
             let ronly = item['readOnly']?'disabled':'';
             if (t === 'text'){
-                c += `<li><label>${capitalize(item['name'])} ${genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='text' ${ronly}></li>`;
+                c += `<li><label>${tools.capitalize(item['name'])} ${genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='text' ${ronly}></li>`;
             }else if (t === 'number'){
-                c += `<li><label>${capitalize(item['name'])} ${genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='number' max='${item['max']}' min='${item['min']}' ${ronly} ></li>`;
+                c += `<li><label>${tools.capitalize(item['name'])} ${genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='number' max='${item['max']}' min='${item['min']}' ${ronly} ></li>`;
 
             }else if (t === 'bool'){
-                c += `<li><input class='w3-check w3-border-bottom w3-cell' checked=${item['value']} type='checkbox' ${ronly}><label> ${capitalize(item['name'])} ${genUnit(item['unit'])}
+                c += `<li><input class='w3-check w3-border-bottom w3-cell' checked=${item['value']} type='checkbox' ${ronly}><label> ${tools.capitalize(item['name'])} ${genUnit(item['unit'])}
                 </label></li>`;
                 
             }else if (t === 'select'){
@@ -453,11 +449,11 @@ function genParas (paras,input=false) {
                     }
                     
                 })
-                c += `<li><label>${capitalize(item['name'])} ${genUnit(item['unit'])}</label> 
+                c += `<li><label>${tools.capitalize(item['name'])} ${genUnit(item['unit'])}</label> 
                 <select class="w3-select w3-border" name="option">${opItems}</select></li>`;
             }
         }else{
-            c += `<li style='font-size:12px;'><label><b>${capitalize(item['name'])} ${genUnit(item['unit'])}</b></label>: ${item['value']}</li>`;
+            c += `<li style='font-size:12px;'><label><b>${tools.capitalize(item['name'])} ${genUnit(item['unit'])}</b></label>: ${item['value']}</li>`;
         }
       
     });
@@ -577,8 +573,8 @@ function genStepTitles(){
         let {cat, subitem} = seq[i];
         let parms = genParas(subitem['paras']);
         let en = subitem['enabled'];
-        // titles.push(`Step ${i+1} :: ${capitalize(cat)} :: ${capitalize(subitem['item'])}`);
-        titles.push(`Step ${i+1} :: ${capitalize(cat)}`);
+        // titles.push(`Step ${i+1} :: ${tools.capitalize(cat)} :: ${tools.capitalize(subitem['item'])}`);
+        titles.push(`Step ${i+1} :: ${tools.capitalize(cat)}`);
     }
 
     return titles;

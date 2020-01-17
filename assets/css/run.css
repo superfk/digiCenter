@@ -12,13 +12,24 @@
     padding: 8px;
 }
 
+.batchSelector > div{
+    color:  #F2F2F2;
+    font-size: larger;
+    display: inline-block;
+}
+
+.batchContent{
+    border: 1px solid lightslategrey;
+    padding:8px;
+}
+
 #batchInfoPanel h3{
-    padding: 10px 0 5px 5px;
+    padding: 10px 0 5px 0px;
     height: auto;
     width: 90%;
     box-sizing: border-box;
     border-bottom: 1px solid lightslategrey;
-    font-size: large;
+    font-size: 24px;
     color: var(--color-c4);
 }
 
@@ -226,4 +237,14 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
 
 #sample-svg:hover {
     fill: lightgreen;
+}
+
+.btnEnable {
+    pointer-events: auto;
+    opacity: 1.0;
+}
+
+.btnDisable {
+    pointer-events: none;
+    opacity: 0.7;
 }

@@ -90,7 +90,7 @@
     "server_login_ok": "Login OK!",
     "server_user_not_found": "Kein Benutzer gefunden!",
 
-    "server_user_exist": "Benutzer bereits angelegt!",
+    "server_user_exist": "Dieser Benutzer wurde registriert!",
     "server_user_assign_role": "Bitte Benutzerrechte zuordnen!",
     "server_user_add_ok": "Benutzer erfoglreich hinzugefügt!",
     "server_user_add_error": "Error: Benutzer hinzufügen:",
