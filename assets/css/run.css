@@ -126,7 +126,28 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
     overflow: auto;
 }
 
-#testSeqContainer li a { padding: 5px; }
+#testSeqContainer li .w3-bar-item { 
+    padding: 5px; 
+    height:40px;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+}
+
+#testSeqContainer .paraText {
+    position: relative;
+    top: 0;
+    white-space: nowrap;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    width: auto !important;
+    max-width: 600px;
+    margin-left: 10px;
+    color: rgb(11, 17, 100);
+    font-size: smaller;
+    display:inline-block;
+  }
+
 #testSeqContainer .active-item { background: #F39814; color: white; }
 #testSeqContainer li.disabledStep {background: gray!important; color: white;}
 
@@ -145,22 +166,22 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
     border-bottom: 1px solid lightgray;
 }
 
-.loop {box-shadow: 2px 0px 0px 0px}
+#testSeqContainer .loop {box-shadow: 2px 0px 0px 0px}
 
 /* .loopStart{box-shadow: 6px 0px 0px 0px red;} */
-.loopEnd{box-shadow: 2px 0px 0px 0px}
-.lopCount{
+#testSeqContainer .loopEnd{box-shadow: 2px 0px 0px 0px}
+#testSeqContainer .lopCount{
   font-size: 14px;
   margin:0px 0px 0px 0px!important;
-  padding: 12px 2px 5px 2px !important;
-  text-align:center;
+  padding: 5px 2px 5px 2px !important;
+  justify-content: center  !important;
   background-color:#3498db;
   color:#fff;
   visibility: hidden;
   width:26px!important;}
   
-.lopCount-enabled{visibility: visible;}
-.lopCount-start-enabled{
+#testSeqContainer .lopCount-enabled{visibility: visible;}
+#testSeqContainer .lopCount-start-enabled{
   visibility: visible;
   background-color:transparent;
   color:transparent;

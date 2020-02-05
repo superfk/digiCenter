@@ -9,6 +9,7 @@ let ws;
 
 // General config
 const machine_ip = document.getElementById("machine_ip");
+const digitest_com = document.getElementById("digitest_com");
 const btn_to_choose_expFolder = document.getElementById("choose_export_folder_btn");
 const export_path = document.getElementById("export_path");
 const db_server = document.getElementById("db_server");
@@ -55,6 +56,9 @@ function connect() {
               break;
             case 'get_ip':
               machine_ip.value = data;
+              break;
+            case 'get_digitest_com':
+              digitest_com.value = data;
               break;
             case 'get_export_folder':
               export_path.value = data;
@@ -221,6 +225,10 @@ connect();
 function getMachineIP() {
   ws.send(tools.parseCmd('getIP'));
 }
+// get digitest COM
+function getDigiTestCOM() {
+  ws.send(tools.parseCmd('get_digitest_com'));
+}
 // get current export folder
 function getExportFolder() {
   ws.send(tools.parseCmd('getExportFolder'));
@@ -235,6 +243,7 @@ function reload_config(){
   console.log(curPath);
   ws.send(tools.parseCmd('load_sys_config',curPath));
   getMachineIP();
+  getDigiTestCOM();
   getExportFolder();
   getDbServer();
 }
@@ -243,6 +252,11 @@ function reload_config(){
 // set machine ip
 function update_machine_remote(ip) {
   ws.send(tools.parseCmd('update_machine_remote',ip));
+}
+
+// set digitest com
+function update_digitest_remote(COM) {
+  ws.send(tools.parseCmd('update_digitest_remote',COM));
 }
 
 // set default export folder
@@ -270,13 +284,16 @@ ipcRenderer.on('update-export-folder', (event, folder) => {
 apply_change_general.addEventListener('click', (event) => {
 
   let ip = machine_ip.value;
+  let COM = digitest_com.value;
   let exp_path = export_path.value;
   let db_ser = db_server.value;
   let result = {};
   result['machine_ip'] = ip;
+  result['digitest_COM'] = COM;
   result['export_folder'] = exp_path;
   result['db_server'] = db_ser;
   update_machine_remote(ip);
+  update_digitest_remote(COM);
   update_default_export_folder(exp_path);
   update_database_server(db_ser);
   updatesChecker(result);

@@ -91,12 +91,16 @@ class PyServerAPI(object):
                     await self.get_server_time(websocket)
                 elif cmd == 'getIP':
                     await self.getIP(websocket)
+                elif cmd == 'get_digitest_com':
+                    await self.get_digitest_com(websocket)
                 elif cmd == 'getExportFolder':
                     await self.getExportFolder(websocket)
                 elif cmd == 'getDBServer':
                     await self.getDBServer(websocket)
                 elif cmd == 'update_machine_remote':
                     await self.update_machine_remote(websocket,data)
+                elif cmd =='update_digitest_remote':
+                    await self.update_digitest_remote(websocket,data)
                 elif cmd == 'update_database_server':
                     await self.update_database_server(websocket,data)
                 elif cmd == 'check_config_updated':
@@ -258,6 +262,9 @@ class PyServerAPI(object):
     async def getIP(self, websocket):
         await self.sendMsg(websocket,'get_ip',self.config['system']['machine_ip'])
     
+    async def get_digitest_com(self, websocket):
+        await self.sendMsg(websocket,'get_digitest_com',self.config['system']['digitest_COM'])
+
     async def getExportFolder(self, websocket):
         await self.sendMsg(websocket,'get_export_folder',self.config['system']['default_export_folder'])
     
@@ -266,6 +273,10 @@ class PyServerAPI(object):
 
     async def update_machine_remote(self, websocket, ip):
         self.config['system']['machine_ip'] = ip
+        util.write_system_config(path=self.config_path, data = self.config)
+
+    async def update_digitest_remote(self, websocket, COM):
+        self.config['system']['digitest_COM'] = COM
         util.write_system_config(path=self.config_path, data = self.config)
 
     async def update_default_export_folder(self, websocket, folder):
@@ -279,6 +290,7 @@ class PyServerAPI(object):
     async def check_config_updated(self, websocket, configs):
         results = []
         results.append(configs['machine_ip'] == self.config['system']['machine_ip'])
+        results.append(configs['digitest_COM'] == self.config['system']['digitest_COM'])
         results.append(configs['export_folder'] == self.config['system']['default_export_folder'])
         results.append(configs['db_server'] == self.config['system']['database']["server"]) 
         await self.sendMsg(websocket,'reply_checking_config',all(results))

@@ -70,7 +70,7 @@
 
 .paraText {
   position: relative;
-  top: .45em;
+  top: 0;
   white-space: nowrap;
   overflow-x: hidden;
   text-overflow: ellipsis;
@@ -121,6 +121,15 @@
   padding: 5px;
   width: 100%;
 }
+
+#seqContainer li .w3-bar-item { 
+  padding: 5px; 
+  height:40px;
+  display: flex;
+  align-items: center;
+  justify-content: left;
+}
+
 #seqContainer li a { padding: 5px; }
 #seqContainer .active-item { background: #F39814; color: white; }
 
@@ -190,8 +199,8 @@
 .lopCount{
   font-size: 14px;
   margin:0px 0px 0px 0px!important;
-  padding: 7px 5px 5px 2px !important;
-  text-align:center;
+  padding: 5px 2px 5px 2px !important;
+  justify-content: center  !important;
   background-color:#3498db;
   color:#fff;
   visibility: hidden;

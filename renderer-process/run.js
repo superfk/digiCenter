@@ -924,8 +924,9 @@ function generateStartSeq() {
   test_flow.setup = setup_seq;
   let curstr = `
   <li data-stepid=-1>
-      <a href="#" ><i class="far fa-play-circle w3-margin-right fa-lg"></i>Sequence Setup</a>
-      
+    <div class='w3-bar'>
+      <a href="#" class='w3-bar-item'><i class="far fa-play-circle w3-margin-right fa-lg"></i>Sequence Setup</a>
+    </div> 
   </li>
   `;
   return curstr;
@@ -935,8 +936,9 @@ function generateEndSeq() {
   test_flow.teardown = teardown_seq;
   let curstr = `
   <li data-stepid=9999>
-      <a href="#" ><i class="far fa-stop-circle w3-margin-right fa-lg"></i>Sequence Teardown</a>
-      
+    <div class='w3-bar'>
+      <a href="#" class='w3-bar-item'><i class="far fa-stop-circle w3-margin-right fa-lg"></i>Sequence Teardown</a>
+    </div>
   </li>
   `;
   return curstr;

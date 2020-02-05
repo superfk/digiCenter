@@ -734,7 +734,7 @@ tempBox.addEventListener('click', () =>{
 
 hardBox.addEventListener('click', () =>{
     let paras= [
-        new TextPara('port','COM3',unit='',readOnly=false),
+        // new TextPara('port','COM3',unit='',readOnly=false),
         new OptionPara('method','shoreA','shoreA,shore0',unit='',readOnly=false),
         new OptionPara('mode','STANDARD_M','STANDARD_M,STANDARD_M_GRAPH',unit='',readOnly=false),
         new NumberPara('measuring time',5,unit='sec',max=null,min=0,readOnly=false),
@@ -1048,19 +1048,19 @@ applyParaBtn.addEventListener('click',()=>{
         })
     }else if (cat === 'hardness'){
         paraCollection = $('#paraContainer input');
-        let newCOM = paraCollection[0].value;
-        let newMearT = paraCollection[1].value;
-        let newNumOfTest = paraCollection[2].value;
-        seq[id].subitem.paras[0].value = newCOM;
-        seq[id].subitem.paras[3].value = newMearT;
-        seq[id].subitem.paras[4].value = newNumOfTest;
+        // let newCOM = paraCollection[0].value;
+        let newMearT = paraCollection[0].value;
+        let newNumOfTest = paraCollection[1].value;
+        // seq[id].subitem.paras[0].value = newCOM;
+        seq[id].subitem.paras[2].value = newMearT;
+        seq[id].subitem.paras[3].value = newNumOfTest;
         paraCollection = $('#paraContainer select');
         let newMethod = $(paraCollection[0]).find('option:selected').text();
         let newMode = $(paraCollection[1]).find('option:selected').text();
         let newNumericMethod = $(paraCollection[2]).find('option:selected').text();
-        seq[id].subitem.paras[1].value = newMethod;
-        seq[id].subitem.paras[2].value = newMode;
-        seq[id].subitem.paras[5].value = newNumericMethod;
+        seq[id].subitem.paras[0].value = newMethod;
+        seq[id].subitem.paras[1].value = newMode;
+        seq[id].subitem.paras[4].value = newNumericMethod;
         
     }else if (cat === 'waiting'){
         paraCollection = $('#paraContainer input');

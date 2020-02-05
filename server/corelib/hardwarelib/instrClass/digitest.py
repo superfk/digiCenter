@@ -298,6 +298,8 @@ class DummyDigitest(Digitest):
                 return False, ret
             else:
                 return True, 'ok'
+        else:
+            return True, 'ok'
     
     def set_rotation_pos(self,sample_N, mear_pos_n):
         if self.isConnectRotation():
@@ -308,7 +310,9 @@ class DummyDigitest(Digitest):
                 return False, ret
             else:
                 return True, 'ok'
-        
+        else:
+            return True, 'ok'
+            
 def main():
     ba = DummyDigitest()
     # input = b'GET(MS_MODE),' # exp_crc = '05F9' 

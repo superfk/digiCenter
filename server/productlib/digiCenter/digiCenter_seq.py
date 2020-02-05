@@ -145,6 +145,7 @@ class SetupStep(DigiCenterStep):
     def do(self):
         if self.hwDigitest.isConnectRotation():
             self.hwDigitest.set_rotation_home()
+        self.set_result('PASS','PASS')
         return self.result
 
 
@@ -178,13 +179,29 @@ class TemperatureStep(DigiCenterStep):
     
     @DigiCenterStep.deco
     def do(self):
-        # do digichamber temperature control
+        # set start temperature
         curT = self.hwDigichamber.get_real_temperature()
-        tol = 0.03
+        self.hwDigichamber.set_setPoint(curT)
         self.update_actTarget()
+        
+        # set gredient direction
+        if (self.actTarget-curT)<0:
+            signSlope = -self.slope
+            self.hwDigichamber.set_gradient_down(self.slope)
+        else:
+            signSlope = self.slope
+            self.hwDigichamber.set_gradient_up(self.slope)
+        
+        # set target temperature
+        self.hwDigichamber.set_setPoint(self.actTarget)
+
+        # set gredient mode
+        self.hwDigichamber.set_manual_mode(False)
+
         # update new target ref to client
         self.commCallback('update_gauge_ref',self.actTarget)
-
+        
+        tol = 0.03
         UL = self.actTarget * (1+tol)
         CL = self.actTarget * (1-tol)
         while curT>UL or curT<CL:
@@ -199,9 +216,11 @@ class TemperatureStep(DigiCenterStep):
                 signSlope = -self.slope
             else:
                 signSlope = self.slope
-            print('signSlope: {}'.format(signSlope))
+            ## START ##########only for simulation of chamber###########
             curT = curT + signSlope/60*1 + random.random()*0.02
             self.hwDigichamber.set_dummy_act_temp(round(curT,1))
+            ## END   ###################################################
+            curT = self.hwDigichamber.get_real_temperature()
             if curT<=UL and curT>=CL:
                 break
         self.set_result(round(curT,1),'PASS',unit='&#8451')
@@ -232,7 +251,7 @@ class HardnessStep(DigiCenterStep):
 
     def set_paras(self,step):
         super().set_paras(step)
-        self.port = list(filter(lambda name: name['name'] == 'port', self.paras))[0]['value']
+        # self.port = list(filter(lambda name: name['name'] == 'port', self.paras))[0]['value']
         self.method = list(filter(lambda name: name['name'] == 'method', self.paras))[0]['value']
         self.mode = list(filter(lambda name: name['name'] == 'mode', self.paras))[0]['value']
         self.mearTime = float(list(filter(lambda name: name['name'] == 'measuring time', self.paras))[0]['value'])
