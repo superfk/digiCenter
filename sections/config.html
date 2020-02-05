@@ -7,6 +7,7 @@
             <h5 class="w3-bar-item config-sidebar"> </h5>
             <button data-lang='side_general' data-lang_type='innertext' class="w3-bar-item w3-button config-tablink" onclick="openLink(event, 'General')">General</button>
             <button data-lang='side_userMang' data-lang_type='innertext' class="w3-bar-item w3-button config-tablink" onclick="openLink(event, 'Users')">User Managment</button>
+            <button data-lang='side_systemlog' data-lang_type='innertext' class="w3-bar-item w3-button config-tablink" onclick="openLink(event, 'SysLog')">System Log</button>
           </div>
           
           <!-- Content of config item -->
@@ -133,6 +134,30 @@
                   </div>
                 </div>
 
+              </div>
+            </div>
+
+            <!-- System log item -->
+            <div id="SysLog" class="w3-container config-tab w3-animate-opacity" style="display:none">
+              <div class='w3-container w3-margin'>
+                <div data-lang='syslog_download_description' data-lang_type='innertext' class="w3-text-black w3-large"><b>Select period of system log</b></div>
+                
+                <label class="w3-text-teal"><b data-lang="report_filter_from" data-lang_type="innertext" >From</b></label>
+                <input id="syslog_from" class="w3-input w3-border w3-light-grey input-append date" type="datetime-local" id="date-start" style='width:250px'>
+                <span class="add-on"><i class="icon-th"></i></span>
+
+                <label class="w3-text-teal"><b data-lang="report_filter_to" data-lang_type="innertext">To</b></label>
+                <input id="syslog_to" class="w3-input w3-border w3-light-grey input-append date" type="datetime-local" id="date-end" style='width:250px'>
+                <span class="add-on"><i class="icon-th"></i></span>
+                
+                <div class='w3-container w3-margin-top' style='margin-left:0;padding-left: 0;'>
+                <button id="download_syslog_btn" data-lang='syslog_download_btn' data-lang_type='innertext' data-auth='download_syslog_btn' class="w3-btn w3-border w3-hover-border w3-green"  style='width:150px'>Download</button>
+                <a id='systemlog_link'  target="_blank" href='#'></a>
+                </div>
+                
+              </div>
+              <div class='w3-container w3-margin'>
+                <div id="syslog-table"></div>
               </div>
             </div>
           

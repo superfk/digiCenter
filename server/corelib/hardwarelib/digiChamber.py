@@ -17,6 +17,7 @@ class DigiChamber(object):
         self.s = None
         self.connected = False
         self.dummyT = 23
+        self.dummyH = 50
     
     def connect(self):
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -161,6 +162,13 @@ class DigiChamber(object):
         print(value)
         return value
     
+    def get_real_humidity(self):
+        cmd = self.create_cmd('12002', ['2']) # need to check
+        respid, value = self.send_and_get(cmd)
+        value = float(value)
+        print(value)
+        return value
+    
     def set_gradient_up(self, value_k_per_min=0):
         cmd = self.create_cmd('11068', ['1', str(value_k_per_min)])
         self.send_and_get(cmd)
@@ -184,6 +192,9 @@ class DigiChamber(object):
     def set_dummy_act_temp(self,value):
         self.dummyT = value
     
+    def set_dummy_act_hum(self,value):
+        self.dummyH = value
+
     def close(self):
         self.s.close()
         self.connected=False
@@ -326,6 +337,9 @@ class DummyChamber(DigiChamber):
     
     def get_real_temperature(self):
         return self.dummyT + random.random()*0.2
+    
+    def get_real_humidity(self):
+        return self.dummyH + random.random()*0.2
     
     def set_gradient_up(self, value_k_per_min=0):
         cmd = self.create_cmd('11068', ['1', str(value_k_per_min)])

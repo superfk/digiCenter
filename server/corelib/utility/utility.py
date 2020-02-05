@@ -47,7 +47,7 @@ def decrypt_password(decrypy_pw):
 
 def newPathIfNotExist(path):
     if not os.path.exists(path):
-        os.mkdir(path)
+        os.makedirs(path)
 
 def randomStringDigits(stringLength=6):
     """Generate a random string of letters and digits """
@@ -142,22 +142,13 @@ class ExportWorker(object):
         pass
 
 class CSV_ExportWorker(ExportWorker):
-    def __init__(self, tabledata):
+    def __init__(self, tabledata,sep=';'):
         super(CSV_ExportWorker,self).__init__(tabledata)
+        self.sep = sep
 
     def save(self, path):
-        self.df.to_csv(path,index=0, encoding = "utf-8", sep=';')
+        self.df.to_csv(path,index=0, encoding = "utf-8-sig", sep=self.sep)
 
-
-class Language(object):
-    def __init__(self, config_file,lang_folder):
-        self.configFile = config_file
-        self.langFolder = lang_folder
-    
-    def get_lang(self,key):
-        config = read_system_config(self.configFile)
-        curlang = config['system']['default_lang']
-        return readLang(self.langFolder, curlang)[key]
 
 class Excel_ExportWorker(ExportWorker):
     def __init__(self, tabledata):
@@ -166,7 +157,8 @@ class Excel_ExportWorker(ExportWorker):
     def save(self, path):
         df_obj = self.df.select_dtypes(['object'])
         self.df[df_obj.columns] = df_obj.apply(lambda x: x.str.strip())
-        self.df.to_excel(path, index=False, sheet_name='Test_Data')
+        print(self.df)
+        self.df.to_excel(path,  sheet_name='Test_Data', engine='openpyxl')
 
 class OpenExcel():
     def __init__(self):

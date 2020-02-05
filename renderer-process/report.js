@@ -1,13 +1,12 @@
 const {ipcRenderer} = require("electron");
 var moment = require('moment');
-const zerorpc = require("zerorpc");
-const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
-// create zerorpc instance
-client.connect("tcp://127.0.0.1:4242");
+let tools = require('../assets/shared_tools');
+let ws
 
 var now = moment().format("YYYY-MM-DDTHH:mm:ss.000");
 const export2fileBtn = document.getElementById('export-test-data-to-file');
 const mytable_visible = document.getElementById('report-csv-table-visible');
+const projectField = document.getElementById('project-field');
 const batchField = document.getElementById('batch-field');
 const operatorField = document.getElementById('operator-field');
 var startDateField = document.getElementById('date-start');
@@ -16,20 +15,92 @@ const queryData = document.getElementById('query-data');
 
 const exportStart = document.getElementById('export-start');
 
-const lines_main = {
-  dash: 'solid',
-  width: 4
+const plotMargin = { t: 40, r: 80, l: 40, b: 50};
+const config = {
+  displaylogo: false,
+  modeBarButtonsToRemove: ['toImage','lasso2d','select2d', 'pan2d','zoom2d','hoverClosestCartesian','hoverCompareCartesian','toggleSpikelines'],
+  responsive: false
+};
+
+
+// **************************************
+// websocket functions
+// **************************************
+function connect() {
+  try{
+    const WebSocket = require('ws');
+    ws = new WebSocket('ws://127.0.0.1:5678');
+  }catch(e){
+    console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
+  }
+
+  ws.on('open', function open() { 
+    console.log('websocket in report connected')
+    ws.send(tools.parseCmd('hello'))
+  });
+
+  ws.on('ping',()=>{
+    ws.send(tools.parseCmd('pong','from report'));
+  })
+
+  ws.on('message', function incoming(message) {
+
+    try{
+      
+      msg = tools.parseServerMessage(message);
+      let cmd = msg.cmd;
+      let data = msg.data;
+      switch(cmd) {
+        case 'ping':
+          // console.log('got server data ' + data)
+          ws.send(tools.parseCmd('pong',data));
+          break;
+        case 'reply_log_to_db':
+          console.log(data);
+          break;
+        case 'reply_query_data_from_db':
+          console.log(data)
+          showData(data.res);
+          break;
+        case 'reply_export_test_data_from_client':
+          if(data.resp_code == 0) {
+            ipcRenderer.send('show-alert-alert',"Saving Data Error", data.res);
+          }
+          else{
+            ipcRenderer.send('show-info-alert',"Saving Data OK", data.res);
+          }
+          break;
+        default:
+          console.log('Not found this cmd' + cmd)
+          break;
+      }
+    }catch(e){
+      console.error(e)
+    }
+    
+  });
+
+  ws.onclose = function(e) {
+    console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
+    setTimeout(function() {
+      connect();
+    }, 1000);
+  };
+
+  ws.onerror = function(err) {
+    console.error('Socket encountered error: ', err.message, 'Closing socket');
+    ws.close();
+  };
 }
-const lines_sub = {
-  dash: 'solid',
-  width: 1
-}
+
+connect()
+
 
 var getNow = function(fmt){
   if(fmt){
     return moment().format(fmt);
   }else{
-    return moment().format("YYYY-MM-DDTHH:mm:ss.000");
+    return moment().format("YYYY-MM-DDTHH:mm");
   }
 }
 
@@ -47,73 +118,47 @@ var t = $('#test-data-table-in-report').DataTable({
 
 // save log to database function
 var savelog = function(msg, type='info', audit=0){
-  client.invoke("log_to_db",  msg, type, audit, (error, res) => {
-    if(error) {console.error(error);}else{console.log(res);}
-    })
+  ipcRenderer.send('save_log',msg , type, audit);
+}
+
+function showData(res){
+  if (typeof res !== 'undefined' && res.length > 0){
+    createTable(res);
+    let x_val = res.map(a=>a.Recordtime);
+    let h_val = res.map(a=>a.Hardness_result);
+    let t_val = res.map(a=>a.Temperature);
+    console.log(x_val)
+    console.log(h_val)
+    console.log(t_val)
+    generateEventPlot(x_val, h_val, t_val)
+    repositionChart()
+    ipcRenderer.send('completed-indet-progressbar','done!');
+    setTimeout(function(){
+      ipcRenderer.send('abort-indet-progressbar');
+    },500);
+    // chartRelayout('hardnessVStemp_plot');
+  }else{
+    emptyTable();
+    cleraChart('hardnessVStemp_plot');
+    ipcRenderer.send('completed-indet-progressbar','done!');
+    setTimeout(function(){
+      ipcRenderer.send('abort-indet-progressbar');
+    },500);
+
+  }
 }
 
 queryData.addEventListener('click', (event) => {
   savelog('Click query data button', 'info', 1);
   var filter = {
+    'project': projectField.value,
     'batch': batchField.value,
     'operator': operatorField.value,
-    'date_start': startDateField.value,
-    'date_end': endDateField.value
+    'date_start': startDateField.value+':00.000',
+    'date_end': endDateField.value+':59.99'
   }
   ipcRenderer.send('start-indet-progressbar','Waiting for query', 'Waiting for query', '');
-  client.invoke("query_data_from_db",  filter, (error, res) => {
-    if(error) {
-      console.error(error);
-      ipcRenderer.send('show-alert-alert',"Saving Data Error", `Error when saving data to database!(${error})`);
-      ipcRenderer.send('completed-indet-progressbar','Error!');
-        setTimeout(function(){
-          ipcRenderer.send('abort-indet-progressbar');
-        },1000);
-    }
-    else{
-
-      if (typeof res !== 'undefined' && res.length > 0){
-        createTable(res);
-        let t = $('#test-data-table-in-report').DataTable();
-        let tableData = t.data().toArray();
-        let data = [];
-        let colnames = [];
-        let legnd_vis = [];
-        data.push(tableData.map(a => a.Hardness_1));
-        data.push(tableData.map(a => a.Hardness_2));
-        data.push(tableData.map(a => a.Hardness_3));
-        colnames = ['Hardness_1','Hardness_2','Hardness_3'];
-        legnd_vis = [true, true, true];
-        showChart(data, colnames, legnd_vis, ['y','y','y'], 'Hardness', '', 'hardness_plot', 'Hardness Data', [lines_main,lines_main, lines_main]);
-        data = [];
-        data.push(tableData.map(a => a.WeightDry));
-        data.push(tableData.map(a => a.WeightWet));
-        // data.push(tableData.map(a => a.T_Liquid));
-        data.push(tableData.map(a => a.Density));
-        colnames = ['WeightDry', 'WeightWet', 'Density'];
-        legnd_vis = [true, true, true];
-        
-        showChart(data, colnames, legnd_vis, ['y2','y2','y'], 'Density(g/cm<sup>3</sup>)', 'Weight(g)', 'density_plot', 'Density Data', [lines_sub,lines_sub, lines_main]);
-        repositionChart()
-        ipcRenderer.send('completed-indet-progressbar','done!');
-        setTimeout(function(){
-          ipcRenderer.send('abort-indet-progressbar');
-        },500);
-        // chartRelayout('hardness_plot');
-        // chartRelayout('density_plot');
-      }else{
-        emptyTable();
-        cleraChart('hardness_plot');
-        cleraChart('density_plot');
-        ipcRenderer.send('completed-indet-progressbar','done!');
-        setTimeout(function(){
-          ipcRenderer.send('abort-indet-progressbar');
-        },500);
-
-      }
-      
-    }
-  })
+  ws.send(tools.parseCmd('query_data_from_db',filter));
 })
 
 export2fileBtn.addEventListener('click', (event) => {
@@ -130,14 +175,7 @@ exportStart.addEventListener('click', (event) => {
   let tableData = t.data().toArray();
   let fpath = document.getElementById('export-filename');
   let expOpt = getExportOptions()
-  client.invoke("export_test_data",  tableData, fpath.value, expOpt, (error, res) => {
-    if(error) {
-      ipcRenderer.send('show-alert-alert',"Saving Data Error", `Error when saving data to database!(${error})`);
-    }
-    else{
-      ipcRenderer.send('show-info-alert',"Saving Data OK", res[1]);
-    }
-  })
+  ws.send(tools.parseCmd('export_test_data_from_client',{'tabledata':tableData, 'path':fpath.value, 'option':expOpt}));
 })
 
 var getExportOptions = function(){
@@ -152,19 +190,12 @@ var getExportOptions = function(){
     // it is checked
     opt.push('excel');
   }
-  if ($('#export-option-pdf').is(":checked"))
-  {
-    // it is checked
-    opt.push('pdf');
-  }
-  if ($('#export-option-html').is(":checked"))
-  {
-    // it is checked
-    opt.push('html');
-  }
   console.log(opt);
   return opt;
 }
+
+
+
 
 function createTable(tableData) {
   
@@ -195,7 +226,7 @@ function createTable(tableData) {
 
 }
 
-function emptyTable(tableData) {
+function emptyTable() {
 
   t.destroy();
   t = $('#test-data-table-in-report').DataTable({
@@ -213,55 +244,118 @@ function emptyTable(tableData) {
 
 }
 
-function showChart(result, colNames, legend_vis, yaxis, y1_title, y2_title, plot_id, plot_title, lines) {
-  let data = [];
-  let lg_vis = [];
+function generateEventPlot(xtime,hardnessdata,tempdata){
 
-  legend_vis.forEach(function(item, index, array){
-    if (item == true){
-      lg_vis.push('True');
-    }else{
-      lg_vis.push('legendonly');
-    }
-  })
+  var trace1 = {
+        // x: h_data_x,
+        type: "scattergl",
+        name: 'temperature',
+        x: xtime,
+        y: tempdata,
+        mode: 'lines',
+        line: {
+          width: 2,
+          color: 'red',
 
-  result.forEach(function(item, index, array){
-    let trace ={
-        y: item,
-        mode: 'lines+markers',
-        marker: {size:8},
-        type: 'scatter',
-        name: colNames[index],
-        visible: lg_vis[index],
-        yaxis: yaxis[index],
-        line: lines[index]
+        }
       };
-    data.push(trace);
-  })
 
-  var layout = {
-    title: plot_title,
-    autosize: true,
-    xaxis: {
-      // rangeselector: selectorOptions,
-      rangeslider: {}
-  },
-    yaxis:{
-      title: y1_title,
-      rangemode: 'nonnegative'
-    },
-    yaxis2:{
-      title: y2_title,
-      side: 'right',
-      rangemode: 'nonnegative',
-      overlaying: 'y'
-    },
-    // paper_bgcolor: 'rgba(0,0,0,0)',
-    // plot_bgcolor: 'rgba(0,0,0,0)'    
-  };
+    var trace2 = {
+      // x: h_data_x,
+      type: "scattergl",
+      name: 'hardness',
+      x: xtime,
+      y: hardnessdata,
+      yaxis: 'y2',
+      mode: 'lines+markers',
+      marker: { size: 8,color:'blue'},
+      line: {
+        dash: 'dot',
+        width: 2,
+        color: 'blue'
+      }
+    };
 
-  Plotly.newPlot(plot_id, data, layout,{showSendToCloud:false, displaylogo: false, responsive: true});
+    var data = [trace1,trace2];
+
+    var layout = {
+      xaxis: {
+        title: 'Timestamp'
+      },
+      yaxis: {
+        title: '℃'
+      },
+      yaxis2: {
+        title: 'hardness',
+        titlefont: {color: 'rgb(148, 103, 189)'},
+        tickfont: {color: 'rgb(148, 103, 189)'},
+        overlaying: 'y',
+        side: 'right',
+        range: [0, 100]
+      },
+      showlegend: true,
+      legend: {"orientation": "h",x:0, xanchor: 'left',y:1.2,yanchor: 'top'},
+      width: 400,
+      height: 400,
+      margin: plotMargin,
+      autosize: true,
+      font: { color: "dimgray", family: "Arial", size: 10}
+    };
+    
+    Plotly.newPlot('hardnessVStemp_plot', data, layout,config);
 }
+
+
+
+// function showChart(result, colNames, legend_vis, yaxis, y1_title, y2_title, plot_id, plot_title, lines) {
+//   let data = [];
+//   let lg_vis = [];
+
+//   legend_vis.forEach(function(item, index, array){
+//     if (item == true){
+//       lg_vis.push('True');
+//     }else{
+//       lg_vis.push('legendonly');
+//     }
+//   })
+
+//   result.forEach(function(item, index, array){
+//     let trace ={
+//         y: item,
+//         mode: 'lines+markers',
+//         marker: {size:8},
+//         type: 'scatter',
+//         name: colNames[index],
+//         visible: lg_vis[index],
+//         yaxis: yaxis[index],
+//         line: lines[index]
+//       };
+//     data.push(trace);
+//   })
+
+//   var layout = {
+//     title: plot_title,
+//     autosize: true,
+//     xaxis: {
+//       // rangeselector: selectorOptions,
+//       rangeslider: {}
+//   },
+//     yaxis:{
+//       title: y1_title,
+//       rangemode: 'nonnegative'
+//     },
+//     yaxis2:{
+//       title: y2_title,
+//       side: 'right',
+//       rangemode: 'nonnegative',
+//       overlaying: 'y'
+//     },
+//     // paper_bgcolor: 'rgba(0,0,0,0)',
+//     // plot_bgcolor: 'rgba(0,0,0,0)'    
+//   };
+
+//   Plotly.newPlot(plot_id, data, layout,{showSendToCloud:false, displaylogo: false, responsive: true});
+// }
 
 function cleraChart(plot_id){
   Plotly.purge(plot_id);
@@ -276,14 +370,14 @@ function repositionChart(){
   var update = {
     autosize: true
   };
-  if (!$('#hardness_plot').html()===''){
+  if (!$('#hardnessVStemp_plot').html()===''){
     // check if chart has data, if no data, the following function will throw error
-    Plotly.relayout('hardness_plot', update);
-    Plotly.relayout('density_plot', update);
+    Plotly.relayout('hardnessVStemp_plot', update);
   }
-
-  Plotly.relayout('hardness_plot', update);
-  Plotly.relayout('density_plot', update);
+  Plotly.relayout('hardnessVStemp_plot', update);
 }
+
+generateEventPlot();
+repositionChart();
 
 $('#chart-tab').on('click', repositionChart )

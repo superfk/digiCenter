@@ -2,7 +2,7 @@ let fs = require('fs');
 
 // const links = document.querySelectorAll('link[rel="import"]')
 
-const links = ['sections/config.html','sections/seqEditor.html','sections/run.html']
+const links = ['sections/config.html','sections/seqEditor.html','sections/run.html', 'sections/report.html']
 
 // Import and add each page to the DOM
 Array.prototype.forEach.call(links, (link) => {

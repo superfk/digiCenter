@@ -12,6 +12,10 @@
                 <p>
                   <div class='w3-row'>
                     <div class='w3-container w3-third'>
+                      <label class="w3-text-teal"><b data-lang="report_filter_project" data-lang_type="innertext" >Project</b></label>
+                      <input id='project-field' class="w3-input w3-border w3-light-grey" type="text" value="">
+                    </div>
+                    <div class='w3-container w3-third'>
                       <label class="w3-text-teal"><b data-lang="report_filter_batch" data-lang_type="innertext" >Batch</b></label>
                       <input id='batch-field' class="w3-input w3-border w3-light-grey" type="text" value="">
                     </div>
@@ -59,21 +63,18 @@
                 <table id="test-data-table-in-report" class="display" style="width:100%">
                     <thead>
                         <tr>
-                            <th>Sample-Counter</th>
+                            <th>Recordtime</th>
+                            <th>Project_name</th>
+                            <th>Batch_name</th>
+                            <th>Seq_name</th>
                             <th>Operator</th>
-                            <th>Compound Folder</th>
-                            <th>Compound</th>
-                            <th>Batch</th>
-                            <th>Productiondate</th>
-                            <th>Hardness_1</th>
-                            <th>Hardness_2</th>
-                            <th>Hardness_3</th>
-                            <th>Timestamp</th>
-                            <th>T_Sample</th>
-                            <th>WeightDry</th>
-                            <th>WeightWet</th>
-                            <th>T_Liquid</th>
-                            <th>Density</th>
+                            <th>Seq_step_id</th>
+                            <th>Sample_counter</th>
+                            <th>Hardness_result</th>
+                            <th>Temperature</th>
+                            <th>Humidity</th>
+                            <th>Raw_data</th>
+                            <th>Math_method</th>
                         </tr>
                     </thead>
                   </table>
@@ -81,10 +82,7 @@
             
             <div id="Chart" class="w3-container w3-border tabpage w3-small" style="display:none">
               <div class="w3-container chart-container">
-                <div id="hardness_plot" class='w3-margin w3-display-center'></div>
-              </div>
-              <div class="w3-container chart-container">
-                <div id="density_plot" class='w3-margin w3-display-center'></div>
+                <div id="hardnessVStemp_plot" class='w3-margin w3-display-center'></div>
               </div>
             </div>
         </div>       

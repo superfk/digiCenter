@@ -29,8 +29,10 @@ class DigiCenterStep(object):
         self.commCallback = None
         self.stopMsgQueue = None
         self.hwDigichamber = None
+        self.hwDigitest = None
         self.initTime = None
         self.loopIter = 0
+        self.batchinfo = None
 
     def initResult(self):
         self.result = {'stepid':0,
@@ -42,7 +44,9 @@ class DigiCenterStep(object):
         'endT':None,
         'exeT':0, 
         'relTime':0,
-        'actTemp':0}
+        'actTemp':0,
+        'actHum': 0,
+        'hardness_dataset':None}
         
 
     def set_paras(self,step):
@@ -74,6 +78,9 @@ class DigiCenterStep(object):
     
     def set_digiChamber_hw_control(self, digiChamberController):
         self.hwDigichamber = digiChamberController
+    
+    def set_digitest_hw_control(self, digitest):
+        self.hwDigitest = digitest
 
     def do(self):
         return self.result
@@ -92,7 +99,7 @@ class DigiCenterStep(object):
         # print('single test interval: {}'.format(t))
         return t
     
-    def set_result(self, value, status, unit=None, eventName=None):
+    def set_result(self, value, status, unit=None, eventName=None, hardness_dataset=None):
         self.result['stepid'] = self.stepid
         self.result['name'] = self.itemname
         self.result['value'] = value
@@ -100,10 +107,13 @@ class DigiCenterStep(object):
         self.result['status'] = status
         self.result['eventName'] = eventName
         self.result['relTime'] = time.time() - self.initTime
+        self.result['hardness_dataset'] = hardness_dataset
         try:
             self.result['actTemp'] = self.hwDigichamber.get_real_temperature()
+            self.result['actHum'] = self.hwDigichamber.get_real_humidity()
         except:
             self.result['actTemp'] = None
+            self.result['actHum'] = None
         return self.result
     
     def set_result_callback(self,resultCallback):
@@ -120,6 +130,9 @@ class DigiCenterStep(object):
     
     def reset_loopiter(self):
         self.loopIter = 0
+    
+    def set_batchinfo(self,batchinfo):
+        self.batchinfo = batchinfo
 
 class SetupStep(DigiCenterStep):
     def __init__(self):
@@ -130,8 +143,8 @@ class SetupStep(DigiCenterStep):
     
     @DigiCenterStep.deco
     def do(self):
-        time.sleep(dummy_delay)
-        self.set_result('PASS','PASS')
+        if self.hwDigitest.isConnectRotation():
+            self.hwDigitest.set_rotation_home()
         return self.result
 
 
@@ -208,8 +221,14 @@ class HardnessStep(DigiCenterStep):
         self.dummyHardBase = 50
         self.numTests = 3
         self.numericMethod = 'mean'
-        self.singleResult = {'dataset':[], 'result':0, 'std':0.0, 'done':False, 'method':self.numericMethod, 'totalCounts':self.numTests}
+        self.curSampleId = 0
+        self.curMearCounts = 0
+        self.model = 'fix'
+        self.singleResult = {'dataset':[], 'result':0, 'std':0.0, 'done':False,
+         'method':self.numericMethod, 'totalCounts':self.numTests, 'sampleid':self.curSampleId}
         self.retry = False
+        self.overall_result = []
+        
 
     def set_paras(self,step):
         super().set_paras(step)
@@ -219,62 +238,88 @@ class HardnessStep(DigiCenterStep):
         self.mearTime = float(list(filter(lambda name: name['name'] == 'measuring time', self.paras))[0]['value'])
         self.numTests = int(list(filter(lambda name: name['name'] == 'number of measurement', self.paras))[0]['value'])
         self.numericMethod = list(filter(lambda name: name['name'] == 'numerical method', self.paras))[0]['value']
+    
+    def config_digitest(self):
+        self.hwDigitest.set_remote(True)
+        self.hwDigitest.set_mode(self.mode)
+        self.hwDigitest.set_ms_duration(self.mearTime)
 
     @DigiCenterStep.deco
-    def do(self):
-        # do digiTest temperature control
-        targetTime = self.mearTime
-        # send start mear event text
-        dummpyHard = round(random.random()*2 + self.dummyHardBase, 1)
-        if len(self.singleResult['dataset']) == 0:
-            self.set_result(dummpyHard,'WAITING',None,'MS')
-            self.resultCallback(self.result)
-        # do measurement
-        accTime = 0
-        startTime = time.time()
-        while True:
-            accTime = time.time()-startTime
-            print(accTime)
-            print('retry? {}'.format(self.retry))
-            if accTime >= targetTime:
-                dummpyHard = round(random.random()*2 + self.dummyHardBase, 1)
-                # retry process, remove last data from list
-                if self.retry:
-                    try:
-                        self.retry = False
-                        self.singleResult['dataset'].pop()
-                        self.singleResult['done'] = False
-                    except Exception as e:
-                        print(e)
-                        pass
+    def do(self):            
+        # change config
+        if not self.retry:
+            self.config_digitest()
+            # check if it is the beginning of measurement
+            # if self.curSampleId == 0:
+            #     self.set_result(0.0,'WAITING',None,'MS',self.singleResult)
+            #     self.resultCallback(self.result)
+        else:
+            try:
+                self.retry = False
+                self.singleResult['done'] = False
+                self.singleResult['dataset'].pop()
+            except IndexError as e:
+                print(e)
 
-                # check if all data mearsured
-                if self.singleResult['done']:
-                    self.set_result(self.singleResult['result'],'PASS')
+        # do measurement
+        while True:
+            
+            # check if all data mearsured
+            if self.singleResult['done']:
+                print('cursampleid/total: {} / {}'.format(self.curSampleId, self.batchinfo.numSamples))                                     
+                self.curSampleId += 1
+                if self.curSampleId >= self.batchinfo.numSamples:
+                    # all sample are tested
+                    self.set_result(self.singleResult['result'],'PASS', eventName=r'{}'.format(self.curSampleId), hardness_dataset=self.singleResult)
+                    self.curSampleId = 0
+                    self.reset_result()
+                    break
+                else:
+                    self.set_result(self.singleResult['result'],'MEAR_NEXT', None, eventName=r'{}'.format(self.curSampleId)
+                    ,hardness_dataset=self.singleResult) 
+                    self.resultCallback(self.result)
                     self.reset_result()
                     break
 
-                # add new data
-                self.add_data(dummpyHard)
-                self.set_result(self.singleResult['result'],'PAUSE') 
+            # start mear
+            self.hwDigitest.start_mear()
+            # get value
+            while True:
+                h_data = self.hwDigitest.get_single_value()
+                if h_data:
+                    break
+                else:
+                    time.sleep(0.1)
+            
+            # add new data
+            self.add_data(h_data)
+
+            # handle process between different model of digiChamber
+            isRotation_model = self.hwDigitest.isConnectRotation()
+            if not isRotation_model:
+                self.set_result(self.singleResult['result'],'PAUSE',hardness_dataset=self.singleResult) 
                 self.resultCallback(self.result)
-                self.commCallback('show_move_sample_dialog',self.singleResult)
-                break
-                    
-            elif self.stopMsgQueue.qsize()>0:
-                # stop process immediately
+                if self.stopMsgQueue.qsize()>0:
+                    break
+                else:
+                    self.commCallback('show_move_sample_dialog',self.singleResult)
+                # skip loop to wait for user manual select retry or next
                 break
             else:
+                # rotate on one sample
+                print('rotate on one sample with position {}'.format(len(self.singleResult['dataset'])))
+                self.hwDigitest.set_rotation_pos(sample_N=self.curSampleId, mear_pos_n=self.get_mear_counts())
                 time.sleep(0.1)
-        
+       
         return self.result
 
     def add_data(self, value):
+        value = round(value,1)        
         self.singleResult['dataset'].append(value)
         print('single test result')
         print(self.singleResult)
 
-        if len(self.singleResult['dataset']) >= self.numTests:
+        if self.get_mear_counts() >= self.numTests:
             self.singleResult['done'] = True
 
         if self.numericMethod == 'median':
@@ -286,9 +331,24 @@ class HardnessStep(DigiCenterStep):
         self.singleResult['std'] = round(stdev,1)
         self.singleResult['method'] = self.numericMethod
         self.singleResult['totalCounts'] = self.numTests
+        self.singleResult['sampleid'] = self.curSampleId+1
+    
+    def get_mear_counts(self):
+        return len(self.singleResult['dataset'])
     
     def reset_result(self):
-        self.singleResult = {'dataset':[], 'result':0, 'std':0.0, 'done':False, 'method':self.numericMethod, 'totalCounts':self.numTests}
+        self.singleResult = {'dataset':[], 'result':0, 'std':0.0, 'done':False, 
+        'method':self.numericMethod, 'totalCounts':self.numTests, 'sampleid':0}
+    
+    def setChamberModel(self):
+        try:
+            isRotaionType = self.hwDigichamber.isConnectRotation()
+            if isRotaionType:
+                self.model = 'rotate'
+            else:
+                self.model = 'fix'
+        except:
+            self.model = 'fix'
 
 class WaitingStep(DigiCenterStep):
     def __init__(self):

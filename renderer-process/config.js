@@ -1,4 +1,4 @@
-const {ipcRenderer} = require("electron");
+const {ipcRenderer,shell} = require("electron");
 const path = require('path');
 const { clipboard } = require('electron')
 const remote = require('electron').remote;
@@ -176,6 +176,14 @@ function connect() {
               }
               break;
             case 'reply_set_new_password_when_first_login':
+              break;
+            case 'reply_get_syslog_from_db':
+              if(data[0] == 1){
+                createTable(data[1])
+                ipcRenderer.send('show-info-alert', "Info", data[2]);
+                $("#systemlog_link").attr("href", data[3])
+                $("#systemlog_link").html(data[3])
+              }
               break;
             case 'update_sys_default_config':
               updateServerSeqFolder(data);
@@ -504,7 +512,8 @@ var table_func_list = $('#func-list-table').DataTable({
     'style': 'single'
  },
  columnDefs:[
-  {"targets":[0,2,3], "width":"30px"},
+  {"targets":[0,2,3], "width":"20px"},
+  {"targets":[1], "width":"200px"},
   {"targets":4, "visible":false},
   {"targets":5, "visible":false}
  ]
@@ -559,7 +568,6 @@ function createRoleTable(tableData) {
 }
 
 function createFncTable(tableData) {
-  
   var my_columns = [];
 
   $.each( tableData[0], function( key, value ) {
@@ -585,41 +593,53 @@ function createFncTable(tableData) {
       'style': 'single'
    },
    
-    "columnDefs": [ 
+   "columnDefs": [ 
 
-      {"targets": 0, "width": 30},
+    {"targets": 0, "width": 20},
 
-      {
-        "targets":1, 
-        'className': 'dt-body-left'
-      },
-
-      {"targets": 2,
-      "data": "Enabled",
-      "render": function ( data, type, row, meta ) {
-        if (data){
-          return "<i class='far fa-check-square'></i>";
-        }else{
-          return "<i class='far fa-square'></i>";
-        }
-      },
-      "width": 30   
-    },
     {
-      "targets": 3,
-      "data": "Visibled",
+      "targets":1, 
+      'className': 'dt-body-left',
       "render": function ( data, type, row, meta ) {
-        if (data){
-          return "<i class='far fa-check-square'></i>";
+        if (data.indent == 0){
+          return `<i class="fas fa-caret-right">  <b class='w3-medium'>${data.name}</b></i>`;
         }else{
-          return "<i class='far fa-square'></i>";
+          let preSpcae = '';
+          for(i=0;i<data.indent;i++){
+            preSpcae += '&nbsp &nbsp'
+          }
+          return `${preSpcae}<i class="fas fa-genderless">  ${data.name}</i>`;
         }
       },
-      "width": 30 
+      "width": 200
     },
-    {"targets":4, "visible":false},
-    {"targets":5, "visible":false}
-  ]
+
+    {"targets": 2,
+    "data": "Enabled",
+    "render": function ( data, type, row, meta ) {
+      if (data){
+        return "<i class='far fa-check-square'></i>";
+      }else{
+        return "<i class='far fa-square'></i>";
+      }
+    },
+    "width": 20   
+  },
+  {
+    "targets": 3,
+    "data": "Visibled",
+    "render": function ( data, type, row, meta ) {
+      if (data){
+        return "<i class='far fa-check-square'></i>";
+      }else{
+        return "<i class='far fa-square'></i>";
+      }
+    },
+    "width": 20 
+  },
+  {"targets":4, "visible":false},
+  {"targets":5, "visible":false}
+]
   });
 
   table_func_list.draw();
@@ -700,3 +720,74 @@ $('#delete_new_role_btn').on( 'click', function () {
 table_role_list.on( 'row-reordered', function ( e, diff, edit ) {
   
 } );
+
+// ===============================================================
+// System log Panel                                               |
+// ===============================================================
+
+let datafields = ["Timestamp", "User_Name", "User_Role", "Log_Type", "Log_Message", "Audit"]
+let dataWidth = [150,150,150,100,450,100]
+var startDateField = document.getElementById('syslog_from');
+var endDateField = document.getElementById('syslog_to');
+
+var getNow = function(fmt){
+  if(fmt){
+    return moment().format(fmt);
+  }else{
+    return moment().format("YYYY-MM-DDTHH:mm:ss.000");
+  }
+}
+
+startDateField.value = getNow();
+endDateField.value = getNow();
+
+function columnsDefine(){
+  let colDefine = [];
+  datafields.forEach((item,index)=>{
+    let col = {title:"", field:"",align:"left"};
+    col.title = item;
+    col.field = item;
+    col.width = dataWidth[index]
+    colDefine.push(col)
+  })
+  return colDefine;
+}
+
+let tableOption = {
+  height:'600px', // set height of table (in CSS or here), this enables the Virtual DOM and improves render speed dramatically (can be any valid css height value)
+  data:[{}], //assign data to table
+  layout:"fitColumns", //fit columns to width of table (optional)
+  columns:columnsDefine(),
+}
+
+let t = new Tabulator("#syslog-table", tableOption);
+
+function createTable(tableData) {
+  
+  t = new Tabulator("#syslog-table", tableOption);
+  
+  t.replaceData(tableData)
+  .then(function(){
+      //run code after table has been successfuly updated
+  })
+  .catch(function(error){
+      //handle error loading data
+      console.log(error)
+  });
+}
+
+$('#download_syslog_btn').on('click', ()=>{
+  let start = startDateField.value
+  let end = endDateField.value
+  $("#systemlog_link").attr("href", '#')
+  $("#systemlog_link").html('')
+  ws.send(tools.parseCmd('get_syslog_from_db',{'start':start,'end': end}));
+})
+
+$('#systemlog_link').on('click', (e)=>{
+  e.preventDefault();
+  // Open a local file in the default app
+  let fpath = $("#systemlog_link").attr("href")
+  shell.openItem(fpath);
+
+})

@@ -8,9 +8,10 @@ sys.path.append('server/instrClass')
 sys.path.append('server/productlib')
 import zerorpc
 from corelib.hardwarelib.digiChamber import DigiChamber, DummyChamber
+from corelib.hardwarelib.instrClass.digitest import Digitest, DummyDigitest
 from corelib.hardwarelib.instrClass.digitest import Digitest
 from corelib.logging_module.baLogger import TimeRotateLogger
-from corelib.UserManagement.user_login import UserManag
+from corelib.usermanagelib.user_login import UserManag
 from productlib.digiCenter.pd_digichamber import DigiChamberProduct
 import ctypes  # An included library with Python install.
 import struct
@@ -31,13 +32,13 @@ import websockets
 
 
 class BatchInfo(object):
-    def __init__(self,project, batch, create_date, notes, seq_name):
+    def __init__(self,project, batch, create_date, notes, seq_name, numOfSample):
         self.project = project
         self.batch = batch
         self.createDate = create_date
         self.notes = notes
         self.seq = seq_name
-
+        self.numSamples = int(numOfSample)
 
 class PyServerAPI(object):
     def __init__(self):
@@ -48,10 +49,11 @@ class PyServerAPI(object):
         self.db = DB(r"SHAWNNB\SQLEXPRESS", 'BareissAdmin', 'BaAdmin')
         self.userMang = UserManag(self.db,"Guest", "Guest", 0, True)
         self.config = util.read_system_config(r'C:\\digiCenter\config.json')
-        self.productProcess = DigiChamberProduct('digiCenter',r"C:\\data_exports",self.sendMsg)
+        self.productProcess = DigiChamberProduct('digiCenter',r"C:\\data_exports",self.sendMsg,self.saveTestData)
         self.initialized = False
         self.langFolder = ''
         self.batch = None
+        self.lang_data = None
 
     async def register(self,websocket):
         self.users.add(websocket)
@@ -155,12 +157,16 @@ class PyServerAPI(object):
                     msg_type = data['msg_type']
                     audit = data['audit']
                     await self.log_to_db(websocket,msg,msg_type,audit)
+                elif cmd == 'get_syslog_from_db':
+                    start = data['start']
+                    end = data['end']
+                    await self.get_syslog_from_db(websocket, start, end)
                 elif cmd == 'machine_connect':
                     await self.machine_connect(websocket)
                 elif cmd == 'run_cmd':
                     await self.run_cmd(websocket,data)
                 elif cmd == 'init_hw':
-                    self.init_hw(websocket)
+                    await self.init_hw(websocket)
                 elif cmd == 'run_seq':
                     loop = asyncio.new_event_loop()
                     def f(loop):
@@ -177,26 +183,26 @@ class PyServerAPI(object):
                     batch = data['batch']
                     notes = data['notes']
                     seq_name = data['seq_name']
-                    await self.create_batch(websocket,project, batch, notes, seq_name)
+                    numSamples = data['numSample']
+                    await self.create_batch(websocket,project, batch, notes, seq_name, numSamples)
                 elif cmd == 'continue_batch':
                     project = data['project']
                     batch = data['batch']
                     notes = data['notes']
                     seq_name = data['seq_name']
-                    await self.continues_batch(websocket,project, batch, notes, seq_name)
+                    numSamples = data['numSample']
+                    await self.continues_batch(websocket,project, batch, notes, seq_name, numSamples)
                 elif cmd == 'query_batch_history':
                     await self.query_batch_history(websocket)
                 elif cmd == 'stop_seq':
                     self.stop_seq()
-                elif cmd == 'export_test_data':
+                elif cmd == 'export_test_data_from_client':
                     tabledata = data['tabledata']
                     path = data['path']
                     option = data['option']
-                    await self.export_test_data(websocket,tabledata,path,option)
+                    await self.export_test_data_from_client(websocket,tabledata,path,option)
                 elif cmd == 'query_data_from_db':
                     await self.query_data_from_db(websocket,data)
-                elif cmd == 'save_to_database':
-                    await self.save_to_database(websocket,data)
                 elif cmd == 'close_all':
                     await self.close_all(websocket)
                 else:
@@ -233,17 +239,17 @@ class PyServerAPI(object):
     async def load_default_lang(self, websocket, appRoot):
         lang = self.config['system']['default_lang']
         self.langFolder = os.path.join(appRoot, 'lang')
-        lang_data = util.readLang(self.langFolder, lang)
-        self.userMang.set_lang(self.config_path, self.langFolder)
-        await self.sendMsg(websocket,'reply_update_default_lang',lang_data)
+        self.lang_data = util.readLang(self.langFolder, lang)
+        self.userMang.set_lang(self.lang_data)
+        await self.sendMsg(websocket,'reply_update_default_lang',self.lang_data)
     
     async def update_default_lang(self, websocket, appRoot, lang):
         self.config['system']['default_lang'] = lang
         util.write_system_config(path=self.config_path, data = self.config)
         self.langFolder = os.path.join(appRoot, 'lang')
-        lang_data = util.readLang(self.langFolder, lang)
-        self.userMang.set_lang(self.config_path, self.langFolder)
-        await self.sendMsg(websocket,'reply_update_default_lang', lang_data)
+        self.lang_data = util.readLang(self.langFolder, lang)
+        self.userMang.set_lang(self.lang_data)
+        await self.sendMsg(websocket,'reply_update_default_lang', self.lang_data)
     
     async def get_server_time(self, websocket):
         now = datetime.datetime.now().strftime(r"%Y/%m/%d %H:%M:%S")
@@ -292,6 +298,7 @@ class PyServerAPI(object):
             res['result']=1
             res['resp']="database connected"
             self.userMang.db = self.db
+            self.productProcess.db = self.db
             await self.sendMsg(websocket,cmd='result_of_backendinit',data=res)
 
     async def login(self, websocket, username, password):
@@ -319,7 +326,7 @@ class PyServerAPI(object):
         await self.sendMsg(websocket,'reply_get_user_role_list',self.userMang.get_user_role_list())
     
     async def get_function_list(self, websocket, userrole='Guest'):
-        await self.sendMsg(websocket,'reply_get_function_list',self.userMang.get_function_list(userrole='Guest'))
+        await self.sendMsg(websocket,'reply_get_function_list',self.userMang.get_function_list(userrole=userrole))
 
     async def update_fnc_of_role(self, websocket,role,funcs,enabled,visibled):
         await self.sendMsg(websocket,'reply_update_fnc_of_role',self.userMang.update_fnc_of_role(role,funcs,enabled,visibled))
@@ -341,6 +348,17 @@ class PyServerAPI(object):
         self.db.insert('System_log', fields, values)
         await self.sendMsg(websocket,'reply_log_to_db',str(values))
 
+    async def get_syslog_from_db(self,websocket, start, end):
+        fields = ["Timestamp", "User_Name", "User_Role", "Log_Type", "Log_Message", "Audit"]
+        condition = r"WHERE Timestamp>='{}' AND Timestamp <= '{}' ".format(start,end)
+        ret = self.db.select('System_log',fields, condition)
+        filename = datetime.datetime.now().strftime(r"%Y-%m-%d_%H%M%S")
+        export_folder = self.config['system']['default_export_folder']
+        export_folder = os.path.join(export_folder, 'syslog')
+        await self.export_test_data(websocket, ret, export_folder=export_folder, filename=filename, options=['csv'], sep=',')
+        link = os.path.join(export_folder, filename+'.csv')
+        await self.sendMsg(websocket,'reply_get_syslog_from_db',[1, ret, "{}".format(self.lang_data['server_downloading_ok']).format(len(ret)), link])
+    
     async def machine_connect(self, websocket):
         """Connnect to DigiChamber"""
         ip = self.config['system']['machine_ip']
@@ -371,11 +389,20 @@ class PyServerAPI(object):
         except Exception as e:
             self.lg.error(e)
     
-    def init_hw(self, websocket):
+    async def init_hw(self, websocket):
         ip = self.config['system']['machine_ip']
         port = self.config['system']['machine_port']
-        digiChamber_obj = DummyChamber(ip,port)
-        self.productProcess.init_digiChamber_controller(digiChamber_obj)
+        COM = self.config['system']['digitest_COM']
+        # set instance of hw
+        try:
+            digiChamber_obj = DummyChamber(ip,port)
+            digiTest_obj = DummyDigitest()
+            self.productProcess.init_digiChamber_controller(digiChamber_obj)
+            self.productProcess.init_digitest_controller(digiTest_obj,COM)
+            await self.sendMsg(websocket,'reply_init_hw',{'resp_code':1, 'res':self.lang_data['server_hw_init_ok']})
+        except Exception as e:
+            print(e)
+            await self.sendMsg(websocket,'reply_init_hw',{'resp_code':0, 'res':self.lang_data['server_hw_init_NG'], 'reason':'{}'.format(e)})
 
     async def run_seq(self, websocket):
         self.productProcess.create_seq()
@@ -385,9 +412,9 @@ class PyServerAPI(object):
         print('execute stop seq')
         self.productProcess.set_test_stop()
 
-    async def create_batch(self,websocket, project, batch, notes, seq_name):
+    async def create_batch(self,websocket, project, batch, notes, seq_name, numOfSample):
         # check project and batch name exsisted?
-        fields = ["Project_Name", "Batch_Name", "Creation_Date", "Note", "Last_seq_name"]
+        fields = ["Project_Name", "Batch_Name", "Creation_Date", "Note", "Last_seq_name", "NumSample"]
         condition = r"WHERE Project_Name ='{}' AND Batch_Name='{}'".format(project,batch)
         data = self.db.select('Batch_data', fields, condition)
         if not len(data)==0:
@@ -397,123 +424,106 @@ class PyServerAPI(object):
         else:
             curtime = datetime.datetime.now()
             now = curtime.strftime(r"%Y/%m/%d %H:%M:%S.%f")
-            self.batch = BatchInfo(project, batch, curtime, notes, seq_name) 
-            values = [project, batch, now, notes, seq_name]
+            self.batch = BatchInfo(project, batch, curtime, notes, seq_name, numOfSample)
+            self.productProcess.setBatchInfo(self.batch)
+            values = [project, batch, now, notes, seq_name, numOfSample]
             self.db.insert('Batch_data', fields, values)
             await self.sendMsg(websocket,'reply_create_batch',{'resp_code': 1, 'reason':'Batch is created!'})
 
     async def query_batch_history(self,websocket):
         # check project and batch name exsisted?
-        fields = ["Project_Name", "Batch_Name", "Creation_Date", "Note", "Last_seq_name"]
+        fields = ["Project_Name", "Batch_Name", "Creation_Date", "Note", "Last_seq_name", "NumSample"]
         condition = r"ORDER BY Batch_Name"
         data = self.db.select('Batch_data', fields, condition)
         for i,d in enumerate(data):
             date = d['Creation_Date'].split('.')[0]
             data[i]['Creation_Date'] = date
-            seq = os.path.split(d['Last_seq_name'])[1]
-            data[i]['Last_seq_name'] = seq
+            # seq = os.path.split(d['Last_seq_name'])[1]
+            # data[i]['Last_seq_name'] = seq
         await self.sendMsg(websocket,'reply_query_batch_history', data)
 
-    async def continues_batch(self,websocket, project, batch, notes, seq_name):
+    async def continues_batch(self,websocket, project, batch, notes, seq_name, numOfSample):
         curtime = datetime.datetime.now()
         now = curtime.strftime(r"%Y/%m/%d %H:%M:%S.%f")
-        self.batch = BatchInfo(project, batch, curtime, notes, seq_name)
-        fields = ["Note", "Last_seq_name"]
-        values = [notes, seq_name]
+        self.batch = BatchInfo(project, batch, curtime, notes, seq_name, numOfSample)
+        self.productProcess.setBatchInfo(self.batch)
+        fields = ["Note", "Last_seq_name", "NumSample"]
+        values = [notes, seq_name, numOfSample]
         condition = r"WHERE Project_Name ='{}' AND Batch_Name='{}'".format(project,batch)
         self.db.update("Batch_data",fields,values,condition)
         await self.sendMsg(websocket,'reply_create_batch',{'resp_code': 1, 'reason':'Batch is continued!'})
-        
-
-    async def export_test_data(self, websocket,tableData, path='testdata', options=['csv']):
+    
+    async def saveTestData(self,testResult):
+        fields = ['Recordtime','Project_name','Batch_name','Seq_name','Operator','Seq_step_id','Sample_counter','Hardness_result',
+        'Temperature','Humidity','Raw_data','Math_method']
+        now = datetime.datetime.now().strftime(r"%Y/%m/%d %H:%M:%S.%f")
+        recTime = now
+        # BatchInfo(project, batch, curtime, notes, seq_name)
+        proj = self.batch.project
+        batch = self.batch.batch
+        seq = self.batch.seq
+        op = self.userMang.user.username
+        seq_id = testResult['stepid']
+        sampleCounter = testResult['hardness_dataset']['sampleid']
+        h_result = testResult['value']
+        temp_result = round(testResult['actTemp'],3)
+        hum_result = round(testResult['actHum'],3)
+        raw = testResult['hardness_dataset']['dataset']
+        raw = json.dumps(raw)
+        math_method = testResult['hardness_dataset']['method']
+        values = [recTime,proj,batch,seq,op,seq_id,sampleCounter,h_result,temp_result,hum_result,raw,math_method]
         try:
-            export_folder = self.config['system']['default_export_folder']
+            print(fields)
+            print(values)
+            self.db.insert('Test_Data', fields, values)
+        except Exception as e:
+            print('Save Test Data error!')
+            print(e)
+    
+    async def export_test_data_from_client(self, websocket,tableData, filename='testdata', options=['csv']):
+        export_folder = self.config['system']['default_export_folder']
+        export_folder = os.path.join(export_folder, 'test_data')
+        await self.export_test_data(websocket, tableData, export_folder, filename , options, sep=';')
+
+    async def export_test_data(self, websocket, tableData, export_folder, filename='testdata', options=['csv'],sep=';'):
+        try:
             util.newPathIfNotExist(export_folder)
             fieldname = list(tableData[0].keys())
             for op in options:
+                new_path = os.path.join(export_folder, filename + '.' + op)
                 if op == 'csv':
-                    util.newPathIfNotExist(os.path.join(export_folder,op))
-                    new_path = os.path.join(export_folder,op , path + '.'+op)
-                    expt = util.CSV_ExportWorker(tableData)
-                    expt.tabledata2DataFrame()
+                    expt = util.CSV_ExportWorker(tableData,sep=sep)
                 elif op == 'auto':
-                    util.newPathIfNotExist(os.path.join(export_folder,op))
-                    new_path = os.path.join(export_folder,op , path + '.csv')
+                    new_path = os.path.join(export_folder, filename + '.csv')
                     expt = util.CSV_ExportWorker(tableData)
-                    expt.tabledata2DataFrame() 
-                elif op == 'pdf':
-                    util.newPathIfNotExist(os.path.join(export_folder,op))
-                    new_path = os.path.join(export_folder,op , path + '.'+op)
-                elif op == 'html':
-                    util.newPathIfNotExist(os.path.join(export_folder,op))
-                    new_path = os.path.join(export_folder,op , path + '.'+op)
                 elif op == 'excel':
-                    util.newPathIfNotExist(os.path.join(export_folder,op))
-                    new_path = os.path.join(export_folder,op , path + '.xlsx')
+                    new_path = os.path.join(export_folder, filename + '.xlsx')
                     expt = util.Excel_ExportWorker(tableData)
-                    expt.tabledata2DataFrame()
                 else:
                     pass
+                expt.tabledata2DataFrame()
                 expt.save(path=new_path)
-            await self.sendMsg(websocket,{1, "Export data successfully!"})
+            await self.sendMsg(websocket,'reply_export_test_data_from_client',{'resp_code': 1, 'res':self.lang_data['server_export_ok']})
         except Exception as e:
-            await self.sendMsg(websocket,{0, "Export data error ({})".format(e)})
+            await self.sendMsg(websocket,'reply_export_test_data_from_client',{'resp_code': 0, 'res':"Export data error ({})".format(e)})
 
     async def query_data_from_db(self, websocket, filters):
         condition = r"WHERE "
         print(filters)
-        fields = ["Sample_Counter", "Operator", "Compound_Folder", "Compound", "Batch", "Productiondate", "Hardness_1", "Hardness_2", "Hardness_3", "Timestamp",
-                "T_sample", "WeightDry", "WeightWet", "T_Liquid", "Density"]
-        types = ["float", "varchar(255)", "varchar(255)", "varchar(255)", "varchar(255)", "varchar(255)", "float", "float", "float", "datetime2",
-                "float", "float", "float", "float", "float"]
+        fields = ["Recordtime", "Project_name", "Batch_name", "Seq_name", "Operator", "Seq_step_id", 
+        "Sample_counter","Hardness_result","Temperature","Humidity","Raw_data","Math_method"]
+        # types = ["datetime2", "varchar(255)", "varchar(255)", "nvarchar(1024)", "varchar(255)", "smallint", "float", "float", "float", "datetime2",
+        #         "float", "float", "float", "float", "float"]
         if filters['date_start']:
-            condition = condition + r"Timestamp>='{}' AND Timestamp < '{}' ".format(filters['date_start'], filters['date_end'])
+            condition = condition + r"Recordtime>='{}' AND Recordtime < '{}' ".format(filters['date_start'], filters['date_end'])
+        if filters['project'] and filters['project'] != '':
+            condition = condition + r"AND Project_name LIKE '%{}%' ".format(filters['project'])
         if filters['batch'] and filters['batch'] != '':
-            condition = condition + r"AND Batch LIKE '%{}%' ".format(filters['batch'])
+            condition = condition + r"AND Batch_name LIKE '%{}%' ".format(filters['batch'])
         if filters['operator'] and filters['operator'] != '':
             condition = condition + r"AND Operator LIKE '%{}%';".format(filters['operator'])
-        data = self.db.select('Test_Data',fields, condition,types)
-        await self.sendMsg(websocket,{1, data})
-    
-    async def save_to_database(self, websocket, tableData):
-        fields = self.config['system']['database']['test_data_fields'].split(",")
-        fields_type = self.config['system']['database']['test_data_fields_type'].split(",")
-        num_format = self.config['system']['locale_num_format']
-        locale.setlocale(locale.LC_ALL, num_format)
-        fields_not_include_first = fields_type[1:]
-        #fields = ['Recordtime','Sample_Counter', 'Operator', 'Compound_Folder', 'Compound', 'Batch', 'Productiondate', 'Hardness_1', 'Hardness_2', 'Hardness_3', 'Timestamp', 'AreaTemp', 'AirHumidity', 'T_Sample', 'WeightDry', 'WeightWet', 'T_Liquid', 'Density']
-        #fields_type = ['str', 'str','str','str','str','str','float','float','float','time', 'float','float','float','float','float']
-        now = datetime.datetime.now().strftime(r"%Y/%m/%d %H:%M:%S.%f")
-
-        for d in tableData:
-            values = []
-            values.append(now)
-            for i, (key, value) in enumerate(d.items()):
-                ftype = fields_not_include_first[i]
-                if value:
-                    if type(value) != str:
-                        value = str(value)
-                    if ftype == 'float':
-                        value = locale.atof(value)
-                    if ftype == 'time':
-                        pattern = re.compile(r"[^a-z^A-Z^#: ,-][0-9]*")
-                        match = re.findall(pattern, value)
-                        if match:
-                            match = [int(x) if len(x)<6 else int(x[0:6]) for x in match]
-                            value = datetime.datetime(match[0],match[1], match[2],match[3],match[4], match[5], match[6])
-                    values.append(value)
-                else:
-                    if ftype == 'str':
-                        values.append('')
-                    elif ftype == 'float':
-                        values.append(0.0)
-                    else:
-                        values.append('')
-            try:
-                await self.db.insert('Test_Data', fields, values)
-            except:
-                print("{} data is duplicated!")
-                pass
+        data = self.db.select('Test_Data',fields, condition)
+        await self.sendMsg(websocket,'reply_query_data_from_db',{'resp_code': 1, 'res':data})
 
     async def close_all(self, websocket):
         try:

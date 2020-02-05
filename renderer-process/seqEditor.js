@@ -640,8 +640,8 @@ function genSetupTest(){
 function generateStartSeq() {
     genSetupTest();
     let curstr = `
-    <li>
-        <a href="#" style="font-size:14px;color:#fff;background-color:#1abc9c;width:100%"><i class="far fa-play-circle w3-margin-right fa-lg"></i>Sequence Setup</a>
+    <li class='w3-bar w3-flat-green-sea'>
+        <a href="#" class='w3-bar-item'><i class="far fa-play-circle w3-margin-right fa-lg"></i>Sequence Setup</a>
         
     </li>
     `;
@@ -674,8 +674,8 @@ function genTeardownTest(){
 function generateEndSeq() {
     genTeardownTest();
     let curstr = `
-    <li>
-        <a href="#" style="font-size:14px;color:#fff;background-color:#d35400"><i class="far fa-stop-circle w3-margin-right fa-lg"></i>Sequence Teardown</a>
+    <li class='w3-bar w3-flat-alizarin'>
+        <a href="#" class='w3-bar-item'><i class="far fa-stop-circle w3-margin-right fa-lg"></i>Sequence Teardown</a>
         
     </li>
     `;

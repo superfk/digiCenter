@@ -66,6 +66,7 @@
     "download_notice": "注意!按下以存檔",
 
     "report_query_title": "資料庫篩選",
+    "report_filter_project": "專案",
     "report_filter_batch": "批號",
     "report_filter_op": "使用者",
     "report_filter_from": "從",
@@ -128,7 +129,9 @@
     "server_error_too_many_char": "錯誤: {} 欄位過長, 僅可允許 {} 個字元.",
     "server_error_date_fmt": "警告: Production date的格式應為: DD.MM.YYYY",
     "server_overwrite_userdata": "是否要覆蓋批次設定檔? - 按下 是 或 否.",
-    "server_error_when_produce": "錯誤: 機台正在生產中. 請停止機台並重新上傳."
+    "server_error_when_produce": "錯誤: 機台正在生產中. 請停止機台並重新上傳.",
+    "server_hw_init_ok": "硬體初始化成功",
+    "server_hw_init_NG": "硬體初始化失敗"
 
 
 }

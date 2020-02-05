@@ -1,11 +1,4 @@
 const {ipcRenderer} = require("electron");
-const { dialog } = require('electron').remote
-// const app = require('electron').remote.app
-// const zerorpc = require("zerorpc");
-const d3 = require('d3');
-// const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
-// // create zerorpc instance
-// client.connect("tcp://127.0.0.1:4242");
 let tools = require('../assets/shared_tools');
 let ws
 
@@ -18,6 +11,11 @@ let batchForm = document.getElementById('batchInfoForm');
 let batchFormContent  = document.getElementById('batchFormContent');
 let batchNew = document.getElementById('new_a_batch');
 let batchLoad  = document.getElementById('load_a_batch');
+let seqNameInForm = document.querySelectorAll("#batchFormContent > input[name='SeqName']")[0]
+let projInForm = document.querySelectorAll("#batchFormContent > input[name='Project']")[0]
+let batchInForm = document.querySelectorAll("#batchFormContent > input[name='Batch']")[0]
+let numsampleInForm = document.querySelectorAll("#batchFormContent > input[name='NumberOfSample']")[0]
+let noteInForm = document.querySelectorAll("#batchFormContent > textarea[name='Note']")[0]
 let selectHistoryBatch = document.getElementById('SelectBatch')
 let batchConfirmBtn = document.getElementById('batchConfirm');
 let startSeqBtn = document.getElementById('start_test');
@@ -81,10 +79,12 @@ function generateEventPlot(){
       x:[],
       y: [],
       yaxis: 'y2',
-      mode: 'markers',
-      marker: { size: 6},
+      mode: 'lines+markers',
+      marker: { size: 8,color:'blue'},
       line: {
-        width: 2
+        dash: 'dot',
+        width: 2,
+        color: 'blue'
       }
     };
 
@@ -153,18 +153,6 @@ function generateHardnessPlot(){
 
   
 function repositionChart(){
-  var update = {
-    autosize: true,
-  };
-  if (!$('#hardness_graph').html()===''){
-    // check if chart has data, if no data, the following function will throw error
-    Plotly.relayout('hardness_graph', update);
-    Plotly.relayout('event_graph', update);
-  }
-
-  Plotly.relayout('hardness_graph', update);
-  Plotly.relayout('event_graph', update);
-
   var update = {
     autosize: true,
   };
@@ -335,6 +323,17 @@ function connect() {
         case 'reply_log_to_db':
           console.log(data);
           break;
+        case 'reply_init_hw':
+          if(data.resp_code==1){
+            monitorValue = setInterval(monitorFunction,1000);
+            startBtn_disable();
+            stopBtn_disable();
+            batchInfo_disable();
+            batchSelector_enable();
+          }else{
+            ipcRenderer.send('show-alert-alert','Alert',data.res + '\n' + data.reason);
+          }
+          break;
         case 'update_sequence':
           updateSequence(data)
           break;
@@ -346,20 +345,16 @@ function connect() {
           updateValue('actualHumGauge', data.hum);
           break;
         case 'update_step_result':
-          console.log(data)
+          // console.log(data)
           updateSingleStep(data);
           break;
         case 'update_cursor':
           console.log(data);
           break;
         case 'update_gauge_ref':
-          console.log('update Gauge Ref')
-          console.log(data)
           updateGaugeRefValue('actualTempGauge', data,'t');
           break;
         case 'show_move_sample_dialog':
-          console.log('show move sample dialog')
-          console.log(data)
           showMovingSampleDialog(data);
           break;
         case 'reply_query_batch_history':
@@ -412,13 +407,21 @@ batchForm.addEventListener('submit',(e)=>{
   let seqName = $('#batchInfoForm input[name=SeqName]').val();
   let proj = batchinfo.filter(item=>item.name=='Project')[0].value;
   let batch = batchinfo.filter(item=>item.name=='Batch')[0].value;
+  let numSample = batchinfo.filter(item=>item.name=='NumberOfSample')[0].value;
   let note = batchinfo.filter(item=>item.name=='Note')[0].value;
-  batchinfo = {'project':proj, 'batch':batch, 'notes':note, 'seq_name':seqName}
+  batchinfo = {'project':proj, 'batch':batch, 'notes':note, 'seq_name':seqName, 'numSample':numSample}
   console.log(batchinfo)
   ws.send(tools.parseCmd('create_batch',batchinfo));
 })
 
 batchNew.addEventListener('click', ()=>{
+
+  $(seqNameInForm).val('');
+  $(projInForm).val('');
+  $(batchInForm).val('');
+  $(numsampleInForm).val(1);
+  $(noteInForm).val('');
+
   batchInfo_enable();
 })
 
@@ -444,8 +447,19 @@ ipcRenderer.on('load-seq-run', (event, path) => {
 
 });
 
-ipcRenderer.on('continue-batch', (event)=>{
-  batch_confirmed();
+ipcRenderer.on('continue-batch', (event, resp)=>{
+  if (resp == 0){
+    let batchinfo = getBatchInfo();
+    let seqName = $('#batchInfoForm input[name=SeqName]').val();
+    let proj = batchinfo.filter(item=>item.name=='Project')[0].value;
+    let batch = batchinfo.filter(item=>item.name=='Batch')[0].value;
+    let numSample = batchinfo.filter(item=>item.name=='NumberOfSample')[0].value;
+    let note = batchinfo.filter(item=>item.name=='Note')[0].value;
+    batchinfo = {'project':proj, 'batch':batch, 'notes':note, 'seq_name':seqName, 'numSample':numSample}
+    ws.send(tools.parseCmd('continue_batch',batchinfo));
+    batch_confirmed();
+  }
+  
 })
 
 $( window ).resize(function() {
@@ -480,11 +494,6 @@ let monitorValue;
 function init(){
   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_default_seq_path')));
   ws.send(tools.parseCmd('init_hw'));
-  monitorValue = setInterval(monitorFunction,1000);
-  startBtn_disable();
-  stopBtn_disable();
-  batchInfo_disable();
-  batchSelector_enable();
 }
 
 function batchSelector_enable(){
@@ -509,10 +518,19 @@ function batchInfo_disable(){
 
 function batchContent_enable(){
   $(batchFormContent).removeClass('btnEnable btnDisable').addClass('btnEnable');
+  $(seqNameInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
+  $(projInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
+  $(batchInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
+  $(numsampleInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
+  $(noteInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
 }
 
 function batchContent_disable(){
-  $(batchFormContent).removeClass('btnEnable btnDisable').addClass('btnDisable');
+  $(seqNameInForm).removeClass('btnEnable btnDisable').addClass('btnDisable');
+  $(projInForm).removeClass('btnEnable btnDisable').addClass('btnDisable');
+  $(batchInForm).removeClass('btnEnable btnDisable').addClass('btnDisable');
+  $(numsampleInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
+  $(noteInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
 }
 
 function batchConfirmBtn_enable(){
@@ -571,10 +589,13 @@ function selectedHistoryBatch(){
   let isSelected = table.rows( '.selected' ).any();
   if (isSelected){
     let selectedData = table.row( '.selected' ).data();
-    batch_confirmed();
+    $(seqNameInForm).val(selectedData.Last_seq_name);
+    $(projInForm).val(selectedData.Project_Name);
+    $(batchInForm).val(selectedData.Batch_Name);
+    $(noteInForm).val(selectedData.Note);
     let dialog = document.getElementById('modal_batch_select_dialog');
     dialog.style.display='none';
-    return selectedData;
+    ws.send(tools.parseCmd('run_cmd',tools.parseCmd('load_seq',{path: selectedData.Last_seq_name})));
   }else{
     ipcRenderer.send('show-info-alert','Please Select Batch','Please select at least one batch');
   }
@@ -610,6 +631,9 @@ function updateSingleStep(res){
   }else if (result == 'SKIP'){
     updateStepByCat(res);
     curstep.css('background-color', 'gray');
+  }else if (result == 'MEAR_NEXT'){
+    updateStepByCat(res);
+    curstep.css('background-color', 'orange');
   }else{
     updateStepByCat(res);
     curstep.css('background-color', 'red');
@@ -636,9 +660,12 @@ function updateStepByCat(res){
       if (result == 'PASS'){
         tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value)
         tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp,value)
-      }      
+      }else if (result == 'MEAR_NEXT'){
+        tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value)
+        tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp,value)
+      }   
       if (eventName !== null){
-        tools.plotly_addAnnotation('event_graph',eventName,relTime,actTemp,markers)
+        // tools.plotly_addAnnotation('event_graph',eventName,relTime,actTemp,markers)
       }
       // updateValue('hardness_graph', value);
       break;
@@ -682,12 +709,15 @@ function showMovingSampleDialog(data){
   let dialog = document.getElementById('modal_moving_sample_dialog');
   let dialog_text = document.getElementById('modal_moving_sample_dialog_text');
   let dialog_dataset_list = document.getElementById('modal_moving_sample_dialog_dataset');
+  let dialog_dataset_id = document.getElementById('dataset_sampleid');
   let dialog_dataset_counter = document.getElementById('dataset_counter');
   let dialog_dataset_mean = document.getElementById('dataset_mean');
   let dialog_dataset_stdev = document.getElementById('dataset_stdev');
   let start_btn = document.getElementById('start_mear_after_move_sample');
   let retry_btn = document.getElementById('retry_mear_after_move_sample');
   let curData = data;
+
+  dialog_dataset_id.innerHTML = `Sample ID: ${curData.sampleid}`
   dialog_dataset_counter.innerHTML = `Measured Data (${curData.dataset.length} / ${curData.totalCounts})`
   dialog_dataset_list.innerHTML = listDataset(curData.dataset);
   dialog_dataset_mean.innerHTML = `${curData.method}: ${curData.result}`;
@@ -875,14 +905,16 @@ function generateSeq() {
       let en = subitem['enabled']?'':'disabledStep';
       let stepParaText = genShortParaText(cat,subitem);
       curstr += `
-      <li data-stepid=${index} data-sortable=true class='w3-bar ${en}' >
-          
+      <li data-stepid=${index} data-sortable=true ${en}' >
+          <div class='w3-bar'>
               <a href="#" class='w3-bar-item stepParas'>
                   ${genIconByCat(cat,subitem['paras'])}${stepTitles[index]}${stepParaText}
               </a>
               <div class="w3-bar-item w3-right lopCount">00</div>
               <div class="w3-bar-item w3-right stepResult"></div>
+          </div>              
       </li>
+      
       `;
   });
   return curstr;

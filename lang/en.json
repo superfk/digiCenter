@@ -66,6 +66,7 @@
     "download_notice": "Note! Click to save!!",
 
     "report_query_title": "Database Query Filters",
+    "report_filter_project": "Project",
     "report_filter_batch": "Batch",
     "report_filter_op": "Operator",
     "report_filter_from": "From",
@@ -90,7 +91,7 @@
     "server_login_ok": "Login OK!",
     "server_user_not_found": "The user {} is not found!",
 
-    "server_user_exist": "This User already exsisted!",
+    "server_user_exist": "This User has been registered!",
     "server_user_assign_role": "Please assign user role!",
     "server_user_add_ok": "Adding User Successfully!",
     "server_user_add_error": "Error: adding user error:({})",
@@ -128,10 +129,8 @@
     "server_error_too_many_char": "ERROR: Too much signs for {}, only {} allowed.",
     "server_error_date_fmt": "WARNING: False signs for Production date, this format is allowed: DD.MM.YYYY.",
     "server_overwrite_userdata": "Overwrite DB_UserData? - Please press YES or NO.",
-    "server_error_when_produce": "ERROR: Machine is producing. Please stop machine and upload again."
+    "server_error_when_produce": "ERROR: Machine is producing. Please stop machine and upload again.",
+    "server_hw_init_ok": "Hardware Initialized Successfully",
+    "server_hw_init_NG": "Hardware Initialized Falied"
     
-
-
-    
-
 }

@@ -66,6 +66,7 @@
     "download_notice": "Wichtig! Click um zu speichern!!",
 
     "report_query_title": "Datenbank frägt nach Filtern",
+    "report_filter_project": "Project",
     "report_filter_batch": "Batch",
     "report_filter_op": "Bediener",
     "report_filter_from": "Von",
@@ -128,7 +129,9 @@
     "server_error_too_many_char": "ERROR: Zuviele Zeichen für {}, nur {} erlaubt.",
     "server_error_date_fmt": "WARNING: Falsches Format für das Produktionsdatum, nur dieses Format ist zulässig: TT.MM.JJJJ.",
     "server_overwrite_userdata": "DB_UserData überschreiben? - Bitte YES oder NO wählen.",
-    "server_error_when_produce": "ERROR: Maschine ist in Betrieb. Bitte halten Sie die Maschine an und laden Sie die Daten erneut."
+    "server_error_when_produce": "ERROR: Maschine ist in Betrieb. Bitte halten Sie die Maschine an und laden Sie die Daten erneut.",
+    "server_hw_init_ok": "Hardware Initialized Successfully",
+    "server_hw_init_NG": "Hardware Initialized Falied"
     
 
 }

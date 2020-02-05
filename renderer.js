@@ -143,7 +143,8 @@ refresh_systemtime(1000);
 list = document.getElementsByClassName("nav-button");
 for (var i = 0; i < list.length; i++) {
   list[i].addEventListener("click", function (e) {
-    ipcRenderer.send('save_log',`Click ${e.target.textContent} nav button`, 'info', 1);
+    let btstr = e.target.textContent.trim()
+    ipcRenderer.send('save_log',`Click ${btstr} nav button`, 'info', 1);
     e.preventDefault();
     ipcRenderer.send('updateFootStatus',"");
   });

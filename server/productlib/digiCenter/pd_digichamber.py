@@ -6,11 +6,11 @@ import random
 import asyncio
 import types
 import threading, queue
-import time
+import time, datetime
 import math
 
 class DigiChamberProduct(pd_product.Product):
-    def __init__(self, pd_name,seqPath=r"C:\\data_exports",msg_callback=None):
+    def __init__(self, pd_name,seqPath=r"C:\\data_exports",msg_callback=None, dbResult_callback=None, model='fix'):
         super(DigiChamberProduct, self).__init__(pd_name)
         self.script = None
         self.setDefaultSeqFolder(seqPath)
@@ -28,7 +28,10 @@ class DigiChamberProduct(pd_product.Product):
         self.interruptStop = False
         self.batchInfo = None
         self.dChamb = None
+        self.digiTest = None
         self.retry = False
+        self.saveTestResult2DbCallback = dbResult_callback
+        self.chamberModel = model
 
     async def run_script(self,websocket, scriptName, data=None):
         if scriptName=='ini_seq':
@@ -37,9 +40,6 @@ class DigiChamberProduct(pd_product.Product):
             await self.save_seq(websocket,path=data['path'],seq_json=data['seq'])
         elif scriptName=='load_seq':
             await self.load_seq(websocket,data['path'])
-        elif scriptName=='run_seq':
-            await self.create_seq()
-            await self.run_seq(websocket)
         elif scriptName=='get_default_seq_path':
             await self.socketCallback(websocket, 'update_sys_default_config', self.default_seq_folder)
         elif scriptName=='get_cur_temp_and_humi':
@@ -94,19 +94,22 @@ class DigiChamberProduct(pd_product.Product):
             else:
                 pass
             stepObj.set_paras(step=s)
-            stepObj.set_digiChamber_hw_control(self.dChamb)                
+            stepObj.set_digiChamber_hw_control(self.dChamb)
+            stepObj.set_digitest_hw_control(self.digiTest)              
             self.mainClass.append(stepObj)         
         
         # combine setup main teardown steps
         stepObj = seqClass.SetupStep()
         stepObj.set_paras(step=setup)
-        stepObj.set_digiChamber_hw_control(self.dChamb)     
+        stepObj.set_digiChamber_hw_control(self.dChamb)
+        stepObj.set_digitest_hw_control(self.digiTest) 
         self.stepsClass.append(stepObj)
         for m in self.mainClass:
             self.stepsClass.append(m)
         stepObj = seqClass.TeardownStep()
         stepObj.set_paras(step=teardown)
         stepObj.set_digiChamber_hw_control(self.dChamb)
+        stepObj.set_digitest_hw_control(self.digiTest)
         self.stepsClass.append(stepObj)
 
     async def run_seq(self,websocket):
@@ -130,6 +133,7 @@ class DigiChamberProduct(pd_product.Product):
                 s.set_result_callback(self.sendResultCallback)
                 s.set_communicate_callback(self.sendCommunicateCallback)
                 s.stopMsgQueue = self.stopMsgQueue
+                s.set_batchinfo(self.batchInfo)
 
             # main process 
             while True:
@@ -158,9 +162,15 @@ class DigiChamberProduct(pd_product.Product):
                 testResult = step.do()
 
                 # handle result
-                if testResult['status'] in ['PASS','FAIL','SKIP']:
+                if testResult['status'] in ['PASS','FAIL','SKIP','MEAR_NEXT']:
                     if curStepName != 'ForLoopEndStep':
-                        cursor += 1
+                        if curStepName == 'HardnessStep' and testResult['status'] == 'PASS':
+                            self.saveResult2DatabaseCallback(testResult)
+                            cursor += 1
+                        elif curStepName == 'HardnessStep' and testResult['status'] == 'MEAR_NEXT':
+                            self.saveResult2DatabaseCallback(testResult)
+                        else:
+                            cursor += 1  
                     else:
                         if not step.loopDone:
                             # starting from loop start
@@ -230,6 +240,9 @@ class DigiChamberProduct(pd_product.Product):
     def sendCommunicateCallback(self,cmd, data):
         future = asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,cmd,data), self.loop)
     
+    def saveResult2DatabaseCallback(self,testResult):
+        future = asyncio.run_coroutine_threadsafe(self.saveTestResult2DbCallback(testResult), self.loop)
+        
     def continuous_mear(self,retry=False):
         self.pause = False
         self.retry = retry
@@ -254,3 +267,21 @@ class DigiChamberProduct(pd_product.Product):
         except:
             pass
     
+    def init_digitest_controller(self,obj_digitest, COM='COM3'):
+        try:
+            self.digiTest = obj_digitest
+            conn = self.digiTest.open_rs232(COM)
+            return conn
+        except:
+            print('digiTest connection failed')
+            return False
+
+    def close_digitest_controller(self):
+        try:
+            self.digiTest.close_rs232()
+        except:
+            pass
+
+    def wrapTestResult(self,testResult):
+        fields = ['Recordtime','Project_name','Batch_name','Seq_name','Operator','Seq_step_id','Sample_counter','Hardness_result','Temperature','Humidity','Raw_data','Math_method']
+        recTime = testResult['']

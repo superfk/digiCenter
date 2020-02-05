@@ -123,11 +123,6 @@ footer {
   z-index: 4!important;
 }
 
-a {
-  color: var(--color-link);
-  display: block;
-  border: #fff;
-}
 
 h1,
 h2,
