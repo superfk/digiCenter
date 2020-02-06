@@ -244,7 +244,8 @@ class PyServerAPI(object):
         lang = self.config['system']['default_lang']
         self.langFolder = os.path.join(appRoot, 'lang')
         self.lang_data = util.readLang(self.langFolder, lang)
-        self.userMang.set_lang(self.lang_data)
+        print(self.lang_data)
+        self.userMang.set_lang(self.lang_data, lang)
         await self.sendMsg(websocket,'reply_update_default_lang',self.lang_data)
     
     async def update_default_lang(self, websocket, appRoot, lang):
@@ -252,7 +253,8 @@ class PyServerAPI(object):
         util.write_system_config(path=self.config_path, data = self.config)
         self.langFolder = os.path.join(appRoot, 'lang')
         self.lang_data = util.readLang(self.langFolder, lang)
-        self.userMang.set_lang(self.lang_data)
+        print(self.lang_data)
+        self.userMang.set_lang(self.lang_data, lang)
         await self.sendMsg(websocket,'reply_update_default_lang', self.lang_data)
     
     async def get_server_time(self, websocket):

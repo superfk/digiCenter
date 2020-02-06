@@ -272,9 +272,9 @@ input:disabled button:disabled{
 }
 
 .auth_disabled {
-  pointer-events: none;
-  display: block;
-  opacity:0.60;
+  pointer-events: none !important;
+  /* display: block; */
+  opacity:0.60 !important;
 }
 
 .auth_enabled {
@@ -282,7 +282,7 @@ input:disabled button:disabled{
 }
 
 .auth_invisibled {
-  visibility: hidden;
+  visibility: hidden !important;
 }
 
 .auth_visibled {

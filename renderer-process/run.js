@@ -38,8 +38,6 @@ const config = {
   responsive: false
 };
 
-let markers = [];
-
 
 // **************************************
 // init functions
@@ -170,8 +168,6 @@ function repositionChart(){
 function genrateBatchHistory(batchRecords){
 
   $('#batchHistoryTable').DataTable().destroy();
-
-  console.log(batchRecords)
   
   var my_columns = [
     {data: 'Project_Name'},
@@ -180,8 +176,6 @@ function genrateBatchHistory(batchRecords){
     {data: 'Note'},
     {data: 'Last_seq_name'}
   ];
-
-  console.log(my_columns)
 
 $('#batchHistoryTable').DataTable({
     select: true,
@@ -945,12 +939,10 @@ function generateEndSeq() {
 }
 
 function genLoopIndicator(start, end){
-  console.log(start,end)
   if(start<0 || end<0){
       return null;
   }
   let liItem = $('#testSeqContainer li');
-  console.log(liItem)
   // ignore settup step
   start+=1;
   end+=1;

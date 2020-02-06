@@ -75,6 +75,7 @@ function connect() {
             ipcRenderer.send('login-changed');
             window.removeEventListener('keypress', checkkeypressLogin);
           }else{
+            changeLoginAuth(fn_list);
             // first login
             if (first){
               ipcRenderer.send('show-warning-alert',"First Login!", reason);

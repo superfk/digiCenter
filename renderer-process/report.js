@@ -15,11 +15,11 @@ const queryData = document.getElementById('query-data');
 
 const exportStart = document.getElementById('export-start');
 
-const plotMargin = { t: 40, r: 80, l: 40, b: 50};
+const plotMargin = { t: 40, r: 80, l: 40, b: 80};
 const config = {
   displaylogo: false,
   modeBarButtonsToRemove: ['toImage','lasso2d','select2d', 'pan2d','zoom2d','hoverClosestCartesian','hoverCompareCartesian','toggleSpikelines'],
-  responsive: false
+  responsive: true
 };
 
 
@@ -59,7 +59,6 @@ function connect() {
           console.log(data);
           break;
         case 'reply_query_data_from_db':
-          console.log(data)
           showData(data.res);
           break;
         case 'reply_export_test_data_from_client':
@@ -124,12 +123,12 @@ var savelog = function(msg, type='info', audit=0){
 function showData(res){
   if (typeof res !== 'undefined' && res.length > 0){
     createTable(res);
-    let x_val = res.map(a=>a.Recordtime);
+    let x_val = res.map(a=>{
+      let dateB = moment(new Date(a.Recordtime)).format('YYYY/MM/DD hh:mm:ss');
+      return dateB
+    });
     let h_val = res.map(a=>a.Hardness_result);
     let t_val = res.map(a=>a.Temperature);
-    console.log(x_val)
-    console.log(h_val)
-    console.log(t_val)
     generateEventPlot(x_val, h_val, t_val)
     repositionChart()
     ipcRenderer.send('completed-indet-progressbar','done!');
@@ -280,7 +279,10 @@ function generateEventPlot(xtime,hardnessdata,tempdata){
 
     var layout = {
       xaxis: {
-        title: 'Timestamp'
+        title: 'Timestamp',
+        automargin: true,
+        tickangle: 'auto',
+        type: 'datetime'
       },
       yaxis: {
         title: '℃'
@@ -296,8 +298,7 @@ function generateEventPlot(xtime,hardnessdata,tempdata){
       showlegend: true,
       legend: {"orientation": "h",x:0, xanchor: 'left',y:1.2,yanchor: 'top'},
       width: 400,
-      height: 400,
-      margin: plotMargin,
+      height: 500,
       autosize: true,
       font: { color: "dimgray", family: "Arial", size: 10}
     };

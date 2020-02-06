@@ -87,34 +87,44 @@ function addClassProcess(id){
 }
 
 $('#button-config').on('click',(e)=>{
-  hideChart()
+  hideChart('#run-section .svg-container');
+  hideChart('#seqEditor-section .svg-container');
+  hideChart('#report-section .svg-container');
   addClassProcess('button-config');
 })
 
 $('#button-seqEditor').on('click',(e)=>{
-  hideChart()
+  hideChart('#run-section .svg-container');
+  // hideChart('#seqEditor-section .svg-container');
+  hideChart('#report-section .svg-container');
+  showChart('#seqEditor-section .svg-container');
   addClassProcess('button-seqEditor');
 })
 
 $('#button-run').on('click',(e)=>{
-  showChart()
+  hideChart('#report-section .svg-container');
+  hideChart('#seqEditor-section .svg-container');
+  showChart('#run-section .svg-container');
   addClassProcess('button-run');
 })
 
 $('#button-report').on('click',(e)=>{
-  hideChart();
+  hideChart('#run-section .svg-container');
+  hideChart('#seqEditor-section .svg-container');
+  // hideChart('#report-section .svg-container');
+  showChart('#report-section .svg-container');
   addClassProcess('button-report');
 })
 
-function hideChart(){
-  let charts = document.querySelectorAll('#run-section .svg-container');
+function hideChart(selectors){
+  let charts = document.querySelectorAll(selectors);
   charts.forEach((item,index)=>{
     $(item).hide()
   })
 }
 
-function showChart(){
-  let charts = document.querySelectorAll('#run-section .svg-container');
+function showChart(selectors){
+  let charts = document.querySelectorAll(selectors);
   charts.forEach((item,index)=>{
     $(item).show()
   })

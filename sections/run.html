@@ -9,30 +9,31 @@
             <div class="w3-container w3-cell" id="batchInfoPanel">
                 <div class="w3-container w3-display-container w3-padding-16">
                   <i onclick="w3_close()" class="fa fa-remove w3-hide-large w3-button w3-transparent w3-display-topright"></i>
-                  <h3>Batch Info</h3>
+                  <h3 data-lang='run_batchinfo_title' data-lang_type='innertext'>Batch Info</h3>
                   <div id='batchSelectorDiv' class='batchSelector'>
-                    <div>Batch Selector</div>
-                    <a href="#" id='new_a_batch' class="w3-button w3-center" style='width:30px;height:auto;padding: 0;'><i class="fas fa-plus w3-medium"></i></a>
-                    <a href="#" id='load_a_batch' class="w3-button w3-center" style='width:30px;height:auto;padding: 0;'><i class="far fa-folder-open w3-medium"></i></a>
+                    <div data-lang='run_batch_selector_title' data-lang_type='innertext'>Batch Selector</div>
+                    <a href="#" id='new_a_batch' data-auth='new_a_batch' class="w3-button w3-center" style='width:30px;height:auto;padding: 0;'><i class="fas fa-plus w3-medium"></i></a>
+                    <a href="#" id='load_a_batch' data-auth='load_a_batch' class="w3-button w3-center" style='width:30px;height:auto;padding: 0;'><i class="far fa-folder-open w3-medium"></i></a>
                   </div>
                   <form id='batchInfoForm' target="_blank">
                     <div id='batchFormContent' class='batchContent'>
-                        <p><label><i class="fas fa-align-left"></i> Load Sequence
-                            <a href="#" id='open_test_seq' class="w3-button w3-center" style='display: inline-block;width:30px;height:auto;padding: 0;'><i class="far fa-folder-open w3-medium"></i></a>
+                        <p><i class="fas fa-align-left"></i><label data-lang='run_load_seq_title' data-lang_type='innertext'> Load Sequence
+                            <a href="#" id='open_test_seq' data-auth='open_test_seq' class="w3-button w3-center" style='display: inline-block;width:30px;height:auto;padding: 0;'><i class="far fa-folder-open w3-medium"></i></a>
                         </label>
                             
                         </p>
                         <input class="w3-input w3-border" type="text" placeholder="Please load sequence file" name="SeqName" disabled readonly required> 
-                        <p><label><i class="fab fa-product-hunt"></i> Project</label></p>
+                        <p><i class="fab fa-product-hunt"></i><label data-lang='run_project_title' data-lang_type='innertext'> Project</label></p>
                         <input class="w3-input w3-border" type="text" name="Project" required>          
-                        <p><label><i class="fab fa-bootstrap"></i> Batch</label></p>
+                        <p><i class="fab fa-bootstrap"></i><label data-lang='run_batch_title' data-lang_type='innertext'> Batch</label></p>
                         <input class="w3-input w3-border" type="text" name="Batch" required>         
-                        <p><label><i class="fab fa-buffer"></i> Number of Samples</label></p>
+                        <p><i class="fab fa-buffer"></i><label data-lang='run_n_sample_title' data-lang_type='innertext'> Number of Samples</label></p>
                         <input class="w3-input w3-border" type="number" name="NumberOfSample" value='1' min='1'>              
-                        <p><label><i class="far fa-sticky-note"></i> Test Note</label></p>
+                        <p><i class="far fa-sticky-note"></i><label data-lang='run_note_title' data-lang_type='innertext'> Test Note</label></p>
                         <textarea cols="5" rows="5" name="Note"></textarea>
                     </div>
-                    <p><button id='batchConfirm' class="w3-button w3-block w3-green w3-center" type="submit"><i class="fas fa-check-double"></i> Confirm</button></p>
+                    <p><button id='batchConfirm' data-auth='batchConfirm' class="w3-button w3-block w3-green w3-center" type="submit" 
+                        data-lang='run_confirm_btn' data-lang_type='innertext'><i class="fas fa-check-double"></i> Confirm</button></p>
                   </form>
                 </div>
             <!-- end of batch info -->
@@ -42,10 +43,12 @@
             <div class='w3-bar w3-card w3-large testToolBar'>
 
                 <div class="w3-bar-item">
-                    <a href="#" id='start_test' class="w3-button w3-center w3-green" ><i class="far fa-play-circle"></i> Start</a>
+                    <a href="#" id='start_test' data-auth='start_test' class="w3-button w3-center w3-green" 
+                    data-lang='run_start_btn' data-lang_type='innertext'><i class="far fa-play-circle"></i> Start</a>
                 </div>
                 <div class="w3-bar-item">
-                    <a href="#" id='stop_test' class="w3-button w3-center w3-red" ><i class="far fa-stop-circle"></i> Stop</a>
+                    <a href="#" id='stop_test' data-auth='stop_test' class="w3-button w3-center w3-red" 
+                    data-lang='run_stop_btn' data-lang_type='innertext'><i class="far fa-stop-circle"></i> Stop</a>
                 </div>
             <!-- end of test tool bar -->
             </div>
@@ -55,7 +58,7 @@
 
                 <!-- seq section -->
                 <div class='w3-card seqSection'>
-                    <div class="w3-container cardHeader">
+                    <div class="w3-container cardHeader" data-lang='run_test_seq_title' data-lang_type='innertext'>
                         Test Sequence
                     </div>
                     <div class="w3-container cardContent">
@@ -70,7 +73,7 @@
 
                     <!-- realtime temp and humidity gauge section -->
                     <div class='w3-card' style='width:fit-content;flex: 0 1 150px;min-width: 340px;' >
-                        <div class="w3-container cardHeader">
+                        <div class="w3-container cardHeader" data-lang='run_rt_th_title' data-lang_type='innertext'>
                             Realtime temperature and humidity gauge
                         </div>
                         <div class="w3-container cardContent" style="overflow: hidden;vertical-align: middle;">
@@ -82,7 +85,7 @@
 
                     <!-- hardness graph section -->
                     <div class='w3-card' style='position: relative;flex: 1 1 auto'>
-                        <div class="w3-container cardHeader">
+                        <div class="w3-container cardHeader" data-lang='run_h_chart_title' data-lang_type='innertext'>
                             Hardness graph
                         </div>
                         <div id="hardness_graph" class="w3-container cardContent"></div>
@@ -91,7 +94,7 @@
     
                     <!-- hardness verse temperature graph section -->
                     <div class='w3-card' style='position: relative; flex: 1 1 auto;'>
-                        <div class="w3-container cardHeader">
+                        <div class="w3-container cardHeader" data-lang='run_event_chart_title' data-lang_type='innertext'>
                             Event graph
                         </div>
                         <div id="event_graph" class="w3-container cardContent"></div>

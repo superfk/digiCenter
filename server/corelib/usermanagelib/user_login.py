@@ -18,9 +18,11 @@ class UserManag(object):
         self.user = User("Guest", "Guest", 0, True)
         self.pw_export_folder = None
         self.lang = None
+        self.lang_key = 'en'
     
-    def set_lang(self, lang_data):
+    def set_lang(self, lang_data, lang_key):
         self.lang = lang_data
+        self.lang_key = lang_key
     
     def login(self, username, password):
         login_ok = False
@@ -256,11 +258,11 @@ class UserManag(object):
         # condition = r" INNER JOIN [FunctionList] ON [UserPermission].Functions=[FunctionList].Functions WHERE [User_Role]='{}' ORDER BY [FunctionList].[Display_order]".format(userrole)
         # fn_list = self.db.select('UserRoleList',f, condition)
         exe_str = """
-        SELECT FunctionList.Display_order, FunctionList.Display_fnc_name, UserPermission.[Enabled], UserPermission.Visibled, FunctionList.Tree_index, FunctionList.Functions
+        SELECT FunctionList.Display_order, FunctionList.{}, UserPermission.[Enabled], UserPermission.Visibled, FunctionList.Tree_index, FunctionList.Functions
         FROM FunctionList
         Left JOIN UserPermission ON (FunctionList.Functions = UserPermission.Functions AND UserPermission.User_Role = '{}')
         ORDER BY FunctionList.Display_order;
-        """.format(userrole)
+        """.format(self.lang_key, userrole)
         fn_list = self.db.execute(exe_str)
         final_fun = []
         for f in fn_list:
