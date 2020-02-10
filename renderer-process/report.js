@@ -103,8 +103,8 @@ var getNow = function(fmt){
   }
 }
 
-startDateField.value = getNow();
-endDateField.value = getNow();
+startDateField.value = getNow("YYYY-MM-DDT00:00");
+endDateField.value = getNow("YYYY-MM-DDT23:59");
 
 var code = null;
 
@@ -113,7 +113,9 @@ var t = $('#test-data-table-in-report').DataTable({
   scrollX: true,
   scrollY:        200,
   scrollCollapse: true,
-  scroller:       true});
+  scroller:       true,
+  pageLength: 100
+});
 
 // save log to database function
 var savelog = function(msg, type='info', audit=0){
@@ -154,7 +156,7 @@ queryData.addEventListener('click', (event) => {
     'batch': batchField.value,
     'operator': operatorField.value,
     'date_start': startDateField.value+':00.000',
-    'date_end': endDateField.value+':59.99'
+    'date_end': endDateField.value+':59.999'
   }
   ipcRenderer.send('start-indet-progressbar','Waiting for query', 'Waiting for query', '');
   ws.send(tools.parseCmd('query_data_from_db',filter));
@@ -217,6 +219,7 @@ function createTable(tableData) {
     scrollY:        400,
     scrollCollapse: true,
     scroller:       true,
+    pageLength: 100
   });
 
   mytable_visible.classList.remove("w3-hide");
@@ -234,6 +237,7 @@ function emptyTable() {
     scrollY:        400,
     scrollCollapse: true,
     scroller:       true,
+    pageLength: 100
   });
   t.clear()
 
@@ -305,58 +309,6 @@ function generateEventPlot(xtime,hardnessdata,tempdata){
     
     Plotly.newPlot('hardnessVStemp_plot', data, layout,config);
 }
-
-
-
-// function showChart(result, colNames, legend_vis, yaxis, y1_title, y2_title, plot_id, plot_title, lines) {
-//   let data = [];
-//   let lg_vis = [];
-
-//   legend_vis.forEach(function(item, index, array){
-//     if (item == true){
-//       lg_vis.push('True');
-//     }else{
-//       lg_vis.push('legendonly');
-//     }
-//   })
-
-//   result.forEach(function(item, index, array){
-//     let trace ={
-//         y: item,
-//         mode: 'lines+markers',
-//         marker: {size:8},
-//         type: 'scatter',
-//         name: colNames[index],
-//         visible: lg_vis[index],
-//         yaxis: yaxis[index],
-//         line: lines[index]
-//       };
-//     data.push(trace);
-//   })
-
-//   var layout = {
-//     title: plot_title,
-//     autosize: true,
-//     xaxis: {
-//       // rangeselector: selectorOptions,
-//       rangeslider: {}
-//   },
-//     yaxis:{
-//       title: y1_title,
-//       rangemode: 'nonnegative'
-//     },
-//     yaxis2:{
-//       title: y2_title,
-//       side: 'right',
-//       rangemode: 'nonnegative',
-//       overlaying: 'y'
-//     },
-//     // paper_bgcolor: 'rgba(0,0,0,0)',
-//     // plot_bgcolor: 'rgba(0,0,0,0)'    
-//   };
-
-//   Plotly.newPlot(plot_id, data, layout,{showSendToCloud:false, displaylogo: false, responsive: true});
-// }
 
 function cleraChart(plot_id){
   Plotly.purge(plot_id);

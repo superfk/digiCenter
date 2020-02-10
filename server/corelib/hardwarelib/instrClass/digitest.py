@@ -2,8 +2,7 @@ import threading
 import time
 import re
 import matplotlib.pyplot as plt
-import sys
-from corelib.hardwarelib.instrClass.baInstr import BaInstr
+from baInstr import BaInstr
 import random
 
 class Digitest(BaInstr):
@@ -52,13 +51,13 @@ class Digitest(BaInstr):
         ret = self.write_and_read('GET','MS_VALUE')
         if ret == '"DEVICE BUSY"':
             return None
-        elif ret == 'FINISHED':
-            time.sleep(0.1)
-            # ret = self.write_and_read('GET','MS_VALUE')
-            ret = self.readline_only()
-            return True, ret, "ok"
+        # elif ret == 'FINISHED':
+        #     time.sleep(0.1)
+        #     # ret = self.write_and_read('GET','MS_VALUE')
+        #     ret = self.readline_only()
+        #     return True, ret, "ok"
         else:
-            return False, 0, ret
+            return True, ret
     
     def get_buffered_value(self, buffer=13):
         while True:
@@ -465,5 +464,5 @@ def test_rotation_graph_mear():
 
 if __name__ == '__main__':
     # test_rotation_single_mear()
-    test_rotation_graph_mear()
-    
+    # test_rotation_graph_mear()
+    pass

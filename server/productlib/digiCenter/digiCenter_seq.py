@@ -159,6 +159,33 @@ class TeardownStep(DigiCenterStep):
     @DigiCenterStep.deco
     def do(self):
         time.sleep(dummy_delay)
+        # to set the temperature to safe range
+        self.hwDigichamber.set_gradient_down(0)
+        self.hwDigichamber.set_gradient_down(0)
+        UL = 40
+        LL = 20
+        target = 30
+        self.hwDigichamber.set_setPoint(target)
+        self.commCallback('update_gauge_ref',target)
+        self.hwDigichamber.set_manual_mode(True)
+        curT = self.hwDigichamber.get_real_temperature()
+        while True:
+            if (target-curT)<0:
+                signSlope = -1*60
+            else:
+                signSlope = 60
+            ## START ##########only for simulation of chamber###########
+            curT = curT + signSlope/60*1 + random.random()*0.02
+            self.hwDigichamber.set_dummy_act_temp(round(curT,1))
+            ## END   ###################################################
+            curT = self.hwDigichamber.get_real_temperature()
+            print('current temp: {}'.format(curT))
+            self.set_result(round(curT,1),'WAITING',unit='&#8451')
+            self.resultCallback(self.result)
+            if curT<=UL and curT>=LL:
+                break
+            time.sleep(1)
+        self.hwDigichamber.set_manual_mode(False)
         self.set_result('PASS','PASS')
         return self.result
 
@@ -177,26 +204,24 @@ class TemperatureStep(DigiCenterStep):
         self.incre = float(list(filter(lambda name: name['name'] == 'increment', self.paras))[0]['value'])
         self.actTarget = self.targetTemp
     
+    def set_gradient_process(self, target, slope):
+        curT = self.hwDigichamber.get_real_temperature()
+        self.hwDigichamber.set_setPoint(curT)
+        if curT >= target:
+            self.hwDigichamber.set_gradient_down(slope)
+        else:
+            self.hwDigichamber.set_gradient_up(slope)
+        self.hwDigichamber.set_setPoint(target)
+    
     @DigiCenterStep.deco
     def do(self):
         # set start temperature
         curT = self.hwDigichamber.get_real_temperature()
-        self.hwDigichamber.set_setPoint(curT)
         self.update_actTarget()
-        
-        # set gredient direction
-        if (self.actTarget-curT)<0:
-            signSlope = -self.slope
-            self.hwDigichamber.set_gradient_down(self.slope)
-        else:
-            signSlope = self.slope
-            self.hwDigichamber.set_gradient_up(self.slope)
-        
-        # set target temperature
-        self.hwDigichamber.set_setPoint(self.actTarget)
+        self.set_gradient_process(self.actTarget,self.slope)
 
-        # set gredient mode
-        self.hwDigichamber.set_manual_mode(False)
+        # set manual mode on
+        self.hwDigichamber.set_manual_mode(True)
 
         # update new target ref to client
         self.commCallback('update_gauge_ref',self.actTarget)
@@ -224,6 +249,7 @@ class TemperatureStep(DigiCenterStep):
             if curT<=UL and curT>=CL:
                 break
         self.set_result(round(curT,1),'PASS',unit='&#8451')
+        self.hwDigichamber.set_manual_mode(False)
         return self.result
 
     def update_actTarget(self):
@@ -303,15 +329,21 @@ class HardnessStep(DigiCenterStep):
             # start mear
             self.hwDigitest.start_mear()
             # get value
+            h_data = None
             while True:
+                if self.stopMsgQueue.qsize()>0:
+                    break
                 h_data = self.hwDigitest.get_single_value()
                 if h_data:
                     break
                 else:
                     time.sleep(0.1)
-            
+    
             # add new data
-            self.add_data(h_data)
+            if h_data:
+                self.add_data(h_data)
+            else:
+                h_data = 0.0
 
             # handle process between different model of digiChamber
             isRotation_model = self.hwDigitest.isConnectRotation()

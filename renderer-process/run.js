@@ -644,6 +644,8 @@ function updateStepByCat(res){
   let actTemp = res.actTemp;
   let eventName = res.eventName;
 
+  console.log(stepname)
+
   switch(stepname) {
     case 'ramp':
       updateValue('actualTempGauge', value);
@@ -664,6 +666,11 @@ function updateStepByCat(res){
       // updateValue('hardness_graph', value);
       break;
     case 'time':      
+      tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp)
+      break;
+    
+    case 'teardown':
+      updateValue('actualTempGauge', actTemp);
       tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp)
       break;
     default:

@@ -265,6 +265,7 @@ var lang_flag = 'en'
 
 function getDefaultLang(){
   ws.send(tools.parseCmd('load_default_lang',appRoot));
+
 }
 
 function setLang(lang){

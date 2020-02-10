@@ -751,12 +751,12 @@ var getNow = function(fmt){
   if(fmt){
     return moment().format(fmt);
   }else{
-    return moment().format("YYYY-MM-DDTHH:mm:ss.000");
+    return moment().format("YYYY-MM-DDTHH:mm");
   }
 }
 
-startDateField.value = getNow();
-endDateField.value = getNow();
+startDateField.value = getNow('YYYY-MM-DDT00:00');
+endDateField.value = getNow('YYYY-MM-DDT23:59');
 
 function columnsDefine(){
   let colDefine = [];
@@ -794,8 +794,8 @@ function createTable(tableData) {
 }
 
 $('#download_syslog_btn').on('click', ()=>{
-  let start = startDateField.value
-  let end = endDateField.value
+  let start = startDateField.value + ':00.000'
+  let end = endDateField.value + ':59.999'
   $("#systemlog_link").attr("href", '#')
   $("#systemlog_link").html('')
   ws.send(tools.parseCmd('get_syslog_from_db',{'start':start,'end': end}));

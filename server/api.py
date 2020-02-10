@@ -4,9 +4,8 @@
 from __future__ import print_function
 import sys
 sys.path.append('server/corelib')
-sys.path.append('server/instrClass')
+sys.path.append('server/corelib/hardwarelib/instrClass')
 sys.path.append('server/productlib')
-import zerorpc
 from corelib.hardwarelib.digiChamber import DigiChamber, DummyChamber
 from corelib.hardwarelib.instrClass.digitest import Digitest, DummyDigitest
 from corelib.hardwarelib.instrClass.digitest import Digitest
@@ -22,7 +21,6 @@ import datetime,time
 import os
 import locale
 import re
-import gevent
 import pandas as pd
 import string
 import threading

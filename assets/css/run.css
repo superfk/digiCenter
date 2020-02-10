@@ -24,9 +24,8 @@
 }
 
 #batchInfoPanel h3{
-    padding: 10px 0 5px 0px;
-    height: auto;
-    width: 90%;
+    padding: 5px 0 0px 0px;
+    width: 95%;
     box-sizing: border-box;
     border-bottom: 1px solid lightslategrey;
     font-size: 24px;
@@ -91,6 +90,12 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
     margin: 0px;
     padding: 10px 10px 10px 10px;
     overflow: auto;
+}
+
+.cardHeader{
+    display: flex;
+    align-items: center;
+    justify-content: left;
 }
 
 .testMainPanel .cardHeader{

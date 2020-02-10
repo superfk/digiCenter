@@ -159,14 +159,12 @@ class DigiChamber(object):
         cmd = self.create_cmd('12002', ['1'])
         respid, value = self.send_and_get(cmd)
         value = float(value)
-        print(value)
         return value
     
     def get_real_humidity(self):
         cmd = self.create_cmd('12002', ['2']) # need to check
         respid, value = self.send_and_get(cmd)
         value = float(value)
-        print(value)
         return value
     
     def set_gradient_up(self, value_k_per_min=0):
@@ -343,7 +341,10 @@ class DummyChamber(DigiChamber):
     
     def set_gradient_up(self, value_k_per_min=0):
         cmd = self.create_cmd('11068', ['1', str(value_k_per_min)])
-        self.gradientUp=value_k_per_min
+        if value_k_per_min <= 0:
+            self.gradientUp=60
+        else:
+            self.gradientUp=value_k_per_min
         return self.gradientUp
     
     def get_gradient_up(self):
@@ -352,7 +353,10 @@ class DummyChamber(DigiChamber):
     
     def set_gradient_down(self, value_k_per_min=0):
         cmd = self.create_cmd('11072', ['1', str(value_k_per_min)])
-        self.gradientDown=value_k_per_min
+        if value_k_per_min <= 0:
+            self.gradientDown=60
+        else:
+            self.gradientDown=value_k_per_min
         return self.gradientDown
     
     def get_gradient_down(self):
@@ -364,19 +368,31 @@ class DummyChamber(DigiChamber):
 if __name__ == '__main__':
     dc = DigiChamber(ip='169.254.206.212')
     dc.connect()
+    print('system info')
     print(dc.get_chamber_info())
-    dc.set_manual_mode(False)
-    dc.set_setPoint(45)
+    print('')
+    dc.set_manual_mode(True)
+    target = 40
+    dc.set_setPoint(target)
     print('get setpoint: {}'.format(dc.get_setPoint()))
+    print('')
     ctrl_var_info = dc.get_control_variables_info()
     print(ctrl_var_info)
-    # data = []
-    # for i in range(3):
-    #     value = dc.get_real_temperature()
-    #     time.sleep(0.2)
-    #     data.append(value)
+    print('')
+    data = []
+    while True:
+        value = dc.get_real_temperature()
+        print('curretn temp: {}'.format(value))
+        print('get real setpoint: {}'.format(dc.get_real_control_variable_value()))
+        print('')
+        time.sleep(0.5)
+        data.append(value)
+        if value >= target:
+            break
     
-    # plt.plot(data)
-    # plt.show()
+    dc.set_manual_mode(False)
+    dc.close()
+    plt.plot(data)
+    plt.show()
 
 

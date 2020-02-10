@@ -1,6 +1,6 @@
 .toolSection {
   background-color: var(--color-c2);
-  width: 300px;
+  width: 160px;
   color:  #F2F2F2;
   overflow:auto;
   position: absolute;
@@ -10,14 +10,19 @@
 }
 
 .secTitle {
-  padding: 10px 0 5px 5px;
+  padding: 10px 5px 5px 5px;
   position: absolute;
+  left: 20px;
   top: 0;
-  height: auto;
-  width: 90%;
+  right: 20px;
+  height: 45px;
+  /* width: 90%; */
   box-sizing: border-box;
   border-bottom: 1px solid lightslategrey;
   font-size: large;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   
 }
 
@@ -42,7 +47,7 @@
   background-color: var(--color-bg);
   position: absolute;
   width: 1000px;
-  left: 300px;
+  left: 160px;
   top:0px;
   bottom: 0px;
 }

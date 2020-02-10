@@ -249,7 +249,6 @@ function pick_color_hsl(){
 
 
 function updateTempTimeChart(){
-    console.log('execute')
     let iniTemp = 20;
     let curTemp = 20;
     let xTime = 0.0;
@@ -474,6 +473,8 @@ function genIconByCat(cat,paras=null){
         iconset = 'fas fa-retweet';
     }else if (cat === 'subprog'){
         iconset = 'fas fa-indent';
+    }else if (cat === 'teardown'){
+        iconset = 'far fa-stop-circle';
     }
     return `<i class="${iconset} w3-margin-right fa-lg w3-center" style='width:20px;color:${loopColor}'></i>`
 }
@@ -512,6 +513,9 @@ function genShortParaText(cat,subitem){
     }else if (cat === 'subprog'){
         let pathPara = paras.filter(item=>item.name=='path')[0];
         mainText = `path:${pathPara.value}`;
+    }else if (cat === 'teardown'){
+        let pathPara = paras.filter(item=>item.name=='safe temperature')[0];
+        mainText = `safe temperature:${pathPara.value}`;
     }
     return `<div class="paraText">${mainText}</div>`
 }
@@ -631,7 +635,7 @@ function genSetupTest(){
     //         readOnly: false
     //     }
     // ]
-    setup_seq = makeSingleStep('setup','batch',[], true, -1);
+    setup_seq = makeSingleStep('setup','setup',[], true, -1);
     test_flow.setup = setup_seq;
     // let parms = genParas(setup_seq['subitem']['paras']);
     // return `<div style='margin:0px;padding:5px;'><ul class='w3-ul'>${parms}</ul></div>`
@@ -649,23 +653,11 @@ function generateStartSeq() {
 }
 
 function genTeardownTest(){
-    // let paras= [
-    //     {
-    //         name: 'Motor Home',
-    //         value: 'true',
-    //         unit: '',
-    //         type: 'bool',
-    //         readOnly: false
-    //     },
-    //     {
-    //         name: 'Turn off chamber',
-    //         value: 'true',
-    //         unit: '',
-    //         type: 'bool',
-    //         readOnly: false
-    //     }
-    // ]
-    teardown_seq = makeSingleStep('teardown','batch', [], true, 9999);
+    let paras= [
+        new NumberPara('safe temperature',30,unit='&#8451',max=45,min=20,readOnly=false)
+    ]
+
+    teardown_seq = makeSingleStep('teardown','teardown', paras, true, 9999);
     test_flow.teardown = teardown_seq;
     // let parms = genParas(teardown_seq['subitem']['paras']);
     // return `<div style='margin:0px;padding:5px;'><ul class='w3-ul'>${parms}</ul></div>`
@@ -673,9 +665,12 @@ function genTeardownTest(){
 
 function generateEndSeq() {
     genTeardownTest();
+    let stepParaText = genShortParaText(test_flow.teardown.cat,test_flow.teardown.subitem);
     let curstr = `
     <li class='w3-bar w3-flat-alizarin'>
-        <a href="#" class='w3-bar-item'><i class="far fa-stop-circle w3-margin-right fa-lg"></i>Sequence Teardown</a>
+        <a href="#" class='w3-bar-item'>
+            ${genIconByCat(test_flow.teardown.cat, test_flow.teardown.subitem['paras'])}Sequence Teardown${stepParaText}
+        </a>
         
     </li>
     `;
@@ -971,8 +966,25 @@ function searchLoopStartEndByID(loopid, dummyseq=null){
 
 $('body').on('click', '#seqContainer > li > a',function() {
     let nh = this.innerText;
-    var regexp = '([0-9]+)';
-    var matches_array = nh.match(regexp);
+
+    let regexp = '(Setup)';
+    let matches_array = nh.match(regexp);
+    console.log(matches_array)
+    if (matches_array !== null){
+        // genParasPanel(test_flow.setup);
+        return;
+    }
+
+    regexp = '(Teardown)';
+    matches_array = nh.match(regexp);
+    if(matches_array !== null){
+        console.log('hello')
+        genParasPanel(test_flow.teardown);
+        return;
+    }
+
+    regexp = '([0-9]+)';
+    matches_array = nh.match(regexp);
     // get step ID
     if(matches_array !== null){
         let seqID = matches_array[0];
@@ -980,31 +992,8 @@ $('body').on('click', '#seqContainer > li > a',function() {
             $(elem).removeClass('active-item');
         });
         $(this).parents('li').toggleClass('active-item');
-        // let curStep = seq[seqID-1];
-        // let cat = curStep.cat;
-        // let paras = curStep.subitem.paras;
-        // let loopStartID=seqID;
-        // let loopEndID=seqID;
-        // if(cat=='loop'){
-        //     let loopid = paras.filter(item=>item.name=='loop id')[0].value;
-        //     let ids = searchLoopStartEndByID(loopid);
-        //     genLoopIndicator(ids[0],ids[1]);
-            
-        // }else{
-        //     genLoopIndicator(-1,-1);
-        // }
-        
         genParasPanel(seq[seqID-1]);
-    }else{
-        
-        var regexp = '(Setup)';
-        matches_array = nh.match(regexp);
-        console.log(matches_array)
-        if (matches_array !== null){
-            // genParasPanel(test_flow.setup);
-        }else{
-            // genParasPanel(test_flow.teardown);
-        }
+        return;
     }
 
 });
