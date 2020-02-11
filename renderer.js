@@ -6,6 +6,7 @@ var moment = require('moment');
 var systime_hook = document.getElementById('systime');
 let tools = require('./assets/shared_tools');
 let ws;
+let lang_data = {};
 
 
 // login button
@@ -31,9 +32,8 @@ function connect() {
 
   ws.on('open', function open() { 
     console.log('websocket in renderer connected')
-    ws.send(tools.parseCmd('hello'));
     getDefaultLang();
-    init_login();    
+    init_login();
   });
 
   ws.on('ping',()=>{
@@ -103,9 +103,13 @@ function connect() {
             window.removeEventListener('keypress', checkkeypressFirstLogin);
           break;
         case 'reply_update_default_lang':
-          lang_data = data;
-          setLang(lang_data['display_name']);
+          let lang_ID = data.langID;
+          lang_data = data.langData;
+          setLang(lang_ID);
           autoUpdateLang();
+          break;
+        case 'reply_server_error':
+          console.log(data.error);
           break;
         default:
           console.log('Not found this cmd' + cmd)
@@ -260,12 +264,9 @@ $( function() {
 // language functions
 // =========================
 
-var lang_data = {}
-var lang_flag = 'en'
 
 function getDefaultLang(){
   ws.send(tools.parseCmd('load_default_lang',appRoot));
-
 }
 
 function setLang(lang){
@@ -273,7 +274,6 @@ function setLang(lang){
     if (element.id === lang){
       $('.lang-flags').removeClass('langSelected');
       $(element).addClass('langSelected');
-      lang_flag = lang;
     }
   })
 }

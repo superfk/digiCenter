@@ -35,9 +35,12 @@ class BaseLog(object):
         msg = '{} [error type: {}, fname: {}, lineNo: {}]'.format(msg, exc_type, fname, exc_tb.tb_lineno)
         return msg
     def debug(self, msg):
-        msg = self.append_lineNo(msg)
-        msg = self.append_traceback_info(msg)
-        self.logger.debug(msg)
+        try:
+            msg = self.append_lineNo(msg)
+            msg = self.append_traceback_info(msg)
+            self.logger.debug(msg.encode("utf8").decode('utf8',"ignore"))
+        except Exception as e:
+            self.logger.debug('WRITE LOG FAILED! REASON: {}'.format(e))
     def info(self, msg):
         msg = self.append_lineNo(msg)
         msg = self.append_traceback_info(msg)

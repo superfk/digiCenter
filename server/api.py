@@ -11,6 +11,7 @@ from corelib.hardwarelib.instrClass.digitest import Digitest, DummyDigitest
 from corelib.hardwarelib.instrClass.digitest import Digitest
 from corelib.logging_module.baLogger import TimeRotateLogger
 from corelib.usermanagelib.user_login import UserManag
+from corelib.lang.lang_tool import load_json_lang_from_json
 from productlib.digiCenter.pd_digichamber import DigiChamberProduct
 import ctypes  # An included library with Python install.
 import struct
@@ -71,6 +72,7 @@ class PyServerAPI(object):
         try:
             async for message in websocket:
                 print(message)
+                self.lg.debug(message)
                 msg = json.loads(message)
                 cmd = msg["cmd"]
                 data = msg["data"]
@@ -211,11 +213,12 @@ class PyServerAPI(object):
                     print('Not found this cmd: {}'.format(cmd))
         except Exception as e:
             self.lg.debug(e)
-            await self.unregister(websocket)
+            await self.sendMsg(websocket,'reply_server_error',{'error':e})
 
     async def sendMsg(self, websocket, cmd, data=None):
         msg = {'cmd': cmd, 'data': data}
         print('server sent msg: {}'.format(msg))
+        self.lg.debug('server sent msg: {}'.format(msg))
         try:
             await websocket.send(json.dumps(msg))
         except Exception as e:
@@ -229,6 +232,7 @@ class PyServerAPI(object):
                     await asyncio.wait([self.sendMsg(user,'ping', random.random()) for user in self.users])
             except Exception as e:
                 print(e)
+                self.lg.debug(e)
             finally:
                 await asyncio.sleep(10)
             
@@ -237,23 +241,25 @@ class PyServerAPI(object):
         self.config = util.read_system_config(path)
         self.config_path = path
         self.productProcess.setDefaultSeqFolder(self.config['system']['default_seq_folder'])
+        self.lg.debug('log system config: {}'.format(self.config))
 
     async def load_default_lang(self, websocket, appRoot):
         lang = self.config['system']['default_lang']
         self.langFolder = os.path.join(appRoot, 'lang')
-        self.lang_data = util.readLang(self.langFolder, lang)
-        print(self.lang_data)
+        # self.lang_data = util.readLang(self.langFolder, lang)
+        self.lang_data = load_json_lang_from_json(self.langFolder, lang)
         self.userMang.set_lang(self.lang_data, lang)
-        await self.sendMsg(websocket,'reply_update_default_lang',self.lang_data)
+        self.lg.debug('log lang data: {}'.format(self.lang_data))
+        await self.sendMsg(websocket,'reply_update_default_lang',{'langID':lang, 'langData':self.lang_data})
     
     async def update_default_lang(self, websocket, appRoot, lang):
         self.config['system']['default_lang'] = lang
         util.write_system_config(path=self.config_path, data = self.config)
         self.langFolder = os.path.join(appRoot, 'lang')
-        self.lang_data = util.readLang(self.langFolder, lang)
-        print(self.lang_data)
+        # self.lang_data = util.readLang(self.langFolder, lang)
+        self.lang_data = load_json_lang_from_json(self.langFolder, lang)
         self.userMang.set_lang(self.lang_data, lang)
-        await self.sendMsg(websocket,'reply_update_default_lang', self.lang_data)
+        await self.sendMsg(websocket,'reply_update_default_lang', {'langID':lang, 'langData':self.lang_data})
     
     async def get_server_time(self, websocket):
         now = datetime.datetime.now().strftime(r"%Y/%m/%d %H:%M:%S")

@@ -15,6 +15,7 @@ let tools = require('./assets/shared_tools');
 // client.connect("tcp://127.0.0.1:4242");
 // let socket = require('socket.io-client')('http://127.0.0.1:5678/test',{transports:['WebSocket']});
 let ws;
+let openOnce = false;
 
 function connect() {
   try{
@@ -26,7 +27,7 @@ function connect() {
 
   ws.on('open', ()=> {
     console.log('websocket in main connected')
-    init_server();
+      init_server();
   });
 
   ws.on('ping',()=>{
@@ -55,6 +56,9 @@ function connect() {
             console.log(data.resp)
 
           }
+          break;
+        case 'reply_server_error':
+          console.log(data.error);
           break;
         default:
           console.log('Not found this cmd ' + cmd)
