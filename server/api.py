@@ -71,7 +71,7 @@ class PyServerAPI(object):
             self.initialized=True
         try:
             async for message in websocket:
-                print(message)
+                # print(message)
                 self.lg.debug(message)
                 msg = json.loads(message)
                 cmd = msg["cmd"]
@@ -212,12 +212,17 @@ class PyServerAPI(object):
                 else:
                     print('Not found this cmd: {}'.format(cmd))
         except Exception as e:
-            self.lg.debug(e)
-            await self.sendMsg(websocket,'reply_server_error',{'error':e})
+            try:
+                err_msg = '{}'.format(e)
+                self.lg.debug(err_msg)
+                await self.sendMsg(websocket,'reply_server_error',{'error':err_msg})
+            except:
+                self.lg.debug('error during excetipn handling')
+                self.lg.debug(e)
+                print(e)
 
     async def sendMsg(self, websocket, cmd, data=None):
         msg = {'cmd': cmd, 'data': data}
-        print('server sent msg: {}'.format(msg))
         self.lg.debug('server sent msg: {}'.format(msg))
         try:
             await websocket.send(json.dumps(msg))
@@ -231,7 +236,7 @@ class PyServerAPI(object):
                 if self.users:
                     await asyncio.wait([self.sendMsg(user,'ping', random.random()) for user in self.users])
             except Exception as e:
-                print(e)
+                self.lg.debug(e)
                 self.lg.debug(e)
             finally:
                 await asyncio.sleep(10)
@@ -248,8 +253,9 @@ class PyServerAPI(object):
         self.langFolder = os.path.join(appRoot, 'lang')
         # self.lang_data = util.readLang(self.langFolder, lang)
         self.lang_data = load_json_lang_from_json(self.langFolder, lang)
+        self.lg.debug('loaded lang file with lang {}'.format(lang))
+        self.lg.debug(self.lang_data)
         self.userMang.set_lang(self.lang_data, lang)
-        self.lg.debug('log lang data: {}'.format(self.lang_data))
         await self.sendMsg(websocket,'reply_update_default_lang',{'langID':lang, 'langData':self.lang_data})
     
     async def update_default_lang(self, websocket, appRoot, lang):
@@ -258,6 +264,8 @@ class PyServerAPI(object):
         self.langFolder = os.path.join(appRoot, 'lang')
         # self.lang_data = util.readLang(self.langFolder, lang)
         self.lang_data = load_json_lang_from_json(self.langFolder, lang)
+        self.lg.debug('update lang file with lang {}'.format(lang))
+        self.lg.debug(self.lang_data)
         self.userMang.set_lang(self.lang_data, lang)
         await self.sendMsg(websocket,'reply_update_default_lang', {'langID':lang, 'langData':self.lang_data})
     
@@ -359,12 +367,13 @@ class PyServerAPI(object):
         await self.sendMsg(websocket,'reply_set_new_password_when_first_login',
         self.userMang.set_new_password_when_first_login(userID, curPW, newPW, newPWagain))
 
-    async def log_to_db(self, websocket, msg, msg_type='info', audit=False):
+    async def log_to_db(self, websocket, msg, msg_type='info', audit=False, reply=False):
         fields = ["Timestamp", "User_Name", "User_Role", "Log_Type", "Log_Message", "Audit"]
         now = datetime.datetime.now().strftime(r"%Y/%m/%d %H:%M:%S.%f")
         values = [now, self.userMang.user.username, self.userMang.user.role, msg_type, msg, audit]
         self.db.insert('System_log', fields, values)
-        await self.sendMsg(websocket,'reply_log_to_db',str(values))
+        if reply:
+            await self.sendMsg(websocket,'reply_log_to_db',str(values))
 
     async def get_syslog_from_db(self,websocket, start, end):
         fields = ["Timestamp", "User_Name", "User_Role", "Log_Type", "Log_Message", "Audit"]

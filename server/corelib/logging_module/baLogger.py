@@ -2,6 +2,8 @@ import logging
 import logging.handlers
 import time,os, sys
 
+# sys.stdout.write('chcp 65001')
+
 class BaseLog(object):
     def __init__(self, filename):
         self.fname = filename
@@ -36,28 +38,34 @@ class BaseLog(object):
         return msg
     def debug(self, msg):
         try:
+            msg = str(msg).encode('utf-8').decode('cp950',errors='ignore')
             msg = self.append_lineNo(msg)
             msg = self.append_traceback_info(msg)
-            self.logger.debug(msg.encode("utf8").decode('utf8',"ignore"))
+            self.logger.debug(msg)
         except Exception as e:
             self.logger.debug('WRITE LOG FAILED! REASON: {}'.format(e))
     def info(self, msg):
+        msg = str(msg).encode('utf-8').decode('cp950',errors='ignore')
         msg = self.append_lineNo(msg)
         msg = self.append_traceback_info(msg)
         self.logger.info(msg)
     def warning(self, msg):
+        msg = str(msg).encode('utf-8').decode('cp950',errors='ignore')
         msg = self.append_lineNo(msg)
         msg = self.append_traceback_info(msg)
         self.logger.warning(msg)
     def error(self, msg):
+        msg = str(msg).encode('utf-8').decode('cp950',errors='ignore')
         msg = self.append_lineNo(msg)
         msg = self.append_traceback_info(msg)
         self.logger.error(msg)
     def critical(self, msg):
+        msg = str(msg).encode('utf-8').decode('cp950',errors='ignore')
         msg = self.append_lineNo(msg)
         msg = self.append_traceback_info(msg)
         self.logger.critical(msg)
     def log(self, level, msg):
+        msg = str(msg).encode('utf-8').decode('cp950',errors='ignore')
         msg = self.append_lineNo(msg)
         msg = self.append_traceback_info(msg)
         self.logger.log(level, msg)

@@ -1,6 +1,9 @@
 import csv, os
 import json
 import pandas as pd
+import logging
+import logging.handlers
+import time,os, sys
 
 
 def writeSingleToExcel(lang):
@@ -59,7 +62,7 @@ def load_json_lang_from_json(lang_folder, langID='en'):
 if __name__ == '__main__':
     langset = ['en','de','zh_tw']
     # writeSingleToExcel('de')
-    writeAllToJson(source='all.xlsx')
+    # writeAllToJson(source='all.xlsx')
     data = load_json_lang_from_json('','de')
-    print(data)
+    # data = str(data).encode("utf8").decode("utf8", "ignore")
     # data = load_json_lang_from_xlsx('all.xlsx', 'en')

@@ -103,6 +103,7 @@ function connect() {
             window.removeEventListener('keypress', checkkeypressFirstLogin);
           break;
         case 'reply_update_default_lang':
+          console.log(data)
           let lang_ID = data.langID;
           lang_data = data.langData;
           setLang(lang_ID);
