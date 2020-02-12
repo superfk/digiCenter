@@ -1,6 +1,6 @@
 from productlib import pd_product
 import corelib.utility.utility as util
-import os
+import os, sys
 import productlib.digiCenter.digiCenter_seq as seqClass
 import random
 import asyncio
@@ -8,6 +8,7 @@ import types
 import threading, queue
 import time, datetime
 import math
+from loguru import logger
 
 class DigiChamberProduct(pd_product.Product):
     def __init__(self, pd_name,seqPath=r"C:\\data_exports",msg_callback=None, dbResult_callback=None, model='fix'):
@@ -32,6 +33,13 @@ class DigiChamberProduct(pd_product.Product):
         self.retry = False
         self.saveTestResult2DbCallback = dbResult_callback
         self.chamberModel = model
+        self.lang_data = None
+        logger.add(sys.stdout, format="{time} - {level} - {message}")
+        logger.add(r"systemlog/{time:YYYY-MM-DD}/file_{time:YYYY-MM-DD}.log", rotation="10 MB")
+        self.lg = logger
+
+    def set_lang(self, lang_data):
+        self.lang_data = lang_data
 
     async def run_script(self,websocket, scriptName, data=None):
         if scriptName=='ini_seq':
@@ -111,6 +119,8 @@ class DigiChamberProduct(pd_product.Product):
         stepObj.set_digiChamber_hw_control(self.dChamb)
         stepObj.set_digitest_hw_control(self.digiTest)
         self.stepsClass.append(stepObj)
+        self.lg.debug('created steps class')
+        self.lg.debug(self.stepsClass)
 
     async def run_seq(self,websocket):
         try:
@@ -145,11 +155,12 @@ class DigiChamberProduct(pd_product.Product):
                     time.sleep(0.2)
                     continue
                 # continuous process
-                print('current cursor: {}'.format(cursor))
+                self.lg.debug('current cursor: {}'.format(cursor))
                 # get payload step
                 step = self.stepsClass[cursor]
 
                 curStepName = step.__class__.__name__
+                self.lg.debug('current step name: {}'.format(curStepName))
 
                 if curStepName == 'HardnessStep':
                     step.retry = self.retry
@@ -160,6 +171,7 @@ class DigiChamberProduct(pd_product.Product):
 
                 # do step
                 testResult = step.do()
+                self.lg.debug('output of testResult: {}'.format(testResult))
 
                 # handle result
                 if testResult['status'] in ['PASS','FAIL','SKIP','MEAR_NEXT']:
@@ -192,7 +204,8 @@ class DigiChamberProduct(pd_product.Product):
                     self.testStop=True
 
         except Exception as e:
-            print(e)
+            self.lg.debug('error during excetipn handling in test sequence prcess')
+            self.lg.debug(e)
             self.errorMsg = '{}'.format(e)
             self.interruptStop = True
 
@@ -200,22 +213,30 @@ class DigiChamberProduct(pd_product.Product):
             if self.interruptStop:
                 item = self.stopMsgQueue.get()
                 self.stopMsgQueue.task_done()
-                print('reached end_of_test, interrupted')
+                self.lg.debug('reached end_of_test, interrupted')
                 if self.errorMsg:
-                    self.sendCommunicateCallback('end_of_test',{'interrupted':True,'reason':self.errorMsg})
+                    txt = self.lang_data['server_manual_end_test_reason'] + self.errorMsg
+                    title = self.lang_data['server_manual_end_test_title']
+                    self.sendCommunicateCallback('end_of_test',{'interrupted':True,'title':title,'reason':txt})
+                    self.errorMsg = None
                 else:
-                    self.sendCommunicateCallback('end_of_test',{'interrupted':True,'reason':'Manually stop'})
+                    txt = self.lang_data['server_manual_end_test_reason']
+                    title = self.lang_data['server_manual_end_test_title']
+                    self.sendCommunicateCallback('end_of_test',{'interrupted':True,'title':title,'reason':txt})
             else:
-                print('reached end_of_test, all done')
-                self.sendCommunicateCallback('end_of_test',{'interrupted':False,'reason':'tests all done'})
+                self.lg.debug('reached end_of_test, all done')
+                txt = self.lang_data['server_final_end_test_reason']
+                title = self.lang_data['server_final_end_test_title']
+                self.sendCommunicateCallback('end_of_test',{'interrupted':False,'title':title,'reason':txt})
 
     async def get_cur_temp_and_humi(self, websocket):
         try:
             self.curT = self.dChamb.get_real_temperature()
             status = {'temp':self.curT, 'hum':random.random()*1 + self.curH}
             await self.socketCallback(websocket,'update_cur_status',status)
-        except:
-            print('digiChamber get temperature error')
+        except Exception as e:
+            self.lg.debug('digiChamber get temperature error')
+            self.lg.debug(e)
 
     def findLoopPair(self, loopid, mainClass):
         for i,s in enumerate(mainClass):
@@ -258,14 +279,10 @@ class DigiChamberProduct(pd_product.Product):
             conn = self.dChamb.connect()
             return conn
         except:
-            print('digichamber connection failed')
             return False
 
     def close_digiChamber_controller(self):
-        try:
-            self.dChamb.close()
-        except:
-            pass
+        self.dChamb.close()
     
     def init_digitest_controller(self,obj_digitest, COM='COM3'):
         try:
@@ -273,15 +290,9 @@ class DigiChamberProduct(pd_product.Product):
             conn = self.digiTest.open_rs232(COM)
             return conn
         except:
-            print('digiTest connection failed')
             return False
 
     def close_digitest_controller(self):
-        try:
-            self.digiTest.close_rs232()
-        except:
-            pass
+        self.digiTest.set_remote(False)
+        self.digiTest.close_rs232()
 
-    def wrapTestResult(self,testResult):
-        fields = ['Recordtime','Project_name','Batch_name','Seq_name','Operator','Seq_step_id','Sample_counter','Hardness_result','Temperature','Humidity','Raw_data','Math_method']
-        recTime = testResult['']

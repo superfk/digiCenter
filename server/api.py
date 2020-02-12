@@ -9,7 +9,7 @@ sys.path.append('server/productlib')
 from corelib.hardwarelib.digiChamber import DigiChamber, DummyChamber
 from corelib.hardwarelib.instrClass.digitest import Digitest, DummyDigitest
 from corelib.hardwarelib.instrClass.digitest import Digitest
-from corelib.logging_module.baLogger import TimeRotateLogger
+# from corelib.logging_module.baLogger import TimeRotateLogger
 from corelib.usermanagelib.user_login import UserManag
 from corelib.lang.lang_tool import load_json_lang_from_json
 from productlib.digiCenter.pd_digichamber import DigiChamberProduct
@@ -28,6 +28,8 @@ import threading
 import random
 import asyncio
 import websockets
+from loguru import logger
+
 
 
 class BatchInfo(object):
@@ -44,11 +46,15 @@ class PyServerAPI(object):
         self.users = set()
         self.digiTest = Digitest()
         self.digiChamber = DigiChamber()
-        self.lg = TimeRotateLogger('syslog', 'M', 5)
+        # self.lg = TimeRotateLogger('syslog', 'M', 5)
+        logger.add(sys.stdout, format="{time} - {level} - {message}")
+        logger.add(r"systemlog/{time:YYYY-MM-DD}/file_{time:YYYY-MM-DD}.log", rotation="10 MB")
+        self.lg = logger
         self.db = DB(r"SHAWNNB\SQLEXPRESS", 'BareissAdmin', 'BaAdmin')
         self.userMang = UserManag(self.db,"Guest", "Guest", 0, True)
         self.config = util.read_system_config(r'C:\\digiCenter\config.json')
         self.productProcess = DigiChamberProduct('digiCenter',r"C:\\data_exports",self.sendMsg,self.saveTestData)
+        self.productProcess.lg = logger
         self.initialized = False
         self.langFolder = ''
         self.batch = None
@@ -56,11 +62,11 @@ class PyServerAPI(object):
 
     async def register(self,websocket):
         self.users.add(websocket)
-        print('new user connected: {}'.format(websocket))
+        self.lg.debug('new user connected: {}'.format(websocket))
 
     async def unregister(self,websocket):
         self.users.remove(websocket)
-        print('user disconnected: {}'.format(websocket))
+        self.lg.debug('user disconnected: {}'.format(websocket))
 
     async def handler(self,websocket, path):
         # register(websocket) sends user_event() to websocket
@@ -165,8 +171,8 @@ class PyServerAPI(object):
                     start = data['start']
                     end = data['end']
                     await self.get_syslog_from_db(websocket, start, end)
-                elif cmd == 'machine_connect':
-                    await self.machine_connect(websocket)
+                # elif cmd == 'machine_connect':
+                #     await self.machine_connect(websocket)
                 elif cmd == 'run_cmd':
                     await self.run_cmd(websocket,data)
                 elif cmd == 'init_hw':
@@ -210,7 +216,7 @@ class PyServerAPI(object):
                 elif cmd == 'close_all':
                     await self.close_all(websocket)
                 else:
-                    print('Not found this cmd: {}'.format(cmd))
+                    self.lg.debug('Not found this cmd: {}'.format(cmd))
         except Exception as e:
             try:
                 err_msg = '{}'.format(e)
@@ -219,7 +225,6 @@ class PyServerAPI(object):
             except:
                 self.lg.debug('error during excetipn handling')
                 self.lg.debug(e)
-                print(e)
 
     async def sendMsg(self, websocket, cmd, data=None):
         msg = {'cmd': cmd, 'data': data}
@@ -227,7 +232,8 @@ class PyServerAPI(object):
         try:
             await websocket.send(json.dumps(msg))
         except Exception as e:
-            print('error: {}'.format(e))
+            self.lg.debug('error during send message with websocket')
+            self.lg.debug(e)
             
         
     async def continousSend(self):
@@ -236,10 +242,10 @@ class PyServerAPI(object):
                 if self.users:
                     await asyncio.wait([self.sendMsg(user,'ping', random.random()) for user in self.users])
             except Exception as e:
-                self.lg.debug(e)
+                self.lg.debug('error during send ping message with websocket')
                 self.lg.debug(e)
             finally:
-                await asyncio.sleep(10)
+                await asyncio.sleep(30)
             
 
     async def load_sys_config(self, websocket, path):
@@ -253,8 +259,8 @@ class PyServerAPI(object):
         self.langFolder = os.path.join(appRoot, 'lang')
         # self.lang_data = util.readLang(self.langFolder, lang)
         self.lang_data = load_json_lang_from_json(self.langFolder, lang)
+        self.productProcess.set_lang(self.lang_data)
         self.lg.debug('loaded lang file with lang {}'.format(lang))
-        self.lg.debug(self.lang_data)
         self.userMang.set_lang(self.lang_data, lang)
         await self.sendMsg(websocket,'reply_update_default_lang',{'langID':lang, 'langData':self.lang_data})
     
@@ -264,8 +270,8 @@ class PyServerAPI(object):
         self.langFolder = os.path.join(appRoot, 'lang')
         # self.lang_data = util.readLang(self.langFolder, lang)
         self.lang_data = load_json_lang_from_json(self.langFolder, lang)
+        self.productProcess.set_lang(self.lang_data)
         self.lg.debug('update lang file with lang {}'.format(lang))
-        self.lg.debug(self.lang_data)
         self.userMang.set_lang(self.lang_data, lang)
         await self.sendMsg(websocket,'reply_update_default_lang', {'langID':lang, 'langData':self.lang_data})
     
@@ -318,11 +324,11 @@ class PyServerAPI(object):
         res = {}
         if not self.db.connect('DigiChamber'):
             res['result']=0
-            res['resp']="Error: Connect to database error"
+            res['resp']='database connection error'
             await self.sendMsg(websocket,cmd='result_of_backendinit',data=res)
         else:
             res['result']=1
-            res['resp']="database connected"
+            res['resp']='database connection ok'
             self.userMang.db = self.db
             self.productProcess.db = self.db
             await self.sendMsg(websocket,cmd='result_of_backendinit',data=res)
@@ -372,6 +378,7 @@ class PyServerAPI(object):
         now = datetime.datetime.now().strftime(r"%Y/%m/%d %H:%M:%S.%f")
         values = [now, self.userMang.user.username, self.userMang.user.role, msg_type, msg, audit]
         self.db.insert('System_log', fields, values)
+        self.lg.debug('save system log into database with field: {}, values: {}'.format(fields,values))
         if reply:
             await self.sendMsg(websocket,'reply_log_to_db',str(values))
 
@@ -390,7 +397,7 @@ class PyServerAPI(object):
         """Connnect to DigiChamber"""
         ip = self.config['system']['machine_ip']
         port = self.config['system']['machine_port']
-        print("conntect to machine with ip {}, port {}".format(ip,port))
+        self.lg.debug("conntecting to machine with ip {}, port {}".format(ip,port))
         try:
             if self.digiChamber.connected:
                 await self.sendMsg(websocket,"connection already established")
@@ -414,7 +421,8 @@ class PyServerAPI(object):
             data = data['data']
             response = await self.productProcess.run_script(websocket,scriptName,data)
         except Exception as e:
-            self.lg.error(e)
+            self.lg.debug('error during excetipn handling in run_cmd')
+            self.lg.debug(e)
     
     async def init_hw(self, websocket):
         ip = self.config['system']['machine_ip']
@@ -424,11 +432,16 @@ class PyServerAPI(object):
         try:
             digiChamber_obj = DummyChamber(ip,port)
             digiTest_obj = DummyDigitest()
-            self.productProcess.init_digiChamber_controller(digiChamber_obj)
-            self.productProcess.init_digitest_controller(digiTest_obj,COM)
+            ret = self.productProcess.init_digiChamber_controller(digiChamber_obj)
+            if ret:
+                self.lg.debug('digiChamber init OK')
+            ret = self.productProcess.init_digitest_controller(digiTest_obj,COM)
+            if ret:
+                self.lg.debug('digiTest init OK')
             await self.sendMsg(websocket,'reply_init_hw',{'resp_code':1, 'res':self.lang_data['server_hw_init_ok']})
         except Exception as e:
-            print(e)
+            self.lg.debug('error during excetipn handling in init_hw')
+            self.lg.debug(e)
             await self.sendMsg(websocket,'reply_init_hw',{'resp_code':0, 'res':self.lang_data['server_hw_init_NG'], 'reason':'{}'.format(e)})
 
     async def run_seq(self, websocket):
@@ -436,7 +449,7 @@ class PyServerAPI(object):
         await self.productProcess.run_seq(websocket)
 
     def stop_seq(self):
-        print('execute stop seq')
+        self.lg.debug('execute stop seq')
         self.productProcess.set_test_stop()
 
     async def create_batch(self,websocket, project, batch, notes, seq_name, numOfSample):
@@ -446,8 +459,9 @@ class PyServerAPI(object):
         data = self.db.select('Batch_data', fields, condition)
         if not len(data)==0:
             # unique batch already exsisted
-            await self.sendMsg(websocket,'reply_create_batch', {'resp_code': 0, 'reason':'The Project and Batch are both exsisted! \
-                Do you want to continue this batch?'})
+            txt = self.lang_data['server_ask_cont_wehn_proj_batch_exist_reason']
+            title = self.lang_data['server_ask_cont_wehn_proj_batch_exist_title']
+            await self.sendMsg(websocket,'reply_create_batch', {'resp_code': 0, 'title':title,'reason':txt})
         else:
             curtime = datetime.datetime.now()
             now = curtime.strftime(r"%Y/%m/%d %H:%M:%S.%f")
@@ -455,19 +469,9 @@ class PyServerAPI(object):
             self.productProcess.setBatchInfo(self.batch)
             values = [project, batch, now, notes, seq_name, numOfSample]
             self.db.insert('Batch_data', fields, values)
-            await self.sendMsg(websocket,'reply_create_batch',{'resp_code': 1, 'reason':'Batch is created!'})
-
-    async def query_batch_history(self,websocket):
-        # check project and batch name exsisted?
-        fields = ["Project_Name", "Batch_Name", "Creation_Date", "Note", "Last_seq_name", "NumSample"]
-        condition = r"ORDER BY Batch_Name"
-        data = self.db.select('Batch_data', fields, condition)
-        for i,d in enumerate(data):
-            date = d['Creation_Date'].split('.')[0]
-            data[i]['Creation_Date'] = date
-            # seq = os.path.split(d['Last_seq_name'])[1]
-            # data[i]['Last_seq_name'] = seq
-        await self.sendMsg(websocket,'reply_query_batch_history', data)
+            txt = self.lang_data['server_reply_batch_created_reason']
+            title = self.lang_data['server_reply_batch_created_title']
+            await self.sendMsg(websocket,'reply_create_batch',{'resp_code': 1, 'title':title,'reason':txt})
 
     async def continues_batch(self,websocket, project, batch, notes, seq_name, numOfSample):
         curtime = datetime.datetime.now()
@@ -478,8 +482,20 @@ class PyServerAPI(object):
         values = [notes, seq_name, numOfSample]
         condition = r"WHERE Project_Name ='{}' AND Batch_Name='{}'".format(project,batch)
         self.db.update("Batch_data",fields,values,condition)
-        await self.sendMsg(websocket,'reply_create_batch',{'resp_code': 1, 'reason':'Batch is continued!'})
+        txt = self.lang_data['server_reply_batch_cont_reason']
+        title = self.lang_data['server_reply_batch_cont_title']
+        await self.sendMsg(websocket,'reply_create_batch',{'resp_code': 1, 'title':title,'reason':txt})
     
+    async def query_batch_history(self,websocket):
+        # check project and batch name exsisted?
+        fields = ["Project_Name", "Batch_Name", "Creation_Date", "Note", "Last_seq_name", "NumSample"]
+        condition = r"ORDER BY Batch_Name"
+        data = self.db.select('Batch_data', fields, condition)
+        for i,d in enumerate(data):
+            date = d['Creation_Date'].split('.')[0]
+            data[i]['Creation_Date'] = date
+        await self.sendMsg(websocket,'reply_query_batch_history', data)
+
     async def saveTestData(self,testResult):
         fields = ['Recordtime','Project_name','Batch_name','Seq_name','Operator','Seq_step_id','Sample_counter','Hardness_result',
         'Temperature','Humidity','Raw_data','Math_method']
@@ -500,12 +516,12 @@ class PyServerAPI(object):
         math_method = testResult['hardness_dataset']['method']
         values = [recTime,proj,batch,seq,op,seq_id,sampleCounter,h_result,temp_result,hum_result,raw,math_method]
         try:
-            print(fields)
-            print(values)
+            self.lg.debug('Save Test data')
+            self.lg.debug(values)
             self.db.insert('Test_Data', fields, values)
         except Exception as e:
-            print('Save Test Data error!')
-            print(e)
+            self.lg.debug('Save Test Data error!')
+            self.lg.debug(e)
     
     async def export_test_data_from_client(self, websocket,tableData, filename='testdata', options=['csv']):
         export_folder = self.config['system']['default_export_folder']
@@ -530,13 +546,18 @@ class PyServerAPI(object):
                     pass
                 expt.tabledata2DataFrame()
                 expt.save(path=new_path)
-            await self.sendMsg(websocket,'reply_export_test_data_from_client',{'resp_code': 1, 'res':self.lang_data['server_export_ok']})
+            txt = self.lang_data['server_export_ok_reason']
+            title = self.lang_data['server_export_ok_title']
+            await self.sendMsg(websocket,'reply_export_test_data_from_client',{'resp_code': 1, 'title':title, 'res':txt})
         except Exception as e:
-            await self.sendMsg(websocket,'reply_export_test_data_from_client',{'resp_code': 0, 'res':"Export data error ({})".format(e)})
+            self.lg.debug('export Test Data error!')
+            self.lg.debug(e)
+            txt = self.lang_data['server_export_NG_reason']
+            title = self.lang_data['server_export_NG_title']
+            await self.sendMsg(websocket,'reply_export_test_data_from_client',{'resp_code': 0, 'title':title, 'res':txt})
 
     async def query_data_from_db(self, websocket, filters):
         condition = r"WHERE "
-        print(filters)
         fields = ["Recordtime", "Project_name", "Batch_name", "Seq_name", "Operator", "Seq_step_id", 
         "Sample_counter","Hardness_result","Temperature","Humidity","Raw_data","Math_method"]
         # types = ["datetime2", "varchar(255)", "varchar(255)", "nvarchar(1024)", "varchar(255)", "smallint", "float", "float", "float", "datetime2",
@@ -555,29 +576,24 @@ class PyServerAPI(object):
     async def close_all(self, websocket):
         try:
             await self.db.close()
-        except:
-            pass
+            self.lg.debug('close database ok')
+        except Exception as e:
+            self.lg.debug('close database error!')
+            self.lg.debug(e)
         try:
             await self.productProcess.close_digiChamber_controller()
-        except:
-            pass
+            self.lg.debug('close digichamber ok')
+        except Exception as e:
+            self.lg.debug('close digichamber error!')
+            self.lg.debug(e)
         try:
-            await self.digiTest.set_remote(False)
-            await self.digiTest.close_rs232()
-        except:
-            pass
+            await self.productProcess.close_digitest_controller()
+            self.lg.debug('close digiTest ok')
+        except Exception as e:
+            self.lg.debug('close digiTest error!')
+            self.lg.debug(e)
         
 
-def Mbox(title='Ipnfo', text='', style=0):
-    return ctypes.windll.user32.MessageBoxW(0, text, title, style)
-
-def parse_port():
-    port = 4242
-    try:
-        port = int(sys.argv[1])
-    except Exception as e:
-        pass
-    return '{}'.format(port)
 
 def main():
     sokObj = PyServerAPI()

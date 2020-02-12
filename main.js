@@ -17,8 +17,6 @@ let tools = require('./assets/shared_tools');
 let ws;
 let openOnce = false;
 
-// change encode
-process.stdout.write('utf8')
 
 function connect() {
   try{
