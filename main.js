@@ -61,6 +61,10 @@ function connect() {
         case 'reply_server_error':
           console.log(data.error);
           break;
+        case 'reply_close_all':
+          pyProc.kill();
+          pyProc = null;
+          pyPort = null;
         default:
           console.log('Not found this cmd ' + cmd)
           break;
@@ -143,9 +147,7 @@ const createPyProc = () => {
 }
 
 const exitPyProc = () => {
-  pyProc.kill();
-  pyProc = null;
-  pyPort = null;
+  ws.send(tools.parseCmd('close_all'));
 }
 
 // init config and database

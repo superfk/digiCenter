@@ -74,7 +74,7 @@ class BaInstr(object):
                 print("parsing resp: {}".format(resp))
             if resp:
                 if resp['value'] == '"DEVICE BUSY"':
-                    time.sleep(0.01)
+                    time.sleep(0.1)
                     counter += 1
                     if not self.wait_cmd:
                         return None

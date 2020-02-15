@@ -1,27 +1,27 @@
-﻿ID,Functions,Tree_index,Display_order,en,zh_tw,de
-1,button-config,0,0,Configuration Item in Sidebar,左列之系統設置,Configuration Item in Sidebar
-2,apply_change_general,1,1,Change System Configuration,更新系統設定參數,Change System Configuration
-3,add_new_role_btn,1,2,Add New User Role,新增使用者權限,Add New User Role
-4,delete_new_role_btn,1,3,Delete User Role,刪除使用者權限,Delete User Role
-5,apply_change_user_fnc,1,4,Change User Permission,更新使用者權限,Change User Permission
-6,add_new_user_btn,1,50,Add New User,新增使用者帳號,Add New User
-7,delete_user_btn,1,51,Delete User,刪除使用者帳號,Delete User
-8,activate_user_btn,1,52,Activate User,啟用使用者帳號,Activate User
-9,deactivate_user_btn,1,53,Deactivate User,停用使用者帳號,Deactivate User
-10,new_pw_btn,1,54,Provide New Password,提供使用者新密碼,Provide New Password
-11,download_syslog_btn,1,80,Download System log,下載系統日誌,Download System log
-12,button-seqEditor,0,100,SeqEditor Item in Sidebar,左列之測試序列編輯,SeqEditor Item in Sidebar
-13,create_seq,1,101,Create Sequence,新增測試序列,Create Sequence
-14,open_seq,1,102,Load Sequence,讀取測試序列,Load Sequence
-15,save_seq,1,103,Save Sequence,儲存測試序列,Save Sequence
-16,button-run,0,200,Run Item in Sidebar,左列之執行測試,Run Item in Sidebar
-17,new_a_batch,1,201,Create Batch,新增批號,Create Batch
-18,load_a_batch,1,202,Load Batch,讀取批號,Load Batch
-19,open_test_seq,1,203,Select Test Sequence,選擇測試序列,Select Test Sequence
-20,batchConfirm,1,204,Confirm Batch Info,確認批號資訊,Confirm Batch Info
-21,start_test,1,205,Start Test,開始測試,Start Test
-22,stop_test,1,206,Stop Test,停止測試,Stop Test
-23,button-report,0,300,Report Item in Sidebar,左列之報告檢視,Report Item in Sidebar
-24,query-data,1,301,Query Test Data,搜尋測試數據,Send Batch Data to PLC Button
-25,export-test-data-to-file,1,302,Export Report Option Button,呼叫匯出測試數據選單,Export Report Option Button
-26,export-start,1,303,Export data to File Button,執行匯出測試數據,Export data to File Button
+﻿ID;Functions;Tree_index;Display_order;en;zh_tw;de
+1;button-config;0;0;Configuration Item in Sidebar;左列之系統設置;Configuration Item in Sidebar
+2;apply_change_general;1;1;Change System Configuration;更新系統設定參數;Change System Configuration
+3;add_new_role_btn;1;2;Add New User Role;新增使用者權限;Add New User Role
+4;delete_new_role_btn;1;3;Delete User Role;刪除使用者權限;Delete User Role
+5;apply_change_user_fnc;1;4;Change User Permission;更新使用者權限;Change User Permission
+6;add_new_user_btn;1;50;Add New User;新增使用者帳號;Add New User
+7;delete_user_btn;1;51;Delete User;刪除使用者帳號;Delete User
+8;activate_user_btn;1;52;Activate User;啟用使用者帳號;Activate User
+9;deactivate_user_btn;1;53;Deactivate User;停用使用者帳號;Deactivate User
+10;new_pw_btn;1;54;Provide New Password;提供使用者新密碼;Provide New Password
+11;download_syslog_btn;1;80;Download System log;下載系統日誌;Download System log
+12;button-seqEditor;0;100;SeqEditor Item in Sidebar;左列之測試序列編輯;SeqEditor Item in Sidebar
+13;create_seq;1;101;Create Sequence;新增測試序列;Create Sequence
+14;open_seq;1;102;Load Sequence;讀取測試序列;Load Sequence
+15;save_seq;1;103;Save Sequence;儲存測試序列;Save Sequence
+16;button-run;0;200;Run Item in Sidebar;左列之執行測試;Run Item in Sidebar
+17;new_a_batch;1;201;Create Batch;新增批號;Create Batch
+18;load_a_batch;1;202;Load Batch;讀取批號;Load Batch
+19;open_test_seq;1;203;Select Test Sequence;選擇測試序列;Select Test Sequence
+20;batchConfirm;1;204;Confirm Batch Info;確認批號資訊;Confirm Batch Info
+21;start_test;1;205;Start Test;開始測試;Start Test
+22;stop_test;1;206;Stop Test;停止測試;Stop Test
+23;button-report;0;300;Report Item in Sidebar;左列之報告檢視;Report Item in Sidebar
+24;query-data;1;301;Query Test Data;搜尋測試數據;Send Batch Data to PLC Button
+25;export-test-data-to-file;1;302;Export Report Option Button;呼叫匯出測試數據選單;Export Report Option Button
+26;export-start;1;303;Export data to File Button;執行匯出測試數據;Export data to File Button

@@ -34,12 +34,13 @@ class DigiChamberProduct(pd_product.Product):
         self.saveTestResult2DbCallback = dbResult_callback
         self.chamberModel = model
         self.lang_data = None
-        logger.add(sys.stdout, format="{time} - {level} - {message}")
-        logger.add(r"systemlog/{time:YYYY-MM-DD}/file_{time:YYYY-MM-DD}.log", rotation="10 MB")
-        self.lg = logger
+        self.lg = None
 
     def set_lang(self, lang_data):
         self.lang_data = lang_data
+    
+    def set_logger(self, loggerObj):
+        self.lg = loggerObj
 
     async def run_script(self,websocket, scriptName, data=None):
         if scriptName=='ini_seq':
@@ -235,6 +236,8 @@ class DigiChamberProduct(pd_product.Product):
             status = {'temp':self.curT, 'hum':random.random()*1 + self.curH}
             await self.socketCallback(websocket,'update_cur_status',status)
         except Exception as e:
+            status = {'temp':None, 'hum':None}
+            await self.socketCallback(websocket,'update_cur_status',status)
             self.lg.debug('digiChamber get temperature error')
             self.lg.debug(e)
 

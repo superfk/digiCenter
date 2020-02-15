@@ -44,17 +44,17 @@ class BatchInfo(object):
 class PyServerAPI(object):
     def __init__(self):
         self.users = set()
-        self.digiTest = Digitest()
-        self.digiChamber = DigiChamber()
+        self.digiTest = DummyDigitest # Digitest()
+        self.digiChamber = DummyChamber # DigiChamber()
         # self.lg = TimeRotateLogger('syslog', 'M', 5)
         logger.add(sys.stdout, format="{time} - {level} - {message}")
         logger.add(r"systemlog/{time:YYYY-MM-DD}/file_{time:YYYY-MM-DD}.log", rotation="10 MB")
         self.lg = logger
         self.db = DB(r"SHAWNNB\SQLEXPRESS", 'BareissAdmin', 'BaAdmin')
         self.userMang = UserManag(self.db,"Guest", "Guest", 0, True)
-        self.config = util.read_system_config(r'C:\\digiCenter\config.json')
+        self.config = None
         self.productProcess = DigiChamberProduct('digiCenter',r"C:\\data_exports",self.sendMsg,self.saveTestData)
-        self.productProcess.lg = logger
+        self.productProcess.set_logger(self.lg)
         self.initialized = False
         self.langFolder = ''
         self.batch = None
@@ -575,23 +575,25 @@ class PyServerAPI(object):
 
     async def close_all(self, websocket):
         try:
-            await self.db.close()
+            self.db.close()
             self.lg.debug('close database ok')
         except Exception as e:
             self.lg.debug('close database error!')
             self.lg.debug(e)
         try:
-            await self.productProcess.close_digiChamber_controller()
+            self.productProcess.close_digiChamber_controller()
             self.lg.debug('close digichamber ok')
         except Exception as e:
             self.lg.debug('close digichamber error!')
             self.lg.debug(e)
         try:
-            await self.productProcess.close_digitest_controller()
+            self.productProcess.close_digitest_controller()
             self.lg.debug('close digiTest ok')
         except Exception as e:
             self.lg.debug('close digiTest error!')
             self.lg.debug(e)
+        finally:
+            await self.sendMsg(websocket,'reply_close_all')
         
 
 

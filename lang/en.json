@@ -80,6 +80,12 @@
   "run_rt_th_title":"Realtime temperature and humidity gauge",
   "run_h_chart_title":"Hardness graph",
   "run_event_chart_title":"Temperature and Hardness Measurement Curve",
+  "modal_moving_sample_dialog_title":"Please Moving Sample",
+  "modal_moving_sample_retry_btn":"Retry",
+  "modal_moving_sample_next_btn":"Next",
+  "modal_moving_sample_dialog_text":"<h3>Press <strong>Retry<\/strong> if last value is not acceptable!<\/h3>\n  <h3>Press <strong>Next<\/strong> to mearsure at next position!<\/h3>",
+  "modal_moving_sample_sampleID":"Sample ID",
+  "modal_moving_sample_mear_data":"Measured Data",
   "report_query_title":"Database Query Filters",
   "report_filter_project":"Project",
   "report_filter_batch":"Batch",
@@ -156,9 +162,9 @@
   "server_reply_batch_cont_reason":"Continue this batch",
   "server_reply_batch_cont_title":"Batch continued",
   "server_manual_end_test_reason":"Manually Stop",
-  "server_manual_end_test_title":"Test Stopped",
+  "server_manual_end_test_title":"Test End",
   "server_errorl_end_test_reason":"Error occurred during test: ",
-  "server_error_end_test_title":"Test Stopped",
-  "server_final_end_test_reason":"Manually Stop",
-  "server_final_end_test_title":"Test Stopped"
+  "server_error_end_test_title":"Test End",
+  "server_final_end_test_reason":"test completed successfully",
+  "server_final_end_test_title":"Test End"
 }

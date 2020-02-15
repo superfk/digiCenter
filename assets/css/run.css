@@ -278,3 +278,40 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
     pointer-events: none;
     opacity: 0.7;
 }
+
+/* step status color */
+
+.run-init{
+    background-color: ghostwhite;
+    color: black
+}
+
+.run-pass{
+    background-color: lightgreen;
+    color: black
+}
+
+.run-wait{
+    background-color: orange;
+    color: black
+}
+
+.run-pause{
+    background-color: yellow;
+    color: black
+}
+
+.run-skip{
+    background-color: gray;
+    color: black
+}
+
+.run-next{
+    background-color: orange;
+    color: black
+}
+
+.run-fail{
+    background-color: red;
+    color: black
+}

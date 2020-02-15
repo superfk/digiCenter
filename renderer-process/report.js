@@ -63,10 +63,10 @@ function connect() {
           break;
         case 'reply_export_test_data_from_client':
           if(data.resp_code == 0) {
-            ipcRenderer.send('show-alert-alert',"Saving Data Error", data.res);
+            ipcRenderer.send('show-alert-alert',data.title, data.res);
           }
           else{
-            ipcRenderer.send('show-info-alert',"Saving Data OK", data.res);
+            ipcRenderer.send('show-info-alert',data.title, data.res);
           }
           break;
         default:

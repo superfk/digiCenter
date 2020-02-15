@@ -160,7 +160,7 @@ class TeardownStep(DigiCenterStep):
     def do(self):
         time.sleep(dummy_delay)
         # to set the temperature to safe range
-        self.hwDigichamber.set_gradient_down(0)
+        self.hwDigichamber.set_gradient_up(0)
         self.hwDigichamber.set_gradient_down(0)
         UL = 40
         LL = 20
@@ -170,11 +170,15 @@ class TeardownStep(DigiCenterStep):
         self.hwDigichamber.set_manual_mode(True)
         curT = self.hwDigichamber.get_real_temperature()
         while True:
+            if self.stopMsgQueue.qsize()>0:
+                # stop process immediately
+                break
+            
+            ## START ##########only for simulation of chamber###########
             if (target-curT)<0:
                 signSlope = -1*60
             else:
                 signSlope = 60
-            ## START ##########only for simulation of chamber###########
             curT = curT + signSlope/60*1 + random.random()*0.02
             self.hwDigichamber.set_dummy_act_temp(round(curT,1))
             ## END   ###################################################
@@ -249,7 +253,7 @@ class TemperatureStep(DigiCenterStep):
             if curT<=UL and curT>=CL:
                 break
         self.set_result(round(curT,1),'PASS',unit='&#8451')
-        self.hwDigichamber.set_manual_mode(False)
+        # self.hwDigichamber.set_manual_mode(False)
         return self.result
 
     def update_actTarget(self):

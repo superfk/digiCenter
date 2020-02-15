@@ -57,7 +57,7 @@ class Digitest(BaInstr):
         #     ret = self.readline_only()
         #     return True, ret, "ok"
         else:
-            return True, ret
+            return float(ret)
     
     def get_buffered_value(self, buffer=13):
         while True:

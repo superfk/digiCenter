@@ -1,5 +1,6 @@
 const {ipcRenderer} = require("electron");
 let tools = require('../assets/shared_tools');
+let seqRend = require('../assets/seq_render_lib')
 let ws
 
 // **************************************
@@ -23,11 +24,10 @@ let stopSeqBtn = document.getElementById('stop_test');
 let loadSeqBtn = document.getElementById('open_test_seq');
 let setup_seq = {};
 let teardown_seq = {};
-let seq = [];
 let loop_seq = [];
 let test_flow = {
     setup: setup_seq,
-    main: seq,
+    main: [],
     loop: loop_seq,
     teardown: teardown_seq
 };
@@ -37,6 +37,8 @@ const config = {
   modeBarButtonsToRemove: ['toImage','lasso2d','select2d', 'pan2d','zoom2d','hoverClosestCartesian','hoverCompareCartesian','toggleSpikelines'],
   responsive: false
 };
+
+const run_status_classes = 'run-init run-pass run-wait run-skip run-next run-fail run-pause'
 
 
 // **************************************
@@ -252,7 +254,7 @@ function updateValue(locationID, val){
 
 function updateGaugeRefValue(locationID, refvalue, selection='t'){
   let minRange = -40;
-  let maxRange = 200;
+  let maxRange = 190;
   if (selection=='h'){
     minRange = 0;
     maxRange = 100;
@@ -315,7 +317,6 @@ function connect() {
           ws.send(tools.parseCmd('pong',data));
           break;
         case 'reply_log_to_db':
-          console.log(data);
           break;
         case 'reply_init_hw':
           if(data.resp_code==1){
@@ -359,11 +360,10 @@ function connect() {
             // confirmed batch
             batch_confirmed();
           }else if (data.resp_code == 0){
-            ipcRenderer.send('show-option-dialog', 'Batch Existed!', data.reason, 'continue-batch');            
+            ipcRenderer.send('show-option-dialog', data.title, data.reason, 'continue-batch');            
           }
           break;
         case 'end_of_test':
-          console.log('end of test')
           endOfTest(data)
           break;
         default:
@@ -404,7 +404,6 @@ batchForm.addEventListener('submit',(e)=>{
   let numSample = batchinfo.filter(item=>item.name=='NumberOfSample')[0].value;
   let note = batchinfo.filter(item=>item.name=='Note')[0].value;
   batchinfo = {'project':proj, 'batch':batch, 'notes':note, 'seq_name':seqName, 'numSample':numSample}
-  console.log(batchinfo)
   ws.send(tools.parseCmd('create_batch',batchinfo));
 })
 
@@ -463,7 +462,7 @@ $( window ).resize(function() {
 startSeqBtn.addEventListener('click',()=>{
   startBtn_disable();
   stopBtn_enable();
-  $('#testSeqContainer li').css('background-color', 'white');
+  $('#testSeqContainer li').removeClass(run_status_classes).addClass('run-init');
   clearInterval(monitorValue);
   getBatchInfo();
   generateEventPlot();
@@ -566,15 +565,13 @@ function monitorFunction(){
 function updateSequence(res){
   test_flow.setup = res.setup;
   test_flow.main = res.main;
-  seq = res.main
   test_flow.loop = res.loop;
   test_flow.teardown = res.teardown;
-  sortSeq();
+  seqRend.sortSeq('testSeqContainer', test_flow.setup, test_flow.main, test_flow.teardown);
 }
 
 function getBatchInfo(){
   let batchData = $('#batchInfoForm').serializeArray();
-  console.log(batchData)
   return batchData;
 }
 
@@ -614,23 +611,24 @@ function updateSingleStep(res){
   let curstep = $('#testSeqContainer').find(`[data-stepid='${stepid}']`);
   let curResult = $(curstep).find('.stepResult');
   curResult.html(value + unit)
+  curstep.removeClass(run_status_classes)
   if (result == 'PASS'){
     updateStepByCat(res);
-    curstep.css('background-color', 'lightgreen');
+    curstep.addClass('run-pass');
   }else if (result == 'WAITING'){
     updateStepByCat(res);
-    curstep.css('background-color', 'orange');
+    curstep.addClass('run-wait');
   }else if (result == 'PAUSE'){
-    curstep.css('background-color', 'yellow');
+    curstep.addClass('run-pause');
   }else if (result == 'SKIP'){
     updateStepByCat(res);
-    curstep.css('background-color', 'gray');
+    curstep.addClass('run-skip');
   }else if (result == 'MEAR_NEXT'){
     updateStepByCat(res);
-    curstep.css('background-color', 'orange');
+    curstep.addClass('run-next');
   }else{
     updateStepByCat(res);
-    curstep.css('background-color', 'red');
+    curstep.addClass('run-fail');
   }
   
 }
@@ -643,8 +641,6 @@ function updateStepByCat(res){
   let relTime = res.relTime;
   let actTemp = res.actTemp;
   let eventName = res.eventName;
-
-  console.log(stepname)
 
   switch(stepname) {
     case 'ramp':
@@ -718,15 +714,11 @@ function showMovingSampleDialog(data){
   let retry_btn = document.getElementById('retry_mear_after_move_sample');
   let curData = data;
 
-  dialog_dataset_id.innerHTML = `Sample ID: ${curData.sampleid}`
-  dialog_dataset_counter.innerHTML = `Measured Data (${curData.dataset.length} / ${curData.totalCounts})`
+  dialog_dataset_id.innerHTML = curData.sampleid
+  dialog_dataset_counter.innerHTML = `(${curData.dataset.length} / ${curData.totalCounts})`
   dialog_dataset_list.innerHTML = listDataset(curData.dataset);
   dialog_dataset_mean.innerHTML = `${curData.method}: ${curData.result}`;
   dialog_dataset_stdev.innerHTML = `stdev: ${curData.std}`
-  dialog_text.innerHTML = `
-  <h3>Press <strong>Retry</strong> if last value is not acceptable!</h3>
-  <h3>Press <strong>Next</strong> to mearsure at next position!</h3>
-  `;
 
   dialog.style.display='block';
 
@@ -748,254 +740,14 @@ function endOfTest(res){
   let interrupted = res.interrupted;
   let reason = res.reason;
   clearInterval(monitorValue);
-  console.log(reason);
   monitorValue = setInterval(monitorFunction,1000);
   startBtn_disable();
   stopBtn_disable();
   batchInfo_disable();
   batchSelector_enable();
   if (!interrupted){
-    ipcRenderer.send('show-info-alert','Test Finished',reason);
+    ipcRenderer.send('show-info-alert',res.title,reason);
   }else{
-    ipcRenderer.send('show-warning-alert','Test Interrupted',reason);
+    ipcRenderer.send('show-warning-alert',res.title,reason);
   }
-}
-
-// **************************************
-// Sequence render functions
-// **************************************
-
-function sortSeq(){
-  let middleSeqs =  generateSeq();
-  $('#testSeqContainer').html(generateStartSeq() + middleSeqs + generateEndSeq());
-  test_flow.main = seq;
-  let revSeq = seq.slice();
-  revSeq.reverse().forEach((item,index)=>{
-    if(item.cat==='loop' && item.subitem['item']=='loop end'){
-        let loopid = item.subitem.paras.filter(item=>item.name=='loop id')[0].value;
-        let ids = searchLoopStartEndByID(loopid);
-        genLoopIndicator(ids[0],ids[1]);
-    }
-    
-  })
-}
-
-function genUnit(unit) {
-  if (unit === '' || unit === null) {
-      return '';
-  }else{
-      return '(' + unit + ')';
-  }
-}
-
-function genParas (paras,input=false) {
-  let c = '';
-  paras.forEach(function(item, index, array){
-      if (input) {
-          let t = item['type'];
-          let ronly = item['readOnly']?'disabled':'';
-          if (t === 'text'){
-              c += `<li><label>${tools.capitalize(item['name'])} ${genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='text' ${ronly}></li>`;
-          }else if (t === 'number'){
-              c += `<li><label>${tools.capitalize(item['name'])} ${genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='number' ${ronly}></li>`;
-
-          }else if (t === 'bool'){
-              c += `<li><input class='w3-check w3-border-bottom w3-cell' checked=${item['value']} type='checkbox' ${ronly}><label> ${tools.capitalize(item['name'])} ${genUnit(item['unit'])}
-              </label></li>`;
-              
-          }else if (t === 'select'){
-              let op = item['options'];
-              let selectedOP = item['value']
-              let ops = op.split(',');
-              let opItems = '';
-              ops.forEach((item)=>{
-                  if(selectedOP==item){
-                      opItems += `<option value="${item}" ${ronly} selected>${item}</option>`;
-                  }else{
-                      opItems += `<option value="${item}" ${ronly}>${item}</option>`;
-                  }
-                  
-              })
-              c += `<li><label>${tools.capitalize(item['name'])} ${genUnit(item['unit'])}</label> 
-              <select class="w3-select w3-border" name="option">${opItems}</select></li>`;
-          }
-      }else{
-          c += `<li style='font-size:12px;'><label><b>${tools.capitalize(item['name'])} ${genUnit(item['unit'])}</b></label>: ${item['value']}</li>`;
-      }
-    
-  });
-  return c;
-}
-
-function genIconByCat(cat,paras=null){
-  let iconset = '';
-  let loopColor = '';
-  if (cat === 'temperature'){
-      iconset = 'fas fa-thermometer-quarter';
-  }else if (cat === 'hardness'){
-      iconset = 'fas fa-download';
-  }else if (cat === 'waiting'){
-      iconset = 'fas fa-hourglass-start';
-  }else if (cat === 'loop'){
-      loopColor = paras.filter(item=>item.name=='loop color')[0].value;
-      iconset = 'fas fa-retweet';
-  }else if (cat === 'subprog'){
-      iconset = 'fas fa-indent';
-  }
-  return `<i class="${iconset} w3-margin-right fa-lg w3-center" style='width:20px;color:${loopColor}'></i>`
-}
-
-
-function genShortParaText(cat,subitem){
-  let {item, paras} = subitem;
-  let mainText = '';
-  
-  if (cat === 'temperature'){
-      let tTempPara = paras.filter(item=>item.name=='target temperature')[0];
-      let slopePara = paras.filter(item=>item.name=='slope')[0];
-      let increPara = paras.filter(item=>item.name=='increment')[0];
-      mainText = `target:${tTempPara.value} ${tTempPara.unit}, slope:${slopePara.value} ${slopePara.unit}, 
-      incre:${increPara.value} ${increPara.unit}`;
-  }else if (cat === 'hardness'){
-      let methodPara = paras.filter(item=>item.name=='method')[0];
-      let modePara = paras.filter(item=>item.name=='mode')[0];
-      let mtPara = paras.filter(item=>item.name=='measuring time')[0];
-      let nomearPara = paras.filter(item=>item.name=='number of measurement')[0];
-      let nummethodPara = paras.filter(item=>item.name=='numerical method')[0];
-      mainText = `${methodPara.value}, ${modePara.value}, mearTime:${mtPara.value} ${mtPara.unit}, mearCounts:${nomearPara.value}, ${nummethodPara.value} `;
-  }else if (cat === 'waiting'){
-      let cdtPara = paras.filter(item=>item.name=='conditioning time')[0];
-      mainText = `conditioningTime:${cdtPara.value} ${cdtPara.unit}`;
-  }else if (cat === 'loop'){
-      if(item=='loop start'){
-          let loopPara = paras.filter(item=>item.name=='loop id')[0];
-          let loopCountPara = paras.filter(item=>item.name=='loop counts')[0];
-          mainText = `Loop START, id:${loopPara.value}, counts:${loopCountPara.value}`;
-      }else{
-          let loopPara = paras.filter(item=>item.name=='loop id')[0];
-          let loopStop = paras.filter(item=>item.name=='stop on')[0];
-          mainText = `Loop END, id:${loopPara.value}, stop on: loopCount=${loopStop.value}`;
-      }
-  }else if (cat === 'subprog'){
-      let pathPara = paras.filter(item=>item.name=='path')[0];
-      mainText = `path:${pathPara.value}`;
-  }
-  return `<div class="paraText">${mainText}</div>`
-}
-
-function genStepTitles(){
-  let titles = [];
-  for (i = 0; i < seq.length; i++) {
-      let {cat, subitem} = seq[i];
-      let parms = genParas(subitem['paras']);
-      let en = subitem['enabled'];
-      // titles.push(`Step ${i+1} :: ${tools.capitalize(cat)} :: ${tools.capitalize(subitem['item'])}`);
-      titles.push(`Step ${i+1} :: ${tools.capitalize(cat)}`);
-  }
-
-  return titles;
-}
-
-function generateSeq() {
-  let stepTitles = genStepTitles();
-  let curstr = '';
-  seq.forEach((item,index)=>{
-      seq[index].id = index;
-      let {cat, subitem} = seq[index];
-      let parms = genParas(subitem['paras']);
-      let en = subitem['enabled']?'':'disabledStep';
-      let stepParaText = genShortParaText(cat,subitem);
-      curstr += `
-      <li data-stepid=${index} data-sortable=true ${en}' >
-          <div class='w3-bar'>
-              <a href="#" class='w3-bar-item stepParas'>
-                  ${genIconByCat(cat,subitem['paras'])}${stepTitles[index]}${stepParaText}
-              </a>
-              <div class="w3-bar-item w3-right lopCount">00</div>
-              <div class="w3-bar-item w3-right stepResult"></div>
-          </div>              
-      </li>
-      
-      `;
-  });
-  return curstr;
-}
-
-function generateStartSeq() {
-  test_flow.setup = setup_seq;
-  let curstr = `
-  <li data-stepid=-1>
-    <div class='w3-bar'>
-      <a href="#" class='w3-bar-item'><i class="far fa-play-circle w3-margin-right fa-lg"></i>Sequence Setup</a>
-    </div> 
-  </li>
-  `;
-  return curstr;
-}
-
-function generateEndSeq() {
-  test_flow.teardown = teardown_seq;
-  let curstr = `
-  <li data-stepid=9999>
-    <div class='w3-bar'>
-      <a href="#" class='w3-bar-item'><i class="far fa-stop-circle w3-margin-right fa-lg"></i>Sequence Teardown</a>
-    </div>
-  </li>
-  `;
-  return curstr;
-}
-
-function genLoopIndicator(start, end){
-  if(start<0 || end<0){
-      return null;
-  }
-  let liItem = $('#testSeqContainer li');
-  // ignore settup step
-  start+=1;
-  end+=1;
-  // $('.lopCount').removeClass('lopCount-enabled');
-  // liItem.removeClass('loop loopStart loopEnd');
-  liItem.each((index,item)=>{
-      let loopCount = seq[start-1].subitem['paras'].filter(item=>item.name=='loop counts')[0].value;
-      let loopColor = seq[start-1].subitem['paras'].filter(item=>item.name=='loop color')[0].value;
-      if(index==start){
-          $(item).addClass('loop loopStart');
-          $(item).find('.lopCount').addClass('lopCount-start-enabled').html(loopCount).css("cssText","border-color:"+loopColor + ' !important');
-          $(item).css("cssText","box-shadow: 2px 0px 0px 0px "+ loopColor + ' !important');
-      }else if (index > start && index < end){
-          $(item).addClass('loop');
-          $(item).css("cssText","box-shadow: 2px 0px 0px 0px "+ loopColor + ' !important');
-      }else if (index===end){
-          loopCount = seq[start-1].subitem['paras'].filter(item=>item.name=='loop counts')[0].value;
-          loopColor = seq[start-1].subitem['paras'].filter(item=>item.name=='loop color')[0].value;
-          $(item).addClass('loop loopEnd');
-          $(item).find('.lopCount').addClass('lopCount-enabled').html(loopCount).css("background-color",loopColor);
-          $(item).css("cssText","box-shadow: 2px 0px 0px 0px "+ loopColor + ' !important');
-      }else{
-          
-      }
-      
-      
-  })
-  
-}
-
-function searchLoopStartEndByID(loopid, dummyseq=null){
-  if(dummyseq==null){
-      dummyseq = seq.slice();
-  }
-  let loopStartID=loopid;
-  let loopEndID=loopid;
-  dummyseq.forEach((item,index)=>{
-      if(item.cat=='loop' && item.subitem.item=='loop start'){
-          if(item.subitem.paras.filter(item=>item.name=='loop id')[0].value==loopid){
-              loopStartID=index;
-          }
-      }else if(item.cat=='loop' && item.subitem.item=='loop end'){
-          if(item.subitem.paras.filter(item=>item.name=='loop id')[0].value==loopid){
-              loopEndID=index;
-          }
-      }
-  })
-  return [loopStartID,loopEndID]
 }

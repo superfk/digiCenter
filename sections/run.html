@@ -126,8 +126,14 @@
                     <div class="w3-container w3-half" style="padding-top: 16px;">
                         <div class="w3-cell-row">
                             <div class='w3-container w3-cell' style="height:100%;">
-                                <div id='dataset_sampleid' class='w3-large'></div>
-                                <div id='dataset_counter' class='w3-medium'></div>
+                                <div>
+                                    <div class='w3-large' data-lang='modal_moving_sample_sampleID' data-lang_type='innertext' style='display: inline-block !important;'>Sample ID</div>
+                                    <div id='dataset_sampleid' class='w3-large' style='display: inline-block !important;'></div>
+                                </div>
+                                <div>
+                                    <div class='w3-medium' data-lang='modal_moving_sample_mear_data' data-lang_type='innertext' style='display: inline-block !important;'>Measured Data</div>
+                                    <div id='dataset_counter' class='w3-medium' style='display: inline-block !important;'></div>
+                                </div>
                                 <div class='w3-row w3-padding-8'>
                                     <div id='dataset_mean' class='w3-half'></div>
                                     <div id='dataset_stdev' class='w3-half'></div>
@@ -150,14 +156,17 @@
                     </div>
                 </div>
 
-                    <div id="modal_moving_sample_dialog_text" class="w3-container w3-large w3-padding-16"></div>
+                    <div id="modal_moving_sample_dialog_text" data-lang='modal_moving_sample_dialog_text' data-lang_type='innerhtml' class="w3-container w3-large w3-padding-16">
+                        <h3>Press <strong>Retry</strong> if last value is not acceptable!</h3>
+                        <h3>Press <strong>Next</strong> to mearsure at next position!</h3>
+                    </div>
                     <div class="w3-container">
                         <div class='w3-bar w3-padding-16' style="margin-left: 0px;">
                             <div class='w3-bar-item'>
-                                <button id='retry_mear_after_move_sample' class="w3-btn w3-orange" style="width:200px">Retry</button>
+                                <button id='retry_mear_after_move_sample' class="w3-btn w3-orange" data-lang='modal_moving_sample_retry_btn' data-lang_type='innertext' style="width:200px">Retry</button>
                             </div>
                             <div class='w3-bar-item'>
-                                <button id='start_mear_after_move_sample' class="w3-btn w3-green" style="width:200px">Next</button>
+                                <button id='start_mear_after_move_sample' class="w3-btn w3-green" data-lang='modal_moving_sample_next_btn' data-lang_type='innertext' style="width:200px">Next</button>
                             </div>
                         </div>
                     </div>

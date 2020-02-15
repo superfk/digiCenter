@@ -34,14 +34,14 @@ def main():
     print(ret)
     ret = ba.isConnectRotation()
     print('rotation mode: {}'.format(ret))
-    for i in range(1):
+    for i in range(2):
         time.sleep(0.1)
         ba.set_remote(True)
         ba.start_mear()
         
         while True:
             ret = ba.get_single_value()
-            print('final resp of step {}: {}'.format(i, ret[1]))
+            print('final resp of step {}: {}'.format(i, ret))
             if ret:
                 break
             else:
