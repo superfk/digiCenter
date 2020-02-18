@@ -25,6 +25,8 @@ class DigiChamber(object):
         result = self.s.connect((self.ip, self.port))
         if result:
             self.connected=True
+        else:
+            self.connected=False
         return self.connected
 
     def create_cmd(self, cmdID, arglist):
@@ -194,8 +196,9 @@ class DigiChamber(object):
         self.dummyH = value
 
     def close(self):
-        self.s.close()
         self.connected=False
+        self.s.close()
+        
 
 
 class DummyChamber(DigiChamber):
@@ -365,6 +368,7 @@ class DummyChamber(DigiChamber):
     def close(self):
         self.connected=False
 
+        
 if __name__ == '__main__':
     dc = DigiChamber(ip='169.254.206.212')
     dc.connect()

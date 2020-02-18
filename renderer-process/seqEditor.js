@@ -303,7 +303,7 @@ function appendSeq(singleStep){
 function initSeq() {
     test_flow.setup = seqRend.makeSingleStep('setup','setup',[], true, -1);
     test_flow.teardown = seqRend.genTeardownTest();
-    seqContainer.innerHTML = seqRend.generateStartSeq(test_flow.setup) + seqRend.generateEndSeq(test_flow.teardown);
+    seqContainer.innerHTML = seqRend.generateStartSeq(test_flow.setup,true) + seqRend.generateEndSeq(test_flow.teardown);
     alwayIncrLoopColorIdx=0;
     ws.send(tools.parseCmd('run_cmd',tools.parseCmd('ini_seq')));
     ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_default_seq_path')));
@@ -447,6 +447,7 @@ function makeSortable(){
             }else{
                 test_flow.main = tempSeq;
                 seqRend.sortSeq('seqContainer',test_flow.setup, test_flow.main, test_flow.teardown,true);
+                updateTempTimeChart();
                 closeRightMenu();
 
             }
@@ -491,12 +492,10 @@ function genParasPanel(parain){
 
 
 $('body').on('click', '#seqContainer > li > div > a',function() {
-    console.log(this)
     let nh = this.innerText;
 
     let regexp = '(Setup)';
     let matches_array = nh.match(regexp);
-    console.log(matches_array)
     if (matches_array !== null){
         // genParasPanel(test_flow.setup);
         return;
@@ -533,7 +532,6 @@ $('body').on('click', '.enable_list, .disable_list', function() {
         $(this).removeClass('disable_list').addClass('enable_list');
         test_flow.main[currStepID]['subitem']['enabled']=true;
     }
-    console.log(test_flow.main)
 });
 
 $('body').on('click', '.delete_list', function() {
@@ -604,5 +602,7 @@ applyParaBtn.addEventListener('click',()=>{
     }
 
     seqRend.sortSeq('seqContainer',test_flow.setup, test_flow.main, test_flow.teardown,true);
+    makeSortable();
+    updateTempTimeChart();
 
 })

@@ -233,7 +233,14 @@ class DigiChamberProduct(pd_product.Product):
     async def get_cur_temp_and_humi(self, websocket):
         try:
             self.curT = self.dChamb.get_real_temperature()
-            status = {'temp':self.curT, 'hum':random.random()*1 + self.curH}
+            self.curH = self.dChamb.get_real_humidity()
+            tempInfo = {}
+            tempInfo['status']=self.dChamb.connected
+            tempInfo['value']=self.curT
+            humInfo = {}
+            humInfo['status']=self.dChamb.connected
+            humInfo['value']=self.curH
+            status = {'temp':tempInfo, 'hum':humInfo}
             await self.socketCallback(websocket,'update_cur_status',status)
         except Exception as e:
             status = {'temp':None, 'hum':None}
@@ -281,7 +288,8 @@ class DigiChamberProduct(pd_product.Product):
             self.dChamb = obj_digiChmaber
             conn = self.dChamb.connect()
             return conn
-        except:
+        except Exception as e:
+            self.lg.debug('digiChamber init error: {}'.format(e))
             return False
 
     def close_digiChamber_controller(self):
@@ -292,7 +300,8 @@ class DigiChamberProduct(pd_product.Product):
             self.digiTest = obj_digitest
             conn = self.digiTest.open_rs232(COM)
             return conn
-        except:
+        except Exception as e:
+            self.lg.debug('digitest init error: {}'.format(e))
             return False
 
     def close_digitest_controller(self):

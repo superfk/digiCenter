@@ -8,7 +8,6 @@ sys.path.append('server/corelib/hardwarelib/instrClass')
 sys.path.append('server/productlib')
 from corelib.hardwarelib.digiChamber import DigiChamber, DummyChamber
 from corelib.hardwarelib.instrClass.digitest import Digitest, DummyDigitest
-from corelib.hardwarelib.instrClass.digitest import Digitest
 # from corelib.logging_module.baLogger import TimeRotateLogger
 from corelib.usermanagelib.user_login import UserManag
 from corelib.lang.lang_tool import load_json_lang_from_json
@@ -245,7 +244,7 @@ class PyServerAPI(object):
                 self.lg.debug('error during send ping message with websocket')
                 self.lg.debug(e)
             finally:
-                await asyncio.sleep(30)
+                await asyncio.sleep(10)
             
 
     async def load_sys_config(self, websocket, path):
@@ -428,10 +427,15 @@ class PyServerAPI(object):
         ip = self.config['system']['machine_ip']
         port = self.config['system']['machine_port']
         COM = self.config['system']['digitest_COM']
+        mode = self.config['system']['mode']
         # set instance of hw
         try:
-            digiChamber_obj = DummyChamber(ip,port)
-            digiTest_obj = DummyDigitest()
+            if mode == 'demo':
+                digiChamber_obj = DummyChamber(ip,port)
+                digiTest_obj = DummyDigitest()
+            else:
+                digiChamber_obj = DigiChamber(ip,port)
+                digiTest_obj = Digitest()
             ret = self.productProcess.init_digiChamber_controller(digiChamber_obj)
             if ret:
                 self.lg.debug('digiChamber init OK')
@@ -615,7 +619,7 @@ def main():
     # s.bind(addr)
     # s.run()
 
-    start_server = websockets.serve(sokObj.handler, "localhost", port, ping_interval=10)
+    start_server = websockets.serve(sokObj.handler, "localhost", port, ping_interval=30)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(start_server)
     # loop.create_task(sokObj.load_sys_config(None,r'C:\\digiCenter\config.json'))

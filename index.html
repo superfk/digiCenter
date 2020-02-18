@@ -44,9 +44,9 @@
 <body class="w3-light-grey">
 
   <!-- Top container -->
-  <header class="main-header w3-bar w3-top w3-white w3-medium w3-border w3-border-teal" style="z-index:4">
-    <img src="img/Bareiss_LOGO.png"  style="margin-left: 1rem;margin-top: 0.5rem;">
-    <a id='login' href="#" class="w3-button w3-right loginNG"  title='click to login'><i class="fa fa-user w3-xxlarge"></i></a>
+  <header class="main-header w3-bar w3-top w3-white w3-border w3-border-teal" style="z-index:4;">
+    <img src="img/Bareiss_LOGO.png"  style="width:150px; margin-left: 1rem;margin-top: 0.5rem;">
+    <a id='login' href="#" class="w3-button w3-right loginNG"  data-lang='head_clicklogin_tooltip' data-lang_type='title' title='click to login'><i class="fa fa-user w3-xxlarge"></i></a>
     <div class='w3-bar-item w3-container w3-right'>
         <ul class="w3-ul w3-tiny" style="margin: 0rem;padding: 0rem;border: 0rem;">
             <li id='login_username' data-lang='head_login_username' data-lang_type='innerhtml' class="w3-medium" style="margin: 0rem;padding: 0rem;font-weight:bold;">Please Login</li>
@@ -93,8 +93,69 @@
     <div id='page-content' class="content js-content"></div>
   </main>
   <div id='waiting-download' class='w3-display-middle'></div>
+  <!-- !MACHINE INDICATOR! -->
+  <div class="machine-indicators w3-row w3-flat-clouds">
+
+    <div id='machine_hard_idct' class='machine-indicator-container w3-third w3-container'>
+      <div class="w3-cell-row">
+
+        <div class="w3-container w3-cell machine-indicator-container-left">
+          <div class='idct-header'>
+            <i class="fas fa-download" style='margin-right: 5px;'></i>
+            <div data-lang='main_indicator_hard' data-lang_type='innertext'>Hardness</div>
+          </div>
+          <div class='idct-status'>disconnect</div>
+        </div>
+
+        <div class="w3-container w3-cell machine-indicator-container-right">
+          <div class='idct-number'>--</div>
+          <div class='idct-unit'></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div id='machine_tempr_idct' class='machine-indicator-container w3-third w3-container'>
+      <div class="w3-cell-row">
+
+        <div class="w3-container w3-cell machine-indicator-container-left">
+          <div class='idct-header'>
+            <i class="fas fa-thermometer-quarter" style='margin-right: 5px;'></i>
+            <div data-lang='main_indicator_temperature' data-lang_type='innertext'>Temperature</div>
+          </div>
+          <div class='idct-status'>disconnect</div>
+        </div>
+
+        <div class="w3-container w3-cell machine-indicator-container-right">
+          <div class='idct-number'>--</div>
+          <div class='idct-unit'>&#8451</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div id='machine_hum_idct' class='machine-indicator-container w3-rest w3-container'>
+      <div class="w3-cell-row">
+
+        <div class="w3-container w3-cell machine-indicator-container-left">
+          <div class='idct-header'>
+            <i class="fas fa-tint" style='margin-right: 5px;'></i>
+            <div data-lang='main_indicator_humidity' data-lang_type='innertext'>Humidity</div>
+          </div>
+          <div class='idct-status'>disconnect</div>
+        </div>
+
+        <div class="w3-container w3-cell machine-indicator-container-right">
+          <div class='idct-number'>--</div>
+          <div class='idct-unit'>%r.h.</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
   <!-- !PAGE footer! -->
-  <footer class="w3-bar w3-bottom w3-flat-clouds w3-border-top w3-border-teal">
+  <footer class="w3-bar w3-bottom w3-flat-asbestos w3-border-top w3-border-silver">
     <div class='w3-container w3-display-left w3-rest'><p id='footStatus' style="overflow: auto;"></p></div>
     <div id='systime' class='w3-container w3-display-right w3-border-left w3-col' style="width:180px">yyyy-mm-dd HH:MM:SS</div>
   </footer>

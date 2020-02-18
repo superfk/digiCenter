@@ -40,6 +40,9 @@ const config = {
 
 const run_status_classes = 'run-init run-pass run-wait run-skip run-next run-fail run-pause'
 
+let machine_hard_idct = document.querySelectorAll('#machine_hard_idct .idct-number')[0]
+let machine_temp_idct = document.querySelectorAll('#machine_tempr_idct .idct-number')[0]
+let machine_humi_idct = document.querySelectorAll('#machine_hum_idct  .idct-number')[0]
 
 // **************************************
 // init functions
@@ -320,7 +323,6 @@ function connect() {
           break;
         case 'reply_init_hw':
           if(data.resp_code==1){
-            monitorValue = setInterval(monitorFunction,1000);
             startBtn_disable();
             stopBtn_disable();
             batchInfo_disable();
@@ -336,11 +338,10 @@ function connect() {
           updateServerSeqFolder(data);
           break;
         case 'update_cur_status':
-          updateValue('actualTempGauge', data.temp);
-          updateValue('actualHumGauge', data.hum);
+          // updateValue('actualTempGauge', data.temp);
+          // updateValue('actualHumGauge', data.hum);
           break;
         case 'update_step_result':
-          // console.log(data)
           updateSingleStep(data);
           break;
         case 'update_cursor':
@@ -463,7 +464,6 @@ startSeqBtn.addEventListener('click',()=>{
   startBtn_disable();
   stopBtn_enable();
   $('#testSeqContainer li').removeClass(run_status_classes).addClass('run-init');
-  clearInterval(monitorValue);
   getBatchInfo();
   generateEventPlot();
   generateHardnessPlot();
@@ -482,11 +482,8 @@ stopSeqBtn.addEventListener('click',()=>{
 // general functions
 // **************************************
 
-let monitorValue;
-
 function init(){
   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_default_seq_path')));
-  ws.send(tools.parseCmd('init_hw'));
 }
 
 function batchSelector_enable(){
@@ -558,10 +555,6 @@ function loadSeqFromServer(){
   ipcRenderer.send('open-file-dialog',defaultSeqPath,'load-seq-run')
 };
 
-function monitorFunction(){
-  ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_cur_temp_and_humi')));
-}
-
 function updateSequence(res){
   test_flow.setup = res.setup;
   test_flow.main = res.main;
@@ -607,9 +600,15 @@ function updateSingleStep(res){
   let result = res.status;
   let timestamp = res.timestamp;
   let actTemp = res.actTemp;
+  let actHumi = res.actHum;
 
   let curstep = $('#testSeqContainer').find(`[data-stepid='${stepid}']`);
   let curResult = $(curstep).find('.stepResult');
+  // update actTemp
+  tools.updateNumIndicator(machine_temp_idct,actTemp,1)
+  tools.updateNumIndicator(machine_humi_idct,actHumi,1)
+  
+  // update value in step
   curResult.html(value + unit)
   curstep.removeClass(run_status_classes)
   if (result == 'PASS'){
@@ -641,11 +640,16 @@ function updateStepByCat(res){
   let relTime = res.relTime;
   let actTemp = res.actTemp;
   let eventName = res.eventName;
+  let progs = res.prograss;
+
+  let curstep = $('#testSeqContainer').find(`[data-stepid='${stepid}']`);
+  let curProgs = $(curstep).find('.stepProg');
 
   switch(stepname) {
     case 'ramp':
-      updateValue('actualTempGauge', value);
+      // updateValue('actualTempGauge', value);
       tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp)
+      curProgs.val(progs);
       break;
     case 'measure':
       // h_data_y.push(value)
@@ -663,11 +667,13 @@ function updateStepByCat(res){
       break;
     case 'time':      
       tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp)
+      curProgs.val(progs);
       break;
     
     case 'teardown':
-      updateValue('actualTempGauge', actTemp);
+      // updateValue('actualTempGauge', actTemp);
       tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp)
+      curProgs.val(progs);
       break;
     default:
       console.log('Not found this stepname: ' + stepname)
@@ -739,8 +745,7 @@ function start_mear_after_move_sample(isRetry=false){
 function endOfTest(res){
   let interrupted = res.interrupted;
   let reason = res.reason;
-  clearInterval(monitorValue);
-  monitorValue = setInterval(monitorFunction,1000);
+  
   startBtn_disable();
   stopBtn_disable();
   batchInfo_disable();

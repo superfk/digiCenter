@@ -132,10 +132,11 @@
   height:40px;
   display: flex;
   align-items: center;
-  justify-content: left;
+  justify-content: center ;
+  text-align: center;
 }
 
-#seqContainer li a { padding: 5px; }
+
 #seqContainer .active-item { background: #F39814; color: white; }
 
 .stepBoxArrow {
@@ -147,12 +148,15 @@
   color: var(--color-c2);
 }
 
+
 .icon::before {
   display: inline-block;
   font-style: normal;
   font-variant: normal;
   text-rendering: auto;
   -webkit-font-smoothing: antialiased;
+  padding-left: 15px;
+  
 }
 
 .icon:hover {

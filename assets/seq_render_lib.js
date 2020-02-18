@@ -78,6 +78,14 @@ module.exports = {
         return titles;
       },
 
+    genProgBarByCat: function(cat){
+        let prgbar = '';
+        if (cat == 'temperature' || cat == 'waiting' || cat == 'teardown'){
+            prgbar = `<progress max="100" value="0" class='stepProg'></progress>`
+        }
+        return prgbar;
+    },
+    
     generateSeq: function(seq, editable=false) {
         let stepTitles = module.exports.genStepTitles(seq);
         let curstr = '';
@@ -97,26 +105,34 @@ module.exports = {
                     </a>
                     <div class="w3-bar-item w3-right lopCount">00</div>
                     ${editable?
-                    `<div class='w3-bar-item w3-right' style='padding:2px;margin:0px;width:40px'>${module.exports.genDeleteIcon(index)}</div>
-                    <div class='w3-bar-item w3-right' style='padding:2px;margin:0px;width:40px'>${module.exports.genEnableIcon(index,en)}</div>`
+                    `<div class='w3-bar-item w3-right' style='width:50px'>${module.exports.genDeleteIcon(index)}</div>
+                    <div class='w3-bar-item w3-right' style='width:50px'>${module.exports.genEnableIcon(index,en)}</div>`
                     :
                     `<div class="w3-bar-item w3-right stepResult"></div>`
                     }
-                </div>              
+                </div>
+                ${editable?'':module.exports.genProgBarByCat(cat)}      
             </li>
-            
             `;
         });
         return curstr;
       },
 
-      generateStartSeq: function (setup_seq) {
+      generateStartSeq: function (setup_seq, editable=false) {
         let stepParaText = "";
         let curstr = `
         <li class='w3-flat-nephritis' data-stepid=-1>
           <div class='w3-bar'>
             <a href="#" class='w3-bar-item'>
-                ${module.exports.genIconByCat(setup_seq.cat, setup_seq.subitem['paras'])}Sequence Setup${stepParaText}</a>
+                ${module.exports.genIconByCat(setup_seq.cat, setup_seq.subitem['paras'])}Sequence Setup${stepParaText}
+            </a>
+            <div class="w3-bar-item w3-right lopCount">00</div>
+            ${editable?
+                `<div class='w3-bar-item w3-right w3-small' style='width:50px' >Delete</div>
+                <div class='w3-bar-item w3-right w3-small' style='width:50px' >Enable</div>`
+                :
+                ``
+                }
           </div> 
         </li>
         `;
@@ -133,7 +149,7 @@ module.exports = {
         return teardown_seq;
     },
       
-      generateEndSeq: function (teardown_seq) {
+      generateEndSeq: function (teardown_seq, editable=false) {
         let stepParaText = module.exports.genShortParaText(teardown_seq.cat, teardown_seq.subitem);
         let curstr = `
         <li class='w3-flat-alizarin' data-stepid=9999>
@@ -141,7 +157,8 @@ module.exports = {
                 <a href="#" class='w3-bar-item'>
                     ${module.exports.genIconByCat(teardown_seq.cat, teardown_seq.subitem['paras'])}Sequence Teardown${stepParaText}
                 </a>
-            </div> 
+            </div>
+            ${editable?'':module.exports.genProgBarByCat(teardown_seq.cat)}  
             
         </li>
         `;
@@ -150,7 +167,7 @@ module.exports = {
 
     sortSeq: function(container_id, setup_seq, seq, teardown_seq, editable=false){
         let middleSeqs =  module.exports.generateSeq(seq, editable);
-        $('#'+container_id).html(module.exports.generateStartSeq(setup_seq) + middleSeqs + module.exports.generateEndSeq(teardown_seq));
+        $('#'+container_id).html(module.exports.generateStartSeq(setup_seq, editable) + middleSeqs + module.exports.generateEndSeq(teardown_seq, editable));
         let revSeq = seq.slice();
         revSeq.reverse().forEach((item,index)=>{
           if(item.cat==='loop' && item.subitem['item']=='loop end'){

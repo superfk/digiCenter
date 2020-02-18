@@ -69,5 +69,32 @@ module.exports = {
       };
     
       Plotly.relayout(locationID, layout);
+    },
+
+    changeStatus: function(html_elem, status=null){
+      let preState = false
+      let curState = false
+      if (status!=null){
+        preState = $(html_elem).hasClass('idct-status-conn');
+        curState = status;
+        if (preState != curState && curState){
+          $(html_elem).removeClass('idct-status-conn').addClass('idct-status-conn');
+        }else if (preState != curState && !curState){
+          $(html_elem).removeClass('idct-status-conn');
+        }
+      }
+    },
+    
+    updateNumIndicator: function (html_elem, value=null, pres=1){
+      // update values
+      html_elem.innerText = value==null?'--':value.toFixed(pres);
+    },
+
+    updateStatusIndicator: function (html_elem, status=null){
+      // update status
+      html_elem.innerText = status==false?'disconnected':'connected';
+      // update indicator color
+      module.exports.changeStatus(html_elem, status);
     }
+    
   };

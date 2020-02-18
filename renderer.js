@@ -7,8 +7,15 @@ var systime_hook = document.getElementById('systime');
 let tools = require('./assets/shared_tools');
 let ws;
 let lang_data = {};
+let monitorValue;
 
+let machine_hard_idct = document.querySelectorAll('#machine_hard_idct .idct-number')[0]
+let machine_temp_idct = document.querySelectorAll('#machine_tempr_idct .idct-number')[0]
+let machine_humi_idct = document.querySelectorAll('#machine_hum_idct  .idct-number')[0]
 
+let machine_hard_idct_status = document.querySelectorAll('#machine_hard_idct .idct-status')[0]
+let machine_temp_idct_status = document.querySelectorAll('#machine_tempr_idct .idct-status')[0]
+let machine_humi_idct_status = document.querySelectorAll('#machine_hum_idct  .idct-status')[0]
 // login button
 var hasLogin = false;
 const loginBtn = document.getElementById('login');
@@ -34,6 +41,7 @@ function connect() {
     console.log('websocket in renderer connected')
     getDefaultLang();
     init_login();
+    init_hw();
   });
 
   ws.on('ping',()=>{
@@ -91,7 +99,6 @@ function connect() {
           }
           break;
         case 'reply_set_new_password_when_first_login':
-        console.log(data)
           if (data[0]){
               ipcRenderer.send('show-info-alert',"Set Password OK", data[1]);
               $('#first_login_panel').hide();
@@ -103,11 +110,21 @@ function connect() {
             window.removeEventListener('keypress', checkkeypressFirstLogin);
           break;
         case 'reply_update_default_lang':
-          console.log(data)
           let lang_ID = data.langID;
           lang_data = data.langData;
           setLang(lang_ID);
           autoUpdateLang();
+          break;
+        case 'reply_init_hw':
+          if(data.resp_code==0){
+            ipcRenderer.send('show-alert-alert','Alert',data.res + '\n' + data.reason);
+          }else{
+            clearInterval(monitorValue);
+            monitorValue = setInterval(monitorFunction,1000);
+          }
+          break;
+        case 'update_cur_status':
+          updateIndicator(null,data.temp,data.hum)
           break;
         case 'reply_server_error':
           console.log(data.error);
@@ -279,6 +296,7 @@ function setLang(lang){
   })
 }
 
+
 // detect select language
 $('.lang-flags').on('click', function(){
   var elem = $(this);
@@ -305,6 +323,9 @@ function autoUpdateLang(){
         case 'plhd':
           elt.attr('placeholder',txt);
           break;
+        case 'title':
+          elt.attr('title',txt);
+          break;
         default:
           // code block
       }
@@ -312,4 +333,29 @@ function autoUpdateLang(){
     
   });
 
+}
+
+
+function init_hw(){
+  ws.send(tools.parseCmd('init_hw'));
+}
+
+function monitorFunction(){
+  ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_cur_temp_and_humi')));
+}
+
+function updateIndicator(hard=null, temp=null, hum=null){
+  if (hard!=null){
+    tools.updateNumIndicator(machine_hard_idct,hard.value, 1)
+    tools.updateStatusIndicator(machine_hard_idct_status,hard.status)
+  }
+  if (temp!=null){
+    tools.updateNumIndicator(machine_temp_idct,temp.value, 1)
+    tools.updateStatusIndicator(machine_temp_idct_status,temp.status)
+  }
+  if (hum!=null){
+    tools.updateNumIndicator(machine_humi_idct,hum.value, 1)
+    tools.updateStatusIndicator(machine_humi_idct_status,hum.status)
+  }
+  
 }

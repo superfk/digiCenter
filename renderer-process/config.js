@@ -668,7 +668,6 @@ table_role_list.on( 'select', function ( e, dt, type, indexes ) {
 
   if ( type === 'row' ) {
     selected_role = table_role_list.row( { selected: true } ).data()['User_Role'];
-    console.log(selected_role)
     get_function_list();
   }
 } );
@@ -680,13 +679,19 @@ table_role_list.on( 'deselect', function ( e, dt, type, indexes ) {
   }
 });
 
+// update function name when change language
+$('.lang-flags').on('click', function(){
+  var elem = $(this);
+  var langID = elem.attr('id')
+  get_function_list();
+})
+
 // select function
 $('#func-list-table tbody').on( 'click', 'td', function () {
   var r = $(this).parent().find('td').html().trim();
   var c = $(this).index();
   var cell = table_func_list.cell( this );
   var data = cell.data();
-  console.log(data);
   if (c===2 || c===3){
     cell.data(!data);
   }
