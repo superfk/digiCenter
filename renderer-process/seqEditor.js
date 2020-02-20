@@ -32,6 +32,7 @@ let test_flow = {
 let activePara = null;
 let defaultSeqPath = null;
 let alwayIncrLoopColorIdx = 0;
+let seqPath_under_save = ''
 
 // **************************************
 // websocket functions
@@ -72,6 +73,9 @@ function connect() {
                 break;
             case 'update_sys_default_config':
                 updateServerSeqFolder(data);
+                break;
+            case 'inform_user_seq_differ':
+                ipcRenderer.send('show-option-dialog', data.title, data.reason, 'confirm-save-seq');
                 break;
             default:
                 console.log('Not found this cmd' + cmd)
@@ -301,9 +305,10 @@ function appendSeq(singleStep){
 }
  
 function initSeq() {
+    seqPath_under_save = ''
     test_flow.setup = seqRend.makeSingleStep('setup','setup',[], true, -1);
     test_flow.teardown = seqRend.genTeardownTest();
-    seqContainer.innerHTML = seqRend.generateStartSeq(test_flow.setup,true) + seqRend.generateEndSeq(test_flow.teardown);
+    seqContainer.innerHTML = seqRend.generateStartSeq(test_flow.setup,true) + seqRend.generateEndSeq(test_flow.teardown,true);
     alwayIncrLoopColorIdx=0;
     ws.send(tools.parseCmd('run_cmd',tools.parseCmd('ini_seq')));
     ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_default_seq_path')));
@@ -322,10 +327,20 @@ function loadSeqFromServer(){
 };
 
 ipcRenderer.on('save-seq', (event, path) => {
-    ws.send(tools.parseCmd('run_cmd',tools.parseCmd('save_seq',{path: path, seq: test_flow})));
+    seqPath_under_save = path;
+    ws.send(tools.parseCmd('run_cmd',tools.parseCmd('save_seq',{path: seqPath_under_save, seq: test_flow, force_save:false})));
 })
 
+ipcRenderer.on('confirm-save-seq', (event, resp)=>{
+    console.log(resp)
+    if (resp == 0){
+        ws.send(tools.parseCmd('run_cmd',tools.parseCmd('save_seq',{path: seqPath_under_save, seq: test_flow, force_save:true})));
+    }
+    
+  })
+
 ipcRenderer.on('load-seq-editor', (event, path) => {
+    seqPath_under_save = path
     ws.send(tools.parseCmd('run_cmd',tools.parseCmd('load_seq',{path: path})));
 });
 

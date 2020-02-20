@@ -266,6 +266,7 @@ ipcMain.on('save-file-dialog', (event, default_Path, calback) => {
       { name: 'Sequence', extensions: ['seq'] }
     ],
     defaultPath: default_Path,
+    'showOverwriteConfirmation':false
   }).then(result => {
     console.log(result)
     if (!result.canceled) {

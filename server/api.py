@@ -54,6 +54,7 @@ class PyServerAPI(object):
         self.config = None
         self.productProcess = DigiChamberProduct('digiCenter',r"C:\\data_exports",self.sendMsg,self.saveTestData)
         self.productProcess.set_logger(self.lg)
+        self.productProcess.set_log_to_db_func(self.local_log_to_db)
         self.initialized = False
         self.langFolder = ''
         self.batch = None
@@ -62,10 +63,12 @@ class PyServerAPI(object):
     async def register(self,websocket):
         self.users.add(websocket)
         self.lg.debug('new user connected: {}'.format(websocket))
+        self.local_log_to_db('new user connected: {}'.format(websocket))
 
     async def unregister(self,websocket):
         self.users.remove(websocket)
         self.lg.debug('user disconnected: {}'.format(websocket))
+        self.local_log_to_db('new user connected: {}'.format(websocket))
 
     async def handler(self,websocket, path):
         # register(websocket) sends user_event() to websocket
@@ -227,7 +230,10 @@ class PyServerAPI(object):
 
     async def sendMsg(self, websocket, cmd, data=None):
         msg = {'cmd': cmd, 'data': data}
-        self.lg.debug('server sent msg: {}'.format(msg))
+        filter_cmd = ['update_cur_status', 'pong']
+        if cmd not in filter_cmd:
+            self.lg.debug('server sent msg: {}'.format(msg))
+
         try:
             await websocket.send(json.dumps(msg))
         except Exception as e:
@@ -324,11 +330,14 @@ class PyServerAPI(object):
         if not self.db.connect('DigiChamber'):
             res['result']=0
             res['resp']='database connection error'
+            self.lg.debug(res['resp'])
             await self.sendMsg(websocket,cmd='result_of_backendinit',data=res)
         else:
             res['result']=1
             res['resp']='database connection ok'
+            self.lg.debug(res['resp'])
             self.userMang.db = self.db
+            self.userMang.set_log_to_db_func(self.local_log_to_db)
             self.productProcess.db = self.db
             await self.sendMsg(websocket,cmd='result_of_backendinit',data=res)
 
@@ -380,6 +389,17 @@ class PyServerAPI(object):
         self.lg.debug('save system log into database with field: {}, values: {}'.format(fields,values))
         if reply:
             await self.sendMsg(websocket,'reply_log_to_db',str(values))
+    
+    def local_log_to_db(self,msg, msg_type='info', audit=False):
+        try:
+            fields = ["Timestamp", "User_Name", "User_Role", "Log_Type", "Log_Message", "Audit"]
+            now = datetime.datetime.now().strftime(r"%Y/%m/%d %H:%M:%S.%f")
+            values = [now, self.userMang.user.username, self.userMang.user.role, msg_type, msg, audit]
+            self.db.insert('System_log', fields, values)
+            self.lg.debug('save system log into database with field: {}, values: {}'.format(fields,values))
+        except Exception as e:
+            self.lg.debug('error when save system log into database in local function')
+            self.lg.debug(e)
 
     async def get_syslog_from_db(self,websocket, start, end):
         fields = ["Timestamp", "User_Name", "User_Role", "Log_Type", "Log_Message", "Audit"]
@@ -430,23 +450,27 @@ class PyServerAPI(object):
         mode = self.config['system']['mode']
         # set instance of hw
         try:
+            isConn_chamber = False
+            isConn_digitest= False
             if mode == 'demo':
                 digiChamber_obj = DummyChamber(ip,port)
                 digiTest_obj = DummyDigitest()
             else:
                 digiChamber_obj = DigiChamber(ip,port)
                 digiTest_obj = Digitest()
-            ret = self.productProcess.init_digiChamber_controller(digiChamber_obj)
-            if ret:
+            isConn_chamber = self.productProcess.init_digiChamber_controller(digiChamber_obj)
+            if isConn_chamber:
                 self.lg.debug('digiChamber init OK')
-            ret = self.productProcess.init_digitest_controller(digiTest_obj,COM)
-            if ret:
+            isConn_digitest = self.productProcess.init_digitest_controller(digiTest_obj,COM)
+            if isConn_digitest:
                 self.lg.debug('digiTest init OK')
             await self.sendMsg(websocket,'reply_init_hw',{'resp_code':1, 'res':self.lang_data['server_hw_init_ok']})
+            await self.sendMsg(websocket,'reply_init_hw_status',{'digitest':isConn_digitest, 'digichamber': isConn_chamber})
         except Exception as e:
             self.lg.debug('error during excetipn handling in init_hw')
             self.lg.debug(e)
             await self.sendMsg(websocket,'reply_init_hw',{'resp_code':0, 'res':self.lang_data['server_hw_init_NG'], 'reason':'{}'.format(e)})
+            await self.sendMsg(websocket,'reply_init_hw_status',{'digitest':isConn_digitest, 'digichamber': isConn_chamber})
 
     async def run_seq(self, websocket):
         self.productProcess.create_seq()

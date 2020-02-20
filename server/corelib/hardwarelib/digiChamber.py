@@ -36,7 +36,7 @@ class DigiChamber(object):
         for arg in arglist:
             cmd = cmd + DELIM
             cmd = cmd + arg.encode('ascii')
-            cmd = cmd + CR
+        cmd = cmd + CR
         return cmd
     
     def send_and_get(self, cmd, buffer=512, delay_sec=0):
@@ -55,8 +55,8 @@ class DigiChamber(object):
         for l in lists:
             i = i +1
             sys.stdout.write(l.decode())
-        if i< len(lists):
-            sys.stdout.write('Â¶')
+            if i< len(lists):
+                sys.stdout.write('Â¶')
     
     def get_chamber_info(self):
         '''
@@ -95,37 +95,39 @@ class DigiChamber(object):
         value = int(value)
         ctrl_vars = []
         for d in range(value):
+            # parse id of control variable
+            cvID = str(d+1)
             var_info = {}
             # variable name
-            cmd = self.create_cmd('11026', ['1', str(d+1)])
+            cmd = self.create_cmd('11026', ['1', cvID])
             respid, info = self.send_and_get(cmd)
             var_info['name']=info.decode('utf-8', 'ignore').strip()
             # variable unit
-            cmd = self.create_cmd('11023', ['1', str(d+1)])
+            cmd = self.create_cmd('11023', ['1', cvID])
             respid, info = self.send_and_get(cmd)
             var_info['unit']=info.decode('utf-8', 'ignore').strip()
             # variable min input limit
-            cmd = self.create_cmd('11007', ['1', str(d+1)])
+            cmd = self.create_cmd('11007', ['1', cvID])
             respid, info = self.send_and_get(cmd)
             var_info['min']=float(info)
             # variable max input limit
-            cmd = self.create_cmd('11009', ['1', str(d+1)])
+            cmd = self.create_cmd('11009', ['1', cvID])
             respid, info = self.send_and_get(cmd)
             var_info['max']=float(info)
             # variable wanring min input limit
-            cmd = self.create_cmd('11016', ['1', str(d+1)])
+            cmd = self.create_cmd('11016', ['1', cvID])
             respid, info = self.send_and_get(cmd)
             var_info['warn_min']=float(info)
             # variable warning max input limit
-            cmd = self.create_cmd('11017', ['1', str(d+1)])
+            cmd = self.create_cmd('11017', ['1', cvID])
             respid, info = self.send_and_get(cmd)
             var_info['warn_max']=float(info)
             # variable alarm min input limit
-            cmd = self.create_cmd('11014', ['1', str(d+1)])
+            cmd = self.create_cmd('11014', ['1', cvID])
             respid, info = self.send_and_get(cmd)
             var_info['alarm_min']=float(info)
             # variable alarm max input limit
-            cmd = self.create_cmd('11015', ['1', str(d+1)])
+            cmd = self.create_cmd('11015', ['1', cvID])
             respid, info = self.send_and_get(cmd)
             var_info['alarm_max']=float(info)
 

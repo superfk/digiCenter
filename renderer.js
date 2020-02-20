@@ -123,6 +123,11 @@ function connect() {
             monitorValue = setInterval(monitorFunction,1000);
           }
           break;
+        case 'reply_init_hw_status':
+          tools.updateStatusIndicator(machine_hard_idct_status,data.digitest)
+          tools.updateStatusIndicator(machine_temp_idct_status,data.digichamber)
+          tools.updateStatusIndicator(machine_humi_idct_status,data.digichamber)
+          break;
         case 'update_cur_status':
           updateIndicator(null,data.temp,data.hum)
           break;
@@ -167,7 +172,7 @@ list = document.getElementsByClassName("nav-button");
 for (var i = 0; i < list.length; i++) {
   list[i].addEventListener("click", function (e) {
     let btstr = e.target.textContent.trim()
-    ipcRenderer.send('save_log',`Click ${btstr} nav button`, 'info', 1);
+    ipcRenderer.send('save_log',`Click ${btstr} nav button`, 'info', 0);
     e.preventDefault();
     ipcRenderer.send('updateFootStatus',"");
   });

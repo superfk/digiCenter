@@ -125,6 +125,138 @@ def set_csv_content(data_dict_list, path, fieldnames, delimiter=';'):
         for d in data_dict_list:
             writer.writerow(d)
 
+def ordered(obj):
+    if isinstance(obj, dict):
+        return [ordered(v) for k, v in obj.items()]
+    if isinstance(obj, list):
+        return [ordered(x) for x in obj]
+    else:
+        return obj
+
+def flatList(obj):
+    finallist = []
+    for elm in obj:
+        if isinstance(elm, list):
+            finallist.extend(flatList(elm))
+        else:
+            finallist.append(elm)
+    return finallist
+
+def flatten_dictionary(d):
+    result = {}
+    stack = [iter(d.items())]
+    keys = []
+    while stack:
+        for k, v in stack[-1]:
+            keys.append(k)
+            if isinstance(v, dict):
+                stack.append(iter(v.items()))
+                break
+            else:
+                result['.'.join(keys)] = v
+                keys.pop()
+        else:
+            if keys:
+                keys.pop()
+            stack.pop()
+    return result
+
+def compareTwoJson(json1, json2):
+    try:
+        # check structure
+        same = json1.keys() == json2.keys()
+        if not same:
+            return False, 'structure invalid'
+        
+        # check setup
+        ## check enable
+        p1 = json1['setup']['subitem']['enabled']
+        p2 = json2['setup']['subitem']['enabled']
+        same = p1 == p2
+        if not same:
+            differ = 'changed from {} to {} of "Setup" step'.format(p1, p2)
+            return False, 'Setup paras changes, reason: {}'.format(differ)
+
+        ## check paras
+        para1 = json1['setup']['subitem']['paras']
+        para2 = json2['setup']['subitem']['paras']
+        same = para1 == para2
+        if not same:
+            differ = 'change from {} to {}'.format(para1, para2)
+            return False, 'Setup paras changes, reason: {}'.format(differ)
+
+        # check teardown
+        ## check enable
+        p1 = json1['setup']['subitem']['enabled']
+        p2 = json2['setup']['subitem']['enabled']
+        same = p1 == p2
+        if not same:
+            differ = 'changed from {} to {} of "Teardown" step'.format(p1, p2)
+            return False, 'Teardown paras changes, reason: {}'.format(differ)
+        ## check paras
+        para1 = json1['teardown']['subitem']['paras']
+        para2 = json2['teardown']['subitem']['paras']
+        same = para1 == para2
+        if not same:
+            differ = 'change from {} to {}'.format(para1, para2)
+            return False, 'Teardown paras changes, reason: {}'.format(differ)
+
+        # check main length
+        length1 = json1['main']
+        length2 = json2['main']
+        same = len(length1) == len(length2)
+        if not same:
+            return False, 'the length of main sequences stucture is different'
+
+        # check main content
+        reason = []
+        seq1 = json1['main']
+        seq2 = json2['main']
+        for s1, s2 in zip(seq1, seq2):
+            k1 = s1['cat']
+            k2 = s2['cat']
+            same = k1 == k2
+            if not same:
+                differ = 'change from {} to {} in step "{}"'.format(k1, k2, int(s1['id'])+1)
+                reason.append(differ)
+        if len(reason)>0:
+            differ = '\n'.join(map(str, reason))
+            return False, 'the content of main sequences is different, reason: {}'.format(differ)
+
+        # check main para
+        reason = []
+        seq1 = json1['main']
+        seq2 = json2['main']
+        for s1, s2 in zip(seq1, seq2):
+            # check enable
+            p1 = s1['subitem']['enabled']
+            p2 = s2['subitem']['enabled']
+            same = p1 == p2
+            if not same:
+                differ = '"enable property" changed from {} to {} of subitem "{}" in step {}'.format(p1, p2, s1['subitem']['item'], int(s1['id'])+1)
+                reason.append(differ)
+
+            # check paras
+            p1 = s1['subitem']['paras']
+            p2 = s2['subitem']['paras']
+            for sub1, sub2 in zip(p1,p2):
+                # check value
+                k1 = sub1['value']
+                k2 = sub2['value']
+                same = k1 == k2
+                if not same:
+                    differ = '"{}" changed from {} to {} of subitem "{}" in step {}'.format(sub1['name'], k1, k2, s1['subitem']['item'], int(s1['id'])+1)
+                    reason.append(differ)
+        if len(reason)>0:
+            differ = '\n'.join(map(str, reason))
+            return False, 'the parameters of main sequences is different, reason: {}'.format(differ)
+        
+        return True, 'exactly the same'
+
+    except:
+        return False, 'check file difference error'
+
+
 '''
 ########################
 # Define Export class
@@ -211,8 +343,14 @@ if __name__ == '__main__':
     # except Exception as e:
     #     print(e)
 
-    exc = OpenExcel()
-    exc.open_wb(r'C:\BareissInstr\trunk\BareissInstr\report.xlsx')
-    exc.write_batch_info()
-    exc.read_batch_info()
-    exc.close_wb(r'D:\testreport.xlsx')
+    # exc = OpenExcel()
+    # exc.open_wb(r'C:\BareissInstr\trunk\BareissInstr\report.xlsx')
+    # exc.write_batch_info()
+    # exc.read_batch_info()
+    # exc.close_wb(r'D:\testreport.xlsx')
+
+    j1 = readFromJSON(r'C:\data_exports\seq_files\singleLoop.seq')
+    j2 = readFromJSON(r'C:\data_exports\seq_files\singleLoopCopy.seq')
+    ret = compareTwoJson(j1,j2)
+    print(ret)
+    print(ret[1])

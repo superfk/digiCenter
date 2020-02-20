@@ -364,6 +364,9 @@ function connect() {
             ipcRenderer.send('show-option-dialog', data.title, data.reason, 'continue-batch');            
           }
           break;
+        case 'only_update_hardness_indicator':
+          machine_hard_idct.innerText = data;
+          break;
         case 'end_of_test':
           endOfTest(data)
           break;
@@ -509,6 +512,7 @@ function batchInfo_disable(){
 function batchContent_enable(){
   $(batchFormContent).removeClass('btnEnable btnDisable').addClass('btnEnable');
   $(seqNameInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
+  $(loadSeqBtn).removeClass('btnEnable btnDisable').addClass('btnEnable');
   $(projInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
   $(batchInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
   $(numsampleInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
@@ -517,6 +521,7 @@ function batchContent_enable(){
 
 function batchContent_disable(){
   $(seqNameInForm).removeClass('btnEnable btnDisable').addClass('btnDisable');
+  $(loadSeqBtn).removeClass('btnEnable btnDisable').addClass('btnDisable');
   $(projInForm).removeClass('btnEnable btnDisable').addClass('btnDisable');
   $(batchInForm).removeClass('btnEnable btnDisable').addClass('btnDisable');
   $(numsampleInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
@@ -710,7 +715,6 @@ function showBatchSelectDialog(){
 
 function showMovingSampleDialog(data){
   let dialog = document.getElementById('modal_moving_sample_dialog');
-  let dialog_text = document.getElementById('modal_moving_sample_dialog_text');
   let dialog_dataset_list = document.getElementById('modal_moving_sample_dialog_dataset');
   let dialog_dataset_id = document.getElementById('dataset_sampleid');
   let dialog_dataset_counter = document.getElementById('dataset_counter');

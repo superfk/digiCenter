@@ -35,18 +35,22 @@ class DigiChamberProduct(pd_product.Product):
         self.chamberModel = model
         self.lang_data = None
         self.lg = None
+        self.log_to_db_func = None
 
     def set_lang(self, lang_data):
         self.lang_data = lang_data
     
     def set_logger(self, loggerObj):
         self.lg = loggerObj
-
+    
+    def set_log_to_db_func(self, logDBFunc):
+        self.log_to_db_func = logDBFunc
+        
     async def run_script(self,websocket, scriptName, data=None):
         if scriptName=='ini_seq':
             await self.init_seq()
         elif scriptName=='save_seq':
-            await self.save_seq(websocket,path=data['path'],seq_json=data['seq'])
+            await self.save_seq(websocket,path=data['path'],seq_json=data['seq'], force_save=data['force_save'])
         elif scriptName=='load_seq':
             await self.load_seq(websocket,data['path'])
         elif scriptName=='get_default_seq_path':
@@ -61,10 +65,31 @@ class DigiChamberProduct(pd_product.Product):
         self.script=None
         return self.script
 
-    async def save_seq(self,websocket, path,seq_json):
+    async def save_seq(self,websocket, path, seq_json, force_save=False):
         newPath = os.path.join(self.default_seq_folder,path)
-        util.write2JSON(newPath, seq_json)
-        return self.script
+        # check if newpth overwrite oldpath
+        hasOldPath = os.path.exists(newPath)
+        if hasOldPath:
+            olddata = util.readFromJSON(newPath)
+            same, reason = util.compareTwoJson(olddata, seq_json)
+            if same:
+                reason = '{} file saved'.format(newPath)
+                self.log_to_db_func(reason, 'info', True)
+                util.write2JSON(newPath, seq_json)
+                self.script = seq_json
+                return self.script
+            elif force_save:
+                reason = '{} file saved, {}'.format(newPath, reason)
+                self.log_to_db_func(reason, 'info', True)
+                util.write2JSON(newPath, seq_json)
+                self.script = seq_json
+                return self.script
+            else:
+                title = self.lang_data['seqEditor_inform_seq_differ_title']
+                txt = self.lang_data['seqEditor_inform_seq_differ_txt'] + '\n' + reason
+                await self.socketCallback(websocket, 'inform_user_seq_differ', {'title':title,'reason':txt})
+                
+        
 
     async def load_seq(self,websocket, path):
         data = util.readFromJSON(path)
@@ -287,7 +312,7 @@ class DigiChamberProduct(pd_product.Product):
         try:
             self.dChamb = obj_digiChmaber
             conn = self.dChamb.connect()
-            return conn
+            return True
         except Exception as e:
             self.lg.debug('digiChamber init error: {}'.format(e))
             return False
@@ -299,7 +324,7 @@ class DigiChamberProduct(pd_product.Product):
         try:
             self.digiTest = obj_digitest
             conn = self.digiTest.open_rs232(COM)
-            return conn
+            return True
         except Exception as e:
             self.lg.debug('digitest init error: {}'.format(e))
             return False

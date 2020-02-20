@@ -350,6 +350,7 @@ class HardnessStep(DigiCenterStep):
                     break
                 h_data = self.hwDigitest.get_single_value()
                 if h_data:
+                    self.commCallback('only_update_hardness_indicator',round(h_data,1))
                     break
                 else:
                     time.sleep(0.1)

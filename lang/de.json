@@ -69,6 +69,8 @@
   "seqEditor_paras_title":"Parameterwerte",
   "seqEditor_paras_apply":"Anwenden",
   "seqEditor_paras_close":"Schließen",
+  "seqEditor_inform_seq_differ_title":"TBD",
+  "seqEditor_inform_seq_differ_txt":"TBD",
   "run_batchinfo_title":"Batch Information",
   "run_batch_selector_title":"Batchselektor",
   "run_load_seq_title":"Sequenz laden",

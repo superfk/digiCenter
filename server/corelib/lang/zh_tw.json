@@ -69,6 +69,8 @@
   "seqEditor_paras_title":"參數",
   "seqEditor_paras_apply":"更新",
   "seqEditor_paras_close":"關閉",
+  "seqEditor_inform_seq_differ_title":"測試流程已更動",
+  "seqEditor_inform_seq_differ_txt":"測試流程內容已被更動，是否更新?\n\n########## 更動內容 ##########",
   "run_batchinfo_title":"批號資訊",
   "run_batch_selector_title":"批號選擇",
   "run_load_seq_title":"讀取測試流程",

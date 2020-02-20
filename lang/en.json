@@ -69,6 +69,8 @@
   "seqEditor_paras_title":"Parameter Values",
   "seqEditor_paras_apply":"Apply",
   "seqEditor_paras_close":"Close",
+  "seqEditor_inform_seq_differ_title":"Sequence are changed!",
+  "seqEditor_inform_seq_differ_txt":"Content of selected sequence are changed! Apply changes?\n\n########## Detail of changes ##########",
   "run_batchinfo_title":"Batch Info",
   "run_batch_selector_title":"Batch Selector",
   "run_load_seq_title":"Load Sequence",
