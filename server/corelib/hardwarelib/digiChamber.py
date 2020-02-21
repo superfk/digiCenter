@@ -20,13 +20,11 @@ class DigiChamber(object):
         self.dummyH = 50
     
     def connect(self):
+        self.connected=False
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.settimeout(3)
-        result = self.s.connect((self.ip, self.port))
-        if result:
-            self.connected=True
-        else:
-            self.connected=False
+        self.s.connect((self.ip, self.port))
+        self.connected=True
         return self.connected
 
     def create_cmd(self, cmdID, arglist):
@@ -89,9 +87,55 @@ class DigiChamber(object):
     
     def get_control_variables_info(self):
         # how many variable
-        cmd = self.create_cmd('11018', ['1'])
+        cmd = self.create_cmd('11018', [])
         respid, value = self.send_and_get(cmd)
-        print(value)
+        value = self.get_number_control_variables()
+        ctrl_vars = []
+        for d in range(value):
+            # parse id of control variable
+            cvID = str(d+1)
+            var_info = {}
+            # variable name
+            cmd = self.create_cmd('11026', [cvID])
+            respid, info = self.send_and_get(cmd)
+            var_info['name']=info.decode('utf-8', 'ignore').strip()
+            # variable unit
+            cmd = self.create_cmd('11023', [cvID])
+            respid, info = self.send_and_get(cmd)
+            var_info['unit']=info.decode('utf-8', 'ignore').strip()
+            # variable min input limit
+            cmd = self.create_cmd('11007', [cvID])
+            respid, info = self.send_and_get(cmd)
+            var_info['min']=float(info)
+            # variable max input limit
+            cmd = self.create_cmd('11009', [cvID])
+            respid, info = self.send_and_get(cmd)
+            var_info['max']=float(info)
+            # variable wanring min input limit
+            cmd = self.create_cmd('11016', [cvID])
+            respid, info = self.send_and_get(cmd)
+            var_info['warn_min']=float(info)
+            # variable warning max input limit
+            cmd = self.create_cmd('11017', [cvID])
+            respid, info = self.send_and_get(cmd)
+            var_info['warn_max']=float(info)
+            # variable alarm min input limit
+            cmd = self.create_cmd('11014', [cvID])
+            respid, info = self.send_and_get(cmd)
+            var_info['alarm_min']=float(info)
+            # variable alarm max input limit
+            cmd = self.create_cmd('11015', [cvID])
+            respid, info = self.send_and_get(cmd)
+            var_info['alarm_max']=float(info)
+
+            ctrl_vars.append(var_info)
+
+        return ctrl_vars
+
+    def get_control_values_info(self):
+        # how many variable
+        cmd = self.create_cmd('13007', [])
+        respid, value = self.send_and_get(cmd)
         value = int(value)
         ctrl_vars = []
         for d in range(value):
@@ -99,35 +143,58 @@ class DigiChamber(object):
             cvID = str(d+1)
             var_info = {}
             # variable name
-            cmd = self.create_cmd('11026', ['1', cvID])
+            cmd = self.create_cmd('13011', [cvID])
             respid, info = self.send_and_get(cmd)
             var_info['name']=info.decode('utf-8', 'ignore').strip()
             # variable unit
-            cmd = self.create_cmd('11023', ['1', cvID])
+            cmd = self.create_cmd('13010', [cvID])
             respid, info = self.send_and_get(cmd)
             var_info['unit']=info.decode('utf-8', 'ignore').strip()
             # variable min input limit
-            cmd = self.create_cmd('11007', ['1', cvID])
+            cmd = self.create_cmd('13002', [cvID])
             respid, info = self.send_and_get(cmd)
             var_info['min']=float(info)
             # variable max input limit
-            cmd = self.create_cmd('11009', ['1', cvID])
+            cmd = self.create_cmd('13004', [cvID])
             respid, info = self.send_and_get(cmd)
             var_info['max']=float(info)
+
+            ctrl_vars.append(var_info)
+
+        return ctrl_vars
+
+    def get_mear_values_info(self):
+        # how many variable
+        cmd = self.create_cmd('12012', [])
+        respid, value = self.send_and_get(cmd)
+        value = int(value)
+        ctrl_vars = []
+        for d in range(value):
+            # parse id of control variable
+            cvID = str(d+1)
+            var_info = {}
+            # variable name
+            cmd = self.create_cmd('12019', [cvID])
+            respid, info = self.send_and_get(cmd)
+            var_info['name']=info.decode('utf-8', 'ignore').strip()
+            # variable unit
+            cmd = self.create_cmd('12016', [cvID])
+            respid, info = self.send_and_get(cmd)
+            var_info['unit']=info.decode('utf-8', 'ignore').strip()
             # variable wanring min input limit
-            cmd = self.create_cmd('11016', ['1', cvID])
+            cmd = self.create_cmd('12010', [cvID])
             respid, info = self.send_and_get(cmd)
             var_info['warn_min']=float(info)
             # variable warning max input limit
-            cmd = self.create_cmd('11017', ['1', cvID])
+            cmd = self.create_cmd('12011', [cvID])
             respid, info = self.send_and_get(cmd)
             var_info['warn_max']=float(info)
             # variable alarm min input limit
-            cmd = self.create_cmd('11014', ['1', cvID])
+            cmd = self.create_cmd('12008', [cvID])
             respid, info = self.send_and_get(cmd)
             var_info['alarm_min']=float(info)
             # variable alarm max input limit
-            cmd = self.create_cmd('11015', ['1', cvID])
+            cmd = self.create_cmd('12009', [cvID])
             respid, info = self.send_and_get(cmd)
             var_info['alarm_max']=float(info)
 
@@ -135,8 +202,73 @@ class DigiChamber(object):
 
         return ctrl_vars
     
+    def get_do_info(self):
+        # how many variable
+        cmd = self.create_cmd('14007', [])
+        respid, value = self.send_and_get(cmd)
+        value = int(value)
+        ctrl_vars = []
+        for d in range(value):
+            # parse id of control variable
+            cvID = str(d+1)
+            var_info = {}
+            # variable name
+            cmd = self.create_cmd('14010', [cvID])
+            respid, info = self.send_and_get(cmd)
+            var_info['name']=info.decode('utf-8', 'ignore').strip()
+            # variable state
+            cmd = self.create_cmd('14003', [str(d+1+1)])
+            respid, info = self.send_and_get(cmd)
+            var_info['state']=info.decode('utf-8', 'ignore').strip()
+            ctrl_vars.append(var_info)
+            # variable address
+            var_info['addr']=int(cvID)
+
+        return ctrl_vars
+    
+    def get_di_info(self):
+        # how many variable
+        cmd = self.create_cmd('15004', [])
+        respid, value = self.send_and_get(cmd)
+        value = int(value)
+        ctrl_vars = []
+        for d in range(value):
+            # parse id of control variable
+            cvID = str(d+1)
+            var_info = {}
+            # variable name
+            cmd = self.create_cmd('15005', [cvID])
+            respid, info = self.send_and_get(cmd)
+            var_info['name']=info.decode('utf-8', 'ignore').strip()
+            # variable state
+            cmd = self.create_cmd('15002', [cvID])
+            respid, info = self.send_and_get(cmd)
+            var_info['state']=info.decode('utf-8', 'ignore').strip()
+            ctrl_vars.append(var_info)
+            # variable address
+            var_info['addr']=int(cvID)
+
+        return ctrl_vars
+    
+    def get_msg_info(self):
+        # how many variable
+        cmd = self.create_cmd('17002', [])
+        respid, value = self.send_and_get(cmd)
+        value = int(value)
+        ctrl_vars = []
+        for d in range(value):
+            # parse id of control variable
+            cvID = str(d+1)
+            var_info = {}
+            # variable name
+            cmd = self.create_cmd('17007', [cvID])
+            respid, info = self.send_and_get(cmd)
+            var_info['msg']=info.decode('utf-8', 'ignore').strip()
+
+        return ctrl_vars
+    
     def get_number_control_variables(self):
-        cmd = self.create_cmd('11018', ['1'])
+        cmd = self.create_cmd('11018', [])
         respid, value = self.send_and_get(cmd)
         value = int(value)
         return value
@@ -166,7 +298,7 @@ class DigiChamber(object):
         return value
     
     def get_real_humidity(self):
-        cmd = self.create_cmd('12002', ['2']) # need to check
+        cmd = self.create_cmd('12002', ['2'])
         respid, value = self.send_and_get(cmd)
         value = float(value)
         return value

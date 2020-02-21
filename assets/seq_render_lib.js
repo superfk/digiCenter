@@ -80,7 +80,7 @@ module.exports = {
 
     genProgBarByCat: function(cat){
         let prgbar = '';
-        if (cat == 'temperature' || cat == 'waiting' || cat == 'teardown'){
+        if (cat == 'temperature' || cat == 'waiting' || cat == 'teardown' || cat == 'hardness'){
             prgbar = `<progress max="100" value="0" class='stepProg'></progress>`
         }
         return prgbar;

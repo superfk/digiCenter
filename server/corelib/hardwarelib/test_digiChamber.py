@@ -38,6 +38,13 @@ def plotAll(timeset,temp,setpoint,slope):
     fig.tight_layout()  # otherwise the right y-label is slightly clipped
     plt.show()
 
+def get_control_vars():
+    dc = DigiChamber(ip='169.254.206.212')
+    dc.connect()
+    ret = dc.get_control_variables_info()
+    dc.close()
+    return ret
+
 def sw_control_ramp_test(target = 40, tol = 5):
     dc = DigiChamber(ip='169.254.206.212')
     dc.connect()
@@ -242,8 +249,90 @@ def stable_test_mode_off(min=5):
     dc.close()
     plotAll(timeset, data, setpoints, slopes)
 
+def get_temp():
+    dc = DigiChamber(ip='169.254.206.212')
+    dc.connect()
+    ret = dc.get_real_temperature()
+    dc.close()
+    return ret
+
+def get_hum():
+    dc = DigiChamber(ip='169.254.206.212')
+    dc.connect()
+    ret = dc.get_real_humidity()
+    dc.close()
+    return ret
+
+def queryInfo():
+    dc = DigiChamber(ip='169.254.206.212')
+    dc.connect()
+    print('####### Control Variables ##########')
+    ret = setCmd(dc, '11018', [])
+    n = ret[1].decode('utf-8', 'ignore').strip()
+    print('Number of control variables: {}'.format(n))
+    ret = dc.get_control_variables_info()
+    print('Content of control variables: {}'.format(ret))
+    print('')
+    print('####### Control Values ##########')
+    ret = setCmd(dc, '13007', [])
+    n = ret[1].decode('utf-8', 'ignore').strip()
+    print('Number of control values: {}'.format(n))
+    ret = dc.get_control_values_info()
+    print('Content of control values: {}'.format(ret))
+    print('')
+    print('####### Measrued Values ##########')
+    ret = setCmd(dc, '12012', [])
+    n = ret[1].decode('utf-8', 'ignore').strip()
+    print('Number of measured values: {}'.format(n))
+    ret = dc.get_mear_values_info()
+    print('Content of measured values: {}'.format(ret))
+    print('')
+    print('####### Digital output ##########')
+    ret = setCmd(dc, '14007', [])
+    n = ret[1].decode('utf-8', 'ignore').strip()
+    print('Number of digital output: {}'.format(n))
+    ret = dc.get_do_info()
+    print('Content of digital output: {}'.format(ret))
+    print('')
+    print('####### Digital input ##########')
+    ret = setCmd(dc, '15004', [])
+    n = ret[1].decode('utf-8', 'ignore').strip()
+    print('Number of digital input: {}'.format(n))
+    ret = dc.get_di_info()
+    print('Content of digital input: {}'.format(ret))
+    print('')
+    print('####### Messages ##########')
+    ret = setCmd(dc, '17002', [])
+    n = ret[1].decode('utf-8', 'ignore').strip()
+    print('Number of message: {}'.format(n))
+    ret = dc.get_msg_info()
+    print('Content of message: {}'.format(ret))
+    print('')
+    
+    dc.close()
+    return ret
+
+def setCmd(dc, cmdid, args):
+    cmd = dc.create_cmd(cmdid, args)
+    ret = dc.send_and_get(cmd)
+    return ret
+
+def cmd_test(cmdid, args):
+    dc = DigiChamber(ip='169.254.206.212')
+    dc.connect()
+    ret = setCmd(dc, cmdid, args)
+    dc.close()
+    return ret
+
 if __name__ == '__main__':
     # sw_control_ramp_test(target = 40, tol=1)
     # hw_control_ramp_test(target = 60, tol=1, slope=5)
-    stable_test(min=5)
+    # stable_test(min=5)
     # stable_test_mode_off(min=5)
+    ret = queryInfo()
+    ret = get_temp()
+    print(ret)
+    ret = get_hum()
+    print(ret)
+    ret = cmd_test('12002',['2'])
+    print(ret)

@@ -659,12 +659,16 @@ function updateStepByCat(res){
     case 'measure':
       // h_data_y.push(value)
       if (result == 'PASS'){
+        tools.updateNumIndicator(machine_hard_idct,value, 1)
         tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value)
         tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp,value)
       }else if (result == 'MEAR_NEXT'){
+        tools.updateNumIndicator(machine_hard_idct,value, 1)
         tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value)
         tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp,value)
-      }   
+      }else if (result == 'WAITING'){
+        curProgs.val(progs);
+      }  
       if (eventName !== null){
         // tools.plotly_addAnnotation('event_graph',eventName,relTime,actTemp,markers)
       }

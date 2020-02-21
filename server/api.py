@@ -43,8 +43,8 @@ class BatchInfo(object):
 class PyServerAPI(object):
     def __init__(self):
         self.users = set()
-        self.digiTest = DummyDigitest # Digitest()
-        self.digiChamber = DummyChamber # DigiChamber()
+        self.digiTest = None # Digitest()
+        self.digiChamber = None # DigiChamber()
         # self.lg = TimeRotateLogger('syslog', 'M', 5)
         logger.add(sys.stdout, format="{time} - {level} - {message}")
         logger.add(r"systemlog/{time:YYYY-MM-DD}/file_{time:YYYY-MM-DD}.log", rotation="10 MB")
@@ -453,15 +453,15 @@ class PyServerAPI(object):
             isConn_chamber = False
             isConn_digitest= False
             if mode == 'demo':
-                digiChamber_obj = DummyChamber(ip,port)
-                digiTest_obj = DummyDigitest()
+                self.digiChamber = DummyChamber(ip,port)
+                self.digiTest = DummyDigitest()
             else:
-                digiChamber_obj = DigiChamber(ip,port)
-                digiTest_obj = Digitest()
-            isConn_chamber = self.productProcess.init_digiChamber_controller(digiChamber_obj)
+                self.digiChamber = DigiChamber(ip,port)
+                self.digiTest = Digitest()
+            isConn_chamber = self.productProcess.init_digiChamber_controller(self.digiChamber)
             if isConn_chamber:
                 self.lg.debug('digiChamber init OK')
-            isConn_digitest = self.productProcess.init_digitest_controller(digiTest_obj,COM)
+            isConn_digitest = self.productProcess.init_digitest_controller(self.digiTest,COM)
             if isConn_digitest:
                 self.lg.debug('digiTest init OK')
             await self.sendMsg(websocket,'reply_init_hw',{'resp_code':1, 'res':self.lang_data['server_hw_init_ok']})
@@ -610,12 +610,14 @@ class PyServerAPI(object):
             self.lg.debug(e)
         try:
             self.productProcess.close_digiChamber_controller()
+            self.digiChamber=None
             self.lg.debug('close digichamber ok')
         except Exception as e:
             self.lg.debug('close digichamber error!')
             self.lg.debug(e)
         try:
             self.productProcess.close_digitest_controller()
+            self.digiTest = None
             self.lg.debug('close digiTest ok')
         except Exception as e:
             self.lg.debug('close digiTest error!')

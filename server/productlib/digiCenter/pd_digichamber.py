@@ -36,6 +36,7 @@ class DigiChamberProduct(pd_product.Product):
         self.lang_data = None
         self.lg = None
         self.log_to_db_func = None
+        self.in_test_mode = False
 
     def set_lang(self, lang_data):
         self.lang_data = lang_data
@@ -151,6 +152,7 @@ class DigiChamberProduct(pd_product.Product):
     async def run_seq(self,websocket):
         try:
             # preinit process
+            self.in_test_mode = True
             self.stopMsgQueue = queue.Queue()
             self.testStop=False
             self.interruptStop=False
@@ -254,24 +256,40 @@ class DigiChamberProduct(pd_product.Product):
                 txt = self.lang_data['server_final_end_test_reason']
                 title = self.lang_data['server_final_end_test_title']
                 self.sendCommunicateCallback('end_of_test',{'interrupted':False,'title':title,'reason':txt})
+            self.in_test_mode = False
 
     async def get_cur_temp_and_humi(self, websocket):
-        try:
-            self.curT = self.dChamb.get_real_temperature()
-            self.curH = self.dChamb.get_real_humidity()
-            tempInfo = {}
-            tempInfo['status']=self.dChamb.connected
-            tempInfo['value']=self.curT
-            humInfo = {}
-            humInfo['status']=self.dChamb.connected
-            humInfo['value']=self.curH
-            status = {'temp':tempInfo, 'hum':humInfo}
-            await self.socketCallback(websocket,'update_cur_status',status)
-        except Exception as e:
-            status = {'temp':None, 'hum':None}
-            await self.socketCallback(websocket,'update_cur_status',status)
-            self.lg.debug('digiChamber get temperature error')
-            self.lg.debug(e)
+        dtInfo = {}
+        dtInfo['status']=False
+        dtInfo['value']=None
+        tempInfo = {}
+        tempInfo['status']=False
+        tempInfo['value']=None
+        humInfo = {}
+        humInfo['status']=False
+        humInfo['value']=None
+        if not self.in_test_mode:
+            try:
+                dtInfo['status']=self.digiTest.connected
+                dtInfo['value']=self.digiTest.get_single_value()
+            except Exception as e:
+                self.lg.debug('digitest get value error')
+                self.lg.debug(e)
+            try:
+                self.curT = self.dChamb.get_real_temperature()
+                self.curH = self.dChamb.get_real_humidity()
+                tempInfo['status']=self.dChamb.connected
+                tempInfo['value']=self.curT
+                humInfo['status']=self.dChamb.connected
+                humInfo['value']=self.curH
+            except Exception as e:
+                self.lg.debug('digiChamber get temperature error')
+                self.lg.debug(e)
+            finally:
+                status = {'dt':dtInfo,'temp':tempInfo, 'hum':humInfo}
+                await self.socketCallback(websocket,'update_cur_status',status)
+                # print('###################')
+                # print(status)
 
     def findLoopPair(self, loopid, mainClass):
         for i,s in enumerate(mainClass):
@@ -312,7 +330,7 @@ class DigiChamberProduct(pd_product.Product):
         try:
             self.dChamb = obj_digiChmaber
             conn = self.dChamb.connect()
-            return True
+            return conn
         except Exception as e:
             self.lg.debug('digiChamber init error: {}'.format(e))
             return False
@@ -324,7 +342,7 @@ class DigiChamberProduct(pd_product.Product):
         try:
             self.digiTest = obj_digitest
             conn = self.digiTest.open_rs232(COM)
-            return True
+            return conn
         except Exception as e:
             self.lg.debug('digitest init error: {}'.format(e))
             return False

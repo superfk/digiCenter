@@ -32,12 +32,15 @@ def main():
     duration_s = 3
     ret = ba.set_ms_duration(duration_s)
     print(ret)
+    ret = ba.get_mode()
+    print(ret)
     ret = ba.isConnectRotation()
     print('rotation mode: {}'.format(ret))
     for i in range(2):
         time.sleep(0.1)
         ba.set_remote(True)
         ba.start_mear()
+        ba.config(True,False)
         
         while True:
             ret = ba.get_single_value()

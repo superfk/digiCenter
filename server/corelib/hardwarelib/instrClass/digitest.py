@@ -49,15 +49,13 @@ class Digitest(BaInstr):
     
     def get_single_value(self):
         ret = self.write_and_read('GET','MS_VALUE')
-        if ret == '"DEVICE BUSY"':
-            return None
-        # elif ret == 'FINISHED':
-        #     time.sleep(0.1)
-        #     # ret = self.write_and_read('GET','MS_VALUE')
-        #     ret = self.readline_only()
-        #     return True, ret, "ok"
+        if ret is not None:
+            try:
+                return float(ret)
+            except:
+                return ret
         else:
-            return float(ret)
+            return None
     
     def get_buffered_value(self, buffer=13):
         while True:

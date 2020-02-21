@@ -74,14 +74,10 @@ module.exports = {
     changeStatus: function(html_elem, status=null){
       let preState = false
       let curState = false
-      if (status!=null){
-        preState = $(html_elem).hasClass('idct-status-conn');
-        curState = status;
-        if (preState != curState && curState){
-          $(html_elem).removeClass('idct-status-conn').addClass('idct-status-conn');
-        }else if (preState != curState && !curState){
-          $(html_elem).removeClass('idct-status-conn');
-        }
+      if (status){
+        $(html_elem).removeClass('idct-status-conn').addClass('idct-status-conn');
+      }else{
+        $(html_elem).removeClass('idct-status-conn');
       }
     },
     

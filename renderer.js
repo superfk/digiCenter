@@ -124,12 +124,13 @@ function connect() {
           }
           break;
         case 'reply_init_hw_status':
+          console.log(data)
           tools.updateStatusIndicator(machine_hard_idct_status,data.digitest)
           tools.updateStatusIndicator(machine_temp_idct_status,data.digichamber)
           tools.updateStatusIndicator(machine_humi_idct_status,data.digichamber)
           break;
         case 'update_cur_status':
-          updateIndicator(null,data.temp,data.hum)
+          updateIndicator(data.dt,data.temp,data.hum)
           break;
         case 'reply_server_error':
           console.log(data.error);

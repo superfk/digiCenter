@@ -9,6 +9,7 @@ class BaInstr(object):
         self.debug = True
         self.wait_cmd = True
         self.duration = 0
+        self.connected = False
 
     def config(self, debug=False, wait_cmd = True):
         self.debug = debug
@@ -88,9 +89,15 @@ class BaInstr(object):
     
     def open_rs232(self, port=None, baudrate=9600, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=None):
         self.device = serial.Serial(port=port, baudrate=baudrate, bytesize=bytesize, parity=parity, stopbits=stopbits, timeout=timeout)
-        return self.device
+        if self.device:
+            self.connected = True
+        else:
+            self.connected = False
+        
+        return self.connected
     
     def close_rs232(self):
+        self.connected = False
         self.device.close()
 
     def get_dev_name(self):
@@ -131,19 +138,18 @@ if __name__ == '__main__':
     # resp = 'E0000,MS_DURATION=5,30AA\r\n'
     # par_result = ba.parse_resp(resp)
     # print(par_result)
-    ba.open_rs232("COM3")
-    ret = ba.get_dev_name()
-    print(ret)
-    ret = ba.get_dev_software_version()
-    print(ret)
-    ret = ba.get_ms_duration()
-    print(ret)
-    ret = ba.get_ms_method()
-    print(ret)
-    ret = ba.isReady()
-    print(ret)
-    ret = ba.set_ms_duration(3)
-    print(ret)
+    ba.open_rs232("COM4",timeout=1)
+    # ret = ba.get_dev_name()
+    # print(ret)
+    # ret = ba.get_dev_software_version()
+    # print(ret)
+    # ret = ba.get_ms_duration()
+    # print(ret)
+    # ret = ba.get_ms_method()
+    # print(ret)
+    # ret = ba.isReady()
+    # print(ret)
+    # ret = ba.set_ms_duration(3)
+    # print(ret)
     
     ba.close_rs232()
-    
