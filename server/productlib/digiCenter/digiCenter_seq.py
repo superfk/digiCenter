@@ -203,6 +203,7 @@ class TemperatureStep(DigiCenterStep):
     def __init__(self):
         super(TemperatureStep,self).__init__()
         self.targetTemp = 0.0
+        self.tol = 0
         self.slope = 0.0 #K/min -> 1/60 K/s
         self.incre = 0.0
         self.actTarget = 0.0
@@ -210,6 +211,7 @@ class TemperatureStep(DigiCenterStep):
     def set_paras(self,step):
         super().set_paras(step)
         self.targetTemp = float(list(filter(lambda name: name['name'] == 'target temperature', self.paras))[0]['value'])
+        self.tol = float(list(filter(lambda name: name['name'] == 'tolerance', self.paras))[0]['value']) # degree
         self.slope = float(list(filter(lambda name: name['name'] == 'slope', self.paras))[0]['value'])
         self.incre = float(list(filter(lambda name: name['name'] == 'increment', self.paras))[0]['value'])
         self.actTarget = self.targetTemp
@@ -237,10 +239,9 @@ class TemperatureStep(DigiCenterStep):
 
         # update new target ref to client
         self.commCallback('update_gauge_ref',self.actTarget)
-        
-        tol = 0.03
-        UL = self.actTarget * (1+tol)
-        LL = self.actTarget * (1-tol)
+
+        UL = self.actTarget + self.tol
+        LL = self.actTarget - self.tol
         while curT>UL or curT<LL:
             print('target value {}'.format(self.actTarget))
             if self.stopMsgQueue.qsize()>0:
@@ -325,6 +326,7 @@ class HardnessStep(DigiCenterStep):
 
         # do measurement
         while True:
+
             
             # check if all data mearsured
             if self.singleResult['done']:
@@ -332,12 +334,12 @@ class HardnessStep(DigiCenterStep):
                 self.curSampleId += 1
                 if self.curSampleId >= self.batchinfo.numSamples:
                     # all sample are tested
-                    self.set_result(self.singleResult['result'],'PASS', eventName=r'{}'.format(self.curSampleId), hardness_dataset=self.singleResult)
+                    self.set_result(self.singleResult['result'],'PASS', eventName=r'{}'.format(self.curSampleId), hardness_dataset=self.singleResult, progs=100)
                     self.curSampleId = 0
                     self.reset_result()
                     break
                 else:
-                    self.set_result(self.singleResult['result'],'MEAR_NEXT', None, eventName=r'{}'.format(self.curSampleId)
+                    self.set_result(self.singleResult['result'],'MEAR_NEXT', None, eventName=r'{}'.format(self.curSampleId, progs=100)
                     ,hardness_dataset=self.singleResult) 
                     self.resultCallback(self.result)
                     self.reset_result()
@@ -376,7 +378,7 @@ class HardnessStep(DigiCenterStep):
             # handle process between different model of digiChamber
             isRotation_model = self.hwDigitest.isConnectRotation()
             if not isRotation_model:
-                self.set_result(self.singleResult['result'],'PAUSE',hardness_dataset=self.singleResult) 
+                self.set_result(self.singleResult['result'],'PAUSE',hardness_dataset=self.singleResult, progs=100) 
                 self.resultCallback(self.result)
                 if self.stopMsgQueue.qsize()>0:
                     break

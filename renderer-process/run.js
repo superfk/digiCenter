@@ -147,7 +147,7 @@ function generateHardnessPlot(){
       width: 400,
       height: 250,
       margin: plotMargin,
-      autosize: true,
+      autosize: false,
       font: { color: "dimgray", family: "Arial", size: 10}
     };
     
@@ -299,7 +299,6 @@ function connect() {
 
   ws.on('open', function open() { 
     console.log('websocket in run connected')
-    ws.send(tools.parseCmd('hello'))
     init();
   });
 
@@ -487,6 +486,10 @@ stopSeqBtn.addEventListener('click',()=>{
 
 function init(){
   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_default_seq_path')));
+  startBtn_disable();
+  stopBtn_disable();
+  batchInfo_disable();
+  batchSelector_enable();
 }
 
 function batchSelector_enable(){
@@ -659,10 +662,12 @@ function updateStepByCat(res){
     case 'measure':
       // h_data_y.push(value)
       if (result == 'PASS'){
+        curProgs.val(progs);
         tools.updateNumIndicator(machine_hard_idct,value, 1)
         tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value)
         tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp,value)
       }else if (result == 'MEAR_NEXT'){
+        curProgs.val(progs);
         tools.updateNumIndicator(machine_hard_idct,value, 1)
         tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value)
         tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp,value)

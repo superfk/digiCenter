@@ -44,6 +44,55 @@ module.exports = {
     // Sequence render functions
     // **************************************
 
+    genTempPara: function(){
+        let paras= [
+            new module.exports.NumberPara('target temperature',20,unit='&#8451',max=190,min=-40,readOnly=false),
+            new module.exports.NumberPara('tolerance',1,unit='&#8451',max=10,min=0,readOnly=false),
+            new module.exports.NumberPara('slope',5,'K/min',max=null,min=null,readOnly=false),
+            new module.exports.NumberPara('increment',0,'&#8451',max=null,min=0,readOnly=false)
+        ]
+        
+        // UIkit.modal('#parasModal').show();
+        return module.exports.makeSingleStep('temperature', 'ramp', paras, true);
+    },
+    genHardPara: function(){
+        let paras= [
+            // new TextPara('port','COM3',unit='',readOnly=false),
+            new module.exports.OptionPara('mode','STANDARD_M','STANDARD_M,STANDARD_M_GRAPH',unit='',readOnly=false),
+            new module.exports.OptionPara('method','shoreA','shoreA,shore0',unit='',readOnly=false),
+            new module.exports.NumberPara('measuring time',5,unit='sec',max=null,min=0,readOnly=false),
+            new module.exports.NumberPara('number of measurement',3,unit='',max=null,min=1,readOnly=false),
+            new module.exports.OptionPara('numerical method','mean','mean,median',unit='',readOnly=false)
+        ]
+        return module.exports.makeSingleStep('hardness', 'measure', paras);
+    },
+    genWaitPara: function(){
+        let paras= [
+            new module.exports.NumberPara('conditioning time',5,unit='minute',max=null,min=0,readOnly=false)
+        ]
+        return module.exports.makeSingleStep('waiting', 'time', paras);
+    },
+    genLoopPara: function(alwayIncrLoopColorIdx){
+        let loopID = Math.floor(Math.random() * 100000000);
+        let loopColor = tools.pick_color_hsl(alwayIncrLoopColorIdx);
+        alwayIncrLoopColorIdx +=1;
+        let loop_counts = 1;
+        let paras= [
+            new module.exports.NumberPara('loop id',loopID,unit='',max=null,min=0,readOnly=true),
+            new module.exports.NumberPara('loop counts',loop_counts,unit='',max=null,min=0,readOnly=false),
+            new module.exports.TextPara('loop color',loopColor,unit='',readOnly=true)
+        ]
+        let lpStartStep = module.exports.makeSingleStep('loop', 'loop start', paras);
+        
+        paras= [
+            new module.exports.NumberPara('stop on',loop_counts,unit='',max=null,min=0,readOnly=true),
+            new module.exports.NumberPara('loop id',loopID,unit='',max=null,min=0,readOnly=true),
+            new module.exports.TextPara('loop color',loopColor,unit='',readOnly=true)
+        ];
+            
+        let lpEndStep = module.exports.makeSingleStep('loop', 'loop end', paras);
+        return {start:lpStartStep, end:lpEndStep}
+    },
     genUnit: function(unit) {
         if (unit === '' || unit === null) {
             return '';
@@ -277,9 +326,10 @@ module.exports = {
         
         if (cat === 'temperature'){
             let tTempPara = paras.filter(item=>item.name=='target temperature')[0];
+            let tTolPara = paras.filter(item=>item.name=='tolerance')[0];
             let slopePara = paras.filter(item=>item.name=='slope')[0];
             let increPara = paras.filter(item=>item.name=='increment')[0];
-            mainText = `target:${tTempPara.value} ${tTempPara.unit}, slope:${slopePara.value} ${slopePara.unit}, 
+            mainText = `target:${tTempPara.value}${tTempPara.unit}, tol: ${tTolPara.value}${tTolPara.unit} slope:${slopePara.value} ${slopePara.unit}, 
             incre:${increPara.value} ${increPara.unit}`;
         }else if (cat === 'hardness'){
             let methodPara = paras.filter(item=>item.name=='method')[0];
@@ -287,7 +337,7 @@ module.exports = {
             let mtPara = paras.filter(item=>item.name=='measuring time')[0];
             let nomearPara = paras.filter(item=>item.name=='number of measurement')[0];
             let nummethodPara = paras.filter(item=>item.name=='numerical method')[0];
-            mainText = `${methodPara.value}, ${modePara.value}, mearTime:${mtPara.value} ${mtPara.unit}, mearCounts:${nomearPara.value}, ${nummethodPara.value} `;
+            mainText = `${methodPara.value}, ${modePara.value}, mearTime:${mtPara.value}${mtPara.unit}, mearCounts:${nomearPara.value}, ${nummethodPara.value} `;
         }else if (cat === 'waiting'){
             let cdtPara = paras.filter(item=>item.name=='conditioning time')[0];
             mainText = `conditioningTime:${cdtPara.value} ${cdtPara.unit}`;

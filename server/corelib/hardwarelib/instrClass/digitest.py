@@ -151,10 +151,11 @@ class DummyDigitest(Digitest):
     
     def open_rs232(self, port=None, baudrate=9600, bytesize=None, parity=None, stopbits=None, timeout=None):
         self.device = None
+        self.connected = True
         return self.device
     
     def close_rs232(self):
-        pass
+        self.connected = False
 
     def get_dev_name(self):
         return 'DummyDigitest'

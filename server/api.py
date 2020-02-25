@@ -121,6 +121,8 @@ class PyServerAPI(object):
                     username = data['username']
                     password = data['password']
                     await self.login(websocket,username,password)
+                elif cmd == 'logout':
+                    await self.logout(websocket)
                 elif cmd == 'get_user_account_list':
                     await self.get_user_account_list(websocket)
                 elif cmd == 'add_new_user':
@@ -343,6 +345,9 @@ class PyServerAPI(object):
 
     async def login(self, websocket, username, password):
         await self.sendMsg(websocket,'reply_login',self.userMang.login(username, password))
+    
+    async def logout(self, websocket):
+        await self.sendMsg(websocket,'reply_logout',self.userMang.log_out())
         
     async def get_user_account_list(self, websocket):
         await self.sendMsg(websocket,'reply_get_user_account_list',self.userMang.get_user_account_list())

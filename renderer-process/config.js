@@ -703,16 +703,10 @@ $('#apply_change_user_fnc').on( 'click', function () {
   let fnc = tableData.map(a => a.fnc_name);
   let enbs = tableData.map(a => a.Enabled);
   let visbs = tableData.map(a => a.Visibled);
-  console.log(selected_role);
-  console.log(fnc);
-  console.log(enbs);
-  console.log(visbs);
 
   ws.send(tools.parseCmd('update_fnc_of_role', {'role':selected_role, 'funcs':fnc, 'enabled':enbs, 'visibled':visbs}));
   
 });
-
-
 
 // add new role box
 $('#add_new_role_btn').on( 'click', function () {

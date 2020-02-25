@@ -12,7 +12,8 @@
   "modal_login_title":"Bitte einloggen",
   "modal_login_userid_plhd":"Benutzername",
   "modal_login_pw_plhd":"Passwort",
-  "modal_login_loginBtn":"Log in",
+  "modal_login_Btn":"Log in",
+  "modal_logout_Btn":"Log out",
   "modal_firstlogin_curPw":"Aktuelles Passwort",
   "modal_firstlogin_curPw_plhd":"Aktuelles Passwort",
   "modal_firstlogin_newPw":"Neues Passwort",
@@ -201,5 +202,5 @@
   "export-start":"TBD",
   "main_indicator_hard":"Härte",
   "main_indicator_temperature":"Temperatur",
-  "main_indicator_humidity":"Feuchtigkeit"
+  "main_indicator_humidity":"TBD"
 }

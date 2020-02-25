@@ -9,6 +9,13 @@ let ws;
 let lang_data = {};
 let monitorValue;
 
+let login_ok = false;
+let reason = '';
+let user = '';
+let role = '';
+let fn_list = [];
+let first = false;
+
 let machine_hard_idct = document.querySelectorAll('#machine_hard_idct .idct-number')[0]
 let machine_temp_idct = document.querySelectorAll('#machine_tempr_idct .idct-number')[0]
 let machine_humi_idct = document.querySelectorAll('#machine_hum_idct  .idct-number')[0]
@@ -22,6 +29,7 @@ const loginBtn = document.getElementById('login');
 const useridInput = document.getElementById('input-userid');
 const pwInput = document.getElementById('input-password');
 const confirmloginBtn = document.getElementById('confirm-login');
+const confirmlogoutBtn = document.getElementById('confirm-logout');
 const current_login_user = document.getElementById('login_username');
 const current_login_role = document.getElementById('login_userrole');
 
@@ -65,13 +73,12 @@ function connect() {
           console.log(data);
           break;
         case 'reply_login':
-          console.log(data)
-          let login_ok = data[0];
-          let reason = data[1];
-          let user = data[2];
-          let role = data[3];
-          let fn_list = data[4];
-          let first = data[5];
+          login_ok = data[0];
+          reason = data[1];
+          user = data[2];
+          role = data[3];
+          fn_list = data[4];
+          first = data[5];
           if (login_ok){
             // login as guest
             user=='Guest'?hasLogin=false:hasLogin=true;
@@ -92,11 +99,28 @@ function connect() {
               window.addEventListener('keypress', checkkeypressFirstLogin);
               hasLogin = false;
             }else{
-              // ipcRenderer.send('show-warning-alert',"Login Failed", reason);
+              user=='Guest'?hasLogin=false:hasLogin=true;
+              ipcRenderer.send('show-warning-alert',"Login Failed", reason);
               $('#modal_login').hide();
               window.removeEventListener('keypress', checkkeypressLogin);
             }
           }
+          break;
+        case 'reply_logout':
+          login_ok = data[0];
+          reason = data[1];
+          user = data[2];
+          role = data[3];
+          fn_list = data[4];
+          first = data[5];
+          hasLogin=false
+          current_login_user.innerHTML = user;
+          current_login_role.innerHTML = '(' + role + ")";
+          changeLoginColor(false);
+          changeLoginAuth(fn_list);
+          $('#modal_login').hide();
+          ipcRenderer.send('login-changed');
+          window.removeEventListener('keypress', checkkeypressLogin);
           break;
         case 'reply_set_new_password_when_first_login':
           if (data[0]){
@@ -241,8 +265,13 @@ var changeLoginAuth = function(fn_list){
 function init_login(){
   hasLogin = false;
   ipcRenderer.send('save_log','Initial login function', 'info', 1);
-  ws.send(tools.parseCmd('login',{'username':'Guest', 'password':''}));
+  ws.send(tools.parseCmd('logout'));
 }
+
+confirmlogoutBtn.addEventListener('click', ()=>{
+  ipcRenderer.send('save_log','Click confirm logout button', 'info', 1);
+  ws.send(tools.parseCmd('logout'));
+})
 
 // confirm login button
 confirmloginBtn.addEventListener('click', confirm_login);

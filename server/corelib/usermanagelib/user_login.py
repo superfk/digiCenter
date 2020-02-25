@@ -15,7 +15,7 @@ class User(object):
 class UserManag(object):
     def __init__(self,dbinstance, username="", role="", level=0, enabled=False):
         self.db = dbinstance
-        self.user = User("Guest", "Guest", 0, True)
+        self.user = User("Guest", "Guest", level=0, enabled=True)
         self.pw_export_folder = None
         self.lang = None
         self.lang_key = 'en'
@@ -135,10 +135,34 @@ class UserManag(object):
             # user not found
             login_ok = False
             reason = self.lang['server_user_not_found'].format(username)
-            role = ""
-            user = ""
+            role = ''
+            user = ''
             self.savelog(reason)
             return login_ok, reason, user, role, fn_list, first
+
+    def log_out(self):
+        fn_list=list()
+        user = self.lang['head_login_username']
+        role = 'Guest'
+        first=False
+        self.user = User(user, role, level=0, enabled=True)
+        # Guest login ok
+        f = ["User_Level"]
+        condition = r"WHERE User_Role='{}'".format(role)
+        role_level = self.db.select('UserRoleList',f, condition)[0]["User_Level"]
+        f = ["Functions", "Enabled", "Visibled"]
+        condition = r"WHERE User_Role='{}'".format(role)
+        query = self.db.select('UserPermission',f, condition)
+        for q in query:
+            fn={}
+            fn['function']=q['Functions']
+            fn['enable']=q['Enabled']
+            fn['visible']=q['Visibled']
+            fn_list.append(fn)
+        login_ok = False
+        reason = "Guest logout"
+        self.savelog(reason,audit=True)
+        return login_ok, reason, user, role, fn_list, first
 
     def get_user_account_list(self):
         fields = ['User_Name', 'User_Role', 'Status', 'First_login', 'Creation_Date', 'Expired_Date']

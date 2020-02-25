@@ -353,74 +353,33 @@ function updateSequence(res){
   }
 
 tempBox.addEventListener('click', () =>{
-    let paras= [
-        new seqRend.NumberPara('target temperature',20,unit='&#8451',max=190,min=-40,readOnly=false),
-        new seqRend.NumberPara('slope',5,'K/min',max=null,min=null,readOnly=false),
-        new seqRend.NumberPara('increment',0,'&#8451',max=null,min=0,readOnly=false)
-    ]
-    
-    // UIkit.modal('#parasModal').show();
-    let step = seqRend.makeSingleStep('temperature', 'ramp', paras, true);
+    let step = seqRend.genTempPara();
     appendSeq(step);
-    
 })
 
 
 hardBox.addEventListener('click', () =>{
-    let paras= [
-        // new TextPara('port','COM3',unit='',readOnly=false),
-        new seqRend.OptionPara('mode','STANDARD_M','STANDARD_M,STANDARD_M_GRAPH',unit='',readOnly=false),
-        new seqRend.OptionPara('method','shoreA','shoreA,shore0',unit='',readOnly=false),
-        new seqRend.NumberPara('measuring time',5,unit='sec',max=null,min=0,readOnly=false),
-        new seqRend.NumberPara('number of measurement',3,unit='',max=null,min=1,readOnly=false),
-        new seqRend.OptionPara('numerical method','mean','mean,median',unit='',readOnly=false)
-    ]
-    let step =  seqRend.makeSingleStep('hardness', 'measure', paras);
+    let step = seqRend.genHardPara();
     appendSeq(step);
-        
 })
 
 waitBox.addEventListener('click', () =>{
-    let paras= [
-        new seqRend.NumberPara('conditioning time',5,unit='minute',max=null,min=0,readOnly=false)
-    ]
-    let step = seqRend.makeSingleStep('waiting', 'time', paras);
+    let step = seqRend.genWaitPara();
     appendSeq(step);
-
 })
 
 loopBox.addEventListener('click', () =>{
-    let stepTitles = seqRend.genStepTitles(test_flow.main);
-    let loopID = Math.floor(Math.random() * 100000000);
-    let loopColor = tools.pick_color_hsl(alwayIncrLoopColorIdx);
-    alwayIncrLoopColorIdx +=1;
-    let loop_counts = 5;
-    let paras= [
-        new seqRend.NumberPara('loop id',loopID,unit='',max=null,min=0,readOnly=true),
-        new seqRend.NumberPara('loop counts',loop_counts,unit='',max=null,min=0,readOnly=false),
-        new seqRend.TextPara('loop color',loopColor,unit='',readOnly=true)
-    ]
-    let step = seqRend.makeSingleStep('loop', 'loop start', paras);
-    appendSeq(step);
-
-    paras= [
-        new seqRend.NumberPara('stop on',loop_counts,unit='',max=null,min=0,readOnly=true),
-        new seqRend.NumberPara('loop id',loopID,unit='',max=null,min=0,readOnly=true),
-        new seqRend.TextPara('loop color',loopColor,unit='',readOnly=true)
-    ];
-        
-    step = seqRend.makeSingleStep('loop', 'loop end', paras);
-    appendSeq(step);
-    
-
+    let {start, end} = seqRend.genLoopPara(alwayIncrLoopColorIdx);
+    appendSeq(start);
+    appendSeq(end);
 })
 
 subprogBox.addEventListener('click', () =>{
-    let paras= [
-        new seqRend.TextPara('path','',unit='',readOnly=false)
-    ]
-    let step = seqRend.makeSingleStep('subprog', 'program config', paras);
-    appendSeq(step);
+    // let paras= [
+    //     new seqRend.TextPara('path','',unit='',readOnly=false)
+    // ]
+    // let step = seqRend.makeSingleStep('subprog', 'program config', paras);
+    // appendSeq(step);
 
 })
 
