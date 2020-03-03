@@ -22,6 +22,14 @@ let batchConfirmBtn = document.getElementById('batchConfirm');
 let startSeqBtn = document.getElementById('start_test');
 let stopSeqBtn = document.getElementById('stop_test');
 let loadSeqBtn = document.getElementById('open_test_seq');
+let dialog = document.getElementById('modal_moving_sample_dialog');
+let dialog_dataset_list = document.getElementById('modal_moving_sample_dialog_dataset');
+let dialog_dataset_id = document.getElementById('dataset_sampleid');
+let dialog_dataset_counter = document.getElementById('dataset_counter');
+let dialog_dataset_mean = document.getElementById('dataset_mean');
+let dialog_dataset_stdev = document.getElementById('dataset_stdev');
+let start_btn = document.getElementById('start_mear_after_move_sample');
+let retry_btn = document.getElementById('retry_mear_after_move_sample');
 let setup_seq = {};
 let teardown_seq = {};
 let loop_seq = [];
@@ -723,14 +731,6 @@ function showBatchSelectDialog(){
 }
 
 function showMovingSampleDialog(data){
-  let dialog = document.getElementById('modal_moving_sample_dialog');
-  let dialog_dataset_list = document.getElementById('modal_moving_sample_dialog_dataset');
-  let dialog_dataset_id = document.getElementById('dataset_sampleid');
-  let dialog_dataset_counter = document.getElementById('dataset_counter');
-  let dialog_dataset_mean = document.getElementById('dataset_mean');
-  let dialog_dataset_stdev = document.getElementById('dataset_stdev');
-  let start_btn = document.getElementById('start_mear_after_move_sample');
-  let retry_btn = document.getElementById('retry_mear_after_move_sample');
   let curData = data;
 
   dialog_dataset_id.innerHTML = curData.sampleid
@@ -740,14 +740,14 @@ function showMovingSampleDialog(data){
   dialog_dataset_stdev.innerHTML = `stdev: ${curData.std}`
 
   dialog.style.display='block';
-
-  start_btn.addEventListener('click',()=>{
-    start_mear_after_move_sample();
-  })
-  retry_btn.addEventListener('click',()=>{
-    start_mear_after_move_sample(true);
-  })
 }
+
+start_btn.addEventListener('click',()=>{
+  start_mear_after_move_sample();
+})
+retry_btn.addEventListener('click',()=>{
+  start_mear_after_move_sample(true);
+})
 
 function start_mear_after_move_sample(isRetry=false){
   let dialog = document.getElementById('modal_moving_sample_dialog');

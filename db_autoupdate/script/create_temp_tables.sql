@@ -50,7 +50,7 @@ BULK INSERT [DigiChamber].[dbo].[FunctionList_temp]
     WITH
     (
         FIRSTROW = 2,
-        FIELDTERMINATOR = ';',
+        FIELDTERMINATOR = ',',
         ROWTERMINATOR = '\n',
         CODEPAGE = '65001',
         DATAFILETYPE = 'char'
@@ -100,7 +100,7 @@ BULK INSERT [DigiChamber].[dbo].UserPermission_temp
     WITH
     (
         FIRSTROW = 2,
-        FIELDTERMINATOR = ';',
+        FIELDTERMINATOR = ',',
         ROWTERMINATOR = '\n'
     )
 
@@ -142,7 +142,7 @@ BULK INSERT [DigiChamber].[dbo].[UserList_temp]
     WITH
     (
         FIRSTROW = 2,
-        FIELDTERMINATOR = ';',
+        FIELDTERMINATOR = ',',
         ROWTERMINATOR = '\n'
     )
 
@@ -179,7 +179,7 @@ BULK INSERT [DigiChamber].[dbo].[UserRoleList_temp]
     WITH
     (
         FIRSTROW = 2,
-        FIELDTERMINATOR = ';',
+        FIELDTERMINATOR = ',',
         ROWTERMINATOR = '\n'
     )
 

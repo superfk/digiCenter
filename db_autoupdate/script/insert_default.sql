@@ -8,7 +8,7 @@ BULK INSERT [DigiChamber].[dbo].[UserPermission]
     WITH
     (
         FIRSTROW = 2,
-        FIELDTERMINATOR = ';',
+        FIELDTERMINATOR = ',',
         ROWTERMINATOR = '\n'
     )
 GO
@@ -18,7 +18,7 @@ BULK INSERT [DigiChamber].[dbo].[UserRoleList]
     WITH
     (
         FIRSTROW = 2,
-        FIELDTERMINATOR = ';',
+        FIELDTERMINATOR = ',',
         ROWTERMINATOR = '\n'
     )
 GO
@@ -28,7 +28,7 @@ BULK INSERT [DigiChamber].[dbo].[UserList]
     WITH
     (
         FIRSTROW = 2,
-        FIELDTERMINATOR = ';',
+        FIELDTERMINATOR = ',',
         ROWTERMINATOR = '\n'
     )
 GO
@@ -38,7 +38,7 @@ BULK INSERT [DigiChamber].[dbo].[FunctionList]
     WITH
     (
         FIRSTROW = 2,
-        FIELDTERMINATOR = ';',
+        FIELDTERMINATOR = ',',
         ROWTERMINATOR = '\n',
         CODEPAGE = '65001',
         DATAFILETYPE = 'char'

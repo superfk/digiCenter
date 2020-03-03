@@ -62,9 +62,8 @@ function connect() {
           console.log(data.error);
           break;
         case 'reply_close_all':
-          pyProc.kill();
-          pyProc = null;
-          pyPort = null;
+          app.quit()
+          break;
         default:
           console.log('Not found this cmd ' + cmd)
           break;
@@ -147,7 +146,9 @@ const createPyProc = () => {
 }
 
 const exitPyProc = () => {
-  ws.send(tools.parseCmd('close_all'));
+  pyProc.kill();
+  pyProc = null;
+  pyPort = null;
 }
 
 // init config and database
@@ -288,9 +289,11 @@ ipcMain.on('open-folder-dialog', (event, default_Path, calback) => {
   })
 })
 
-app.on('window-all-closed', () => {
+app.on('window-all-closed', (e) => {
+  e.preventDefault()
+  ws.send(tools.parseCmd('close_all'));
   if (process.platform !== 'darwin') {
-    app.quit()
+    // app.quit()
   }
 })
 

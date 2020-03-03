@@ -19,7 +19,7 @@ def main():
     # resp = 'E0000,MS_DURATION=5,30AA\r\n'
     # par_result = ba.parse_resp(resp)
     # print(par_result)
-    ba.open_rs232("COM4")
+    ba.open_rs232("COM3")
     ret = ba.get_dev_name()
     print(ret)
     ret = ba.get_dev_software_version()
@@ -38,14 +38,14 @@ def main():
     print('rotation mode: {}'.format(ret))
     for i in range(2):
         time.sleep(0.1)
-        ba.set_remote(True)
+        ba.set_remote(False)
         ba.start_mear()
         ba.config(True,False)
         
         while True:
             ret = ba.get_single_value()
             print('final resp of step {}: {}'.format(i, ret))
-            if ret:
+            if ret is not None:
                 break
             else:
                 time.sleep(0.1)

@@ -89,6 +89,12 @@ class DigiChamberProduct(pd_product.Product):
                 title = self.lang_data['seqEditor_inform_seq_differ_title']
                 txt = self.lang_data['seqEditor_inform_seq_differ_txt'] + '\n' + reason
                 await self.socketCallback(websocket, 'inform_user_seq_differ', {'title':title,'reason':txt})
+        else:
+            reason = '{} file saved'.format(newPath)
+            self.log_to_db_func(reason, 'info', True)
+            util.write2JSON(newPath, seq_json)
+            self.script = seq_json
+            return self.script
                 
         
 
@@ -256,6 +262,14 @@ class DigiChamberProduct(pd_product.Product):
                 txt = self.lang_data['server_final_end_test_reason']
                 title = self.lang_data['server_final_end_test_title']
                 self.sendCommunicateCallback('end_of_test',{'interrupted':False,'title':title,'reason':txt})
+            
+            try:
+                self.dChamb.set_manual_mode(False)
+                self.digiTest.stop_mear()
+                self.digiTest.set_remote(False)
+            except:
+                self.lg.debug('set hardware failed in the finall step of sequence')
+
             self.in_test_mode = False
 
     async def get_cur_temp_and_humi(self, websocket):
@@ -271,17 +285,26 @@ class DigiChamberProduct(pd_product.Product):
         if not self.in_test_mode:
             try:
                 dtInfo['status']=self.digiTest.connected
-                dtInfo['value']=self.digiTest.get_single_value()
+                if self.digiTest.connected:
+                    dtInfo['value']=self.digiTest.get_single_value()
+                else:
+                    dtInfo['value']= None
             except Exception as e:
                 self.lg.debug('digitest get value error')
                 self.lg.debug(e)
             try:
-                self.curT = self.dChamb.get_real_temperature()
-                self.curH = self.dChamb.get_real_humidity()
-                tempInfo['status']=self.dChamb.connected
-                tempInfo['value']=self.curT
-                humInfo['status']=self.dChamb.connected
-                humInfo['value']=self.curH
+                if self.dChamb.connected:
+                    self.curT = self.dChamb.get_real_temperature()
+                    self.curH = self.dChamb.get_real_humidity()
+                    tempInfo['status']=self.dChamb.connected
+                    tempInfo['value']=self.curT
+                    humInfo['status']=self.dChamb.connected
+                    humInfo['value']=self.curH
+                else:
+                    tempInfo['status']=False
+                    tempInfo['value']=None
+                    humInfo['status']=False
+                    humInfo['value']=None 
             except Exception as e:
                 self.lg.debug('digiChamber get temperature error')
                 self.lg.debug(e)
@@ -341,7 +364,7 @@ class DigiChamberProduct(pd_product.Product):
     def init_digitest_controller(self,obj_digitest, COM='COM3'):
         try:
             self.digiTest = obj_digitest
-            conn = self.digiTest.open_rs232(COM)
+            conn = self.digiTest.open_rs232(COM, timeout=5)
             return conn
         except Exception as e:
             self.lg.debug('digitest init error: {}'.format(e))

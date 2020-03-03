@@ -334,5 +334,7 @@ if __name__ == '__main__':
     print(ret)
     ret = get_hum()
     print(ret)
-    ret = cmd_test('12002',['2'])
+    ret = cmd_test('11004',['2'])
+    print(ret)
+    ret = cmd_test('11070',['1'])
     print(ret)

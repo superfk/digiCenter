@@ -292,13 +292,13 @@ class DigiChamber(object):
         return value
     
     def get_real_temperature(self):
-        cmd = self.create_cmd('12002', ['1'])
+        cmd = self.create_cmd('11004', ['1'])
         respid, value = self.send_and_get(cmd)
         value = float(value)
         return value
     
     def get_real_humidity(self):
-        cmd = self.create_cmd('12002', ['2'])
+        cmd = self.create_cmd('11004', ['2'])
         respid, value = self.send_and_get(cmd)
         value = float(value)
         return value

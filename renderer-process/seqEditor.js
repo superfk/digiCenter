@@ -327,6 +327,7 @@ function loadSeqFromServer(){
 };
 
 ipcRenderer.on('save-seq', (event, path) => {
+    console.log(path)
     seqPath_under_save = path;
     ws.send(tools.parseCmd('run_cmd',tools.parseCmd('save_seq',{path: seqPath_under_save, seq: test_flow, force_save:false})));
 })

@@ -166,7 +166,7 @@ class TeardownStep(DigiCenterStep):
         self.hwDigichamber.set_gradient_up(0)
         self.hwDigichamber.set_gradient_down(0)
         target = self.safeTemp
-        tol = 0.03
+        tol = 0.05
         UL = target * (1+tol)
         LL = target * (1-tol)
         self.hwDigichamber.set_setPoint(target)
@@ -189,14 +189,20 @@ class TeardownStep(DigiCenterStep):
             ## END   ###################################################
             curT = self.hwDigichamber.get_real_temperature()
             roundValue = round(curT,1)
-            prog = round( (1-(abs(roundValue - target) / target)) * 100, 0)
+            prog = round( (abs(roundValue - initT) / abs(target-initT)) * 100, 0)
             self.set_result(roundValue,'WAITING',unit='&#8451', progs=prog)
             self.resultCallback(self.result)
             if curT<=UL and curT>=LL:
                 break
             time.sleep(1)
-        self.hwDigichamber.set_manual_mode(False)
-        self.set_result('PASS','PASS',progs=100)
+        try:
+            self.hwDigichamber.set_manual_mode(False)
+            self.hwDigitest.stop_mear()
+            self.hwDigitest.set_remote(False)
+        except:
+            print('teardown set hardware failed')
+        finally:
+            self.set_result('PASS','PASS',progs=100)
         return self.result
 
 class TemperatureStep(DigiCenterStep):
@@ -249,7 +255,8 @@ class TemperatureStep(DigiCenterStep):
                 break
             time.sleep(1)
             roundValue = round(curT,1)
-            prog = round( (1-(abs(roundValue - self.actTarget) / self.actTarget)) * 100, 0)
+            # prog = round( (1-(abs(roundValue - self.actTarget) / self.actTarget)) * 100, 0)
+            prog = round( (abs(roundValue - initT) / abs(self.actTarget-initT)) * 100, 0)
             self.set_result(roundValue,'WAITING',unit='&#8451', progs=prog)
             self.resultCallback(self.result)
             # yield self.result
@@ -263,7 +270,6 @@ class TemperatureStep(DigiCenterStep):
             ## END   ###################################################
             curT = self.hwDigichamber.get_real_temperature()
             roundValue = round(curT,1)
-            prog = round( (1-(abs(roundValue - self.actTarget) / self.actTarget)) * 100, 0)
             if curT<=UL and curT>=LL:
                 break
         self.set_result(roundValue,'PASS',unit='&#8451', progs=100)
@@ -346,7 +352,7 @@ class HardnessStep(DigiCenterStep):
                     break
 
             # start mear
-            self.hwDigitest.config(True,False)
+            self.hwDigitest.config(debug=True, wait_cmd = False)
             self.hwDigitest.start_mear()
                         
             # get value
@@ -358,8 +364,8 @@ class HardnessStep(DigiCenterStep):
                 h_data = self.hwDigitest.get_single_value()
                 endTime = time.time()
                 countdownTime = endTime - startTime
-                prog = round( countdownTime / (self.mearTime+6) * 100, 0)
-                if h_data:
+                prog = round( countdownTime / (self.mearTime+20) * 100, 0)
+                if h_data is not None:
                     self.commCallback('only_update_hardness_indicator',round(h_data,1))
                     self.set_result(round(h_data,1),'WAITING',hardness_dataset=self.singleResult, progs=100)
                     self.resultCallback(self.result)
@@ -368,9 +374,9 @@ class HardnessStep(DigiCenterStep):
                     self.set_result(h_data,'WAITING',hardness_dataset=self.singleResult, progs=prog)
                     self.resultCallback(self.result)
                     time.sleep(0.5)
-            self.hwDigitest.config(False,True)
+            self.hwDigitest.config(debug=False, wait_cmd = True)
             # add new data
-            if h_data:
+            if h_data is not None:
                 self.add_data(h_data)
             else:
                 h_data = 0.0
