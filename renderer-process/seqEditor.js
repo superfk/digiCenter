@@ -527,55 +527,7 @@ $('body').on('click', '.delete_list', function() {
 
 
 applyParaBtn.addEventListener('click',()=>{
-    let {id, cat, subitem} = activePara;
-    let {item, paras} = subitem;
-    let paraCollection = null;
-    if (cat === 'temperature'){
-        paraCollection = $('#paraContainer input');
-        $.each(paraCollection,(index,item)=>{
-           test_flow.main[id].subitem.paras[index].value = $(item).val()
-        })
-    }else if (cat === 'hardness'){
-        paraCollection = $('#paraContainer input');
-        // let newCOM = paraCollection[0].value;
-        let newMearT = paraCollection[0].value;
-        let newNumOfTest = paraCollection[1].value;
-        // test_flow.main[id].subitem.paras[0].value = newCOM;
-        test_flow.main[id].subitem.paras[2].value = newMearT;
-        test_flow.main[id].subitem.paras[3].value = newNumOfTest;
-        paraCollection = $('#paraContainer select');
-        let newMethod = $(paraCollection[0]).find('option:selected').text();
-        let newMode = $(paraCollection[1]).find('option:selected').text();
-        let newNumericMethod = $(paraCollection[2]).find('option:selected').text();
-        test_flow.main[id].subitem.paras[0].value = newMethod;
-        test_flow.main[id].subitem.paras[1].value = newMode;
-        test_flow.main[id].subitem.paras[4].value = newNumericMethod;
-        
-    }else if (cat === 'waiting'){
-        paraCollection = $('#paraContainer input');
-        $.each(paraCollection,(index,item)=>{
-            test_flow.main[id].subitem.paras[index].value = $(item).val()
-         })
-    }else if (cat === 'loop'){
-        let loopid = paras.filter(item=>item.name=='loop id')[0].value;
-        let ids = seqRend.searchLoopStartEndByID(loopid,test_flow.main);
-        let endloopindex = ids[1]
-        paraCollection = $('#paraContainer input');
-        let newLoopCounts = paraCollection[1].value;
-        test_flow.main[id].subitem.paras[1].value = newLoopCounts;
-        test_flow.main[endloopindex].subitem.paras[0].value = newLoopCounts;
-    }else if (cat === 'subprog'){
-        paraCollection = $('#paraContainer input');
-        $.each(paraCollection,(index,item)=>{
-            test_flow.main[id].subitem.paras[index].value = $(item).val()
-         })
-    }else if (cat === 'teardown'){
-        paraCollection = $('#paraContainer input');
-        $.each(paraCollection,(index,item)=>{
-            test_flow.teardown.subitem.paras[index].value = $(item).val()
-         })
-    }
-
+    test_flow = seqRend.applyChange(paraContainerID='paraContainer', test_flow=test_flow, activePara=activePara)
     seqRend.sortSeq('seqContainer',test_flow.setup, test_flow.main, test_flow.teardown,true);
     makeSortable();
     updateTempTimeChart();

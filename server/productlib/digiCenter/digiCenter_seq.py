@@ -231,6 +231,13 @@ class TemperatureStep(DigiCenterStep):
             self.hwDigichamber.set_gradient_up(slope)
         self.hwDigichamber.set_setPoint(target)
     
+    def tempratuerLimiter(self, temp_in):
+        if temp_in<-40:
+            temp_in = -40
+        elif temp_in>190:
+            temp_in = 190
+        return temp_in
+
     @DigiCenterStep.deco
     def do(self):
         # set start temperature
@@ -279,6 +286,7 @@ class TemperatureStep(DigiCenterStep):
     def update_actTarget(self):
         incre = self.loopIter*self.incre
         self.actTarget = self.targetTemp + incre
+        self.actTarget = self.tempratuerLimiter(self.actTarget)
 
 class HardnessStep(DigiCenterStep):
     def __init__(self):
@@ -373,7 +381,7 @@ class HardnessStep(DigiCenterStep):
                 else:
                     self.set_result(h_data,'WAITING',hardness_dataset=self.singleResult, progs=prog)
                     self.resultCallback(self.result)
-                    time.sleep(0.5)
+                    time.sleep(1)
             self.hwDigitest.config(debug=False, wait_cmd = True)
             # add new data
             if h_data is not None:
@@ -456,7 +464,7 @@ class WaitingStep(DigiCenterStep):
             if self.stopMsgQueue.qsize()>0:
                 # stop process immediately
                 break
-            time.sleep(0.27)
+            time.sleep(1)
             endTime = time.time()
             countdownTime = endTime - startTime
             prog = round( countdownTime / targetTime * 100, 0)

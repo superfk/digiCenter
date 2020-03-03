@@ -48,8 +48,8 @@ module.exports = {
         let paras= [
             new module.exports.NumberPara('target temperature',20,unit='&#8451',max=190,min=-40,readOnly=false),
             new module.exports.NumberPara('tolerance',1,unit='&#8451',max=10,min=0,readOnly=false),
-            new module.exports.NumberPara('slope',5,'K/min',max=null,min=null,readOnly=false),
-            new module.exports.NumberPara('increment',0,'&#8451',max=null,min=0,readOnly=false)
+            new module.exports.NumberPara('slope',5,'K/min',max=100,min=-100,readOnly=false),
+            new module.exports.NumberPara('increment',0,'&#8451',max=100,min=-100,readOnly=false)
         ]
         
         // UIkit.modal('#parasModal').show();
@@ -60,15 +60,15 @@ module.exports = {
             // new TextPara('port','COM3',unit='',readOnly=false),
             new module.exports.OptionPara('mode','STANDARD_M','STANDARD_M,STANDARD_M_GRAPH',unit='',readOnly=false),
             new module.exports.OptionPara('method','shoreA','shoreA,shore0',unit='',readOnly=false),
-            new module.exports.NumberPara('measuring time',5,unit='sec',max=null,min=0,readOnly=false),
-            new module.exports.NumberPara('number of measurement',3,unit='',max=null,min=1,readOnly=false),
+            new module.exports.NumberPara('measuring time',5,unit='sec',max=99,min=1,readOnly=false),
+            new module.exports.NumberPara('number of measurement',3,unit='',max=10,min=1,readOnly=false),
             new module.exports.OptionPara('numerical method','mean','mean,median',unit='',readOnly=false)
         ]
         return module.exports.makeSingleStep('hardness', 'measure', paras);
     },
     genWaitPara: function(){
         let paras= [
-            new module.exports.NumberPara('conditioning time',5,unit='minute',max=null,min=0,readOnly=false)
+            new module.exports.NumberPara('conditioning time',5,unit='minute',max=480,min=0,readOnly=false)
         ]
         return module.exports.makeSingleStep('waiting', 'time', paras);
     },
@@ -79,7 +79,7 @@ module.exports = {
         let loop_counts = 1;
         let paras= [
             new module.exports.NumberPara('loop id',loopID,unit='',max=null,min=0,readOnly=true),
-            new module.exports.NumberPara('loop counts',loop_counts,unit='',max=null,min=0,readOnly=false),
+            new module.exports.NumberPara('loop counts',loop_counts,unit='',max=100,min=0,readOnly=false),
             new module.exports.TextPara('loop color',loopColor,unit='',readOnly=true)
         ]
         let lpStartStep = module.exports.makeSingleStep('loop', 'loop start', paras);
@@ -191,7 +191,7 @@ module.exports = {
       genTeardownTest: function (paras=null){
           if (paras==null){
             paras= [
-                new module.exports.NumberPara('safe temperature',30,unit='&#8451',max=45,min=20,readOnly=false)
+                new module.exports.NumberPara('safe temperature',30,unit='&#8451',max=50,min=0,readOnly=false)
             ]
           }
         teardown_seq = module.exports.makeSingleStep('teardown','teardown', paras, true, 9999);
@@ -267,7 +267,15 @@ module.exports = {
                 if (t === 'text'){
                     c += `<li><label>${tools.capitalize(item['name'])} ${module.exports.genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='text' ${ronly}></li>`;
                 }else if (t === 'number'){
-                    c += `<li><label>${tools.capitalize(item['name'])} ${module.exports.genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='number' ${ronly}></li>`;
+                    let maxValue = item['max']===null?'':`max='${item['max']}'`;
+                    let minValue = item['min']===null?'':`min='${item['min']}'`;
+                    let plhValue = item['min']===null?'no limit':`${item['min']}`
+                    plhValue += "~"
+                    plhValue += item['max']===null?'no limit':`${item['max']}`
+                    plhValue = "placeholder='" + plhValue + "'"
+                    console.log(maxValue, minValue, plhValue)
+                    c += `<li><label>${tools.capitalize(item['name'])} ${module.exports.genUnit(item['unit'])}</label>
+                    <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='number' ${maxValue} ${minValue} ${plhValue} ${ronly}></li>`;
       
                 }else if (t === 'bool'){
                     c += `<li><input class='w3-check w3-border-bottom w3-cell' checked=${item['value']} type='checkbox' ${ronly}><label> ${tools.capitalize(item['name'])} ${module.exports.genUnit(item['unit'])}
@@ -468,5 +476,56 @@ module.exports = {
         }else{
             return {'valid':true, 'loopid':null}
         }
-    }
+    },
+    applyChange: function(paraContainerID, test_flow, activePara) {
+        let {id, cat, subitem} = activePara;
+        let {item, paras} = subitem;
+        let paraCollection = null;
+        if (cat === 'temperature'){
+            paraCollection = $('#'+paraContainerID+' input');
+            $.each(paraCollection,(index,item)=>{
+            test_flow.main[id].subitem.paras[index].value = $(item).val()
+            })
+        }else if (cat === 'hardness'){
+            paraCollection = $('#'+paraContainerID+' input');
+            // let newCOM = paraCollection[0].value;
+            let newMearT = paraCollection[0].value;
+            let newNumOfTest = paraCollection[1].value;
+            // test_flow.main[id].subitem.paras[0].value = newCOM;
+            test_flow.main[id].subitem.paras[2].value = newMearT;
+            test_flow.main[id].subitem.paras[3].value = newNumOfTest;
+            paraCollection = $('#'+paraContainerID+' select');
+            let newMethod = $(paraCollection[0]).find('option:selected').text();
+            let newMode = $(paraCollection[1]).find('option:selected').text();
+            let newNumericMethod = $(paraCollection[2]).find('option:selected').text();
+            test_flow.main[id].subitem.paras[0].value = newMethod;
+            test_flow.main[id].subitem.paras[1].value = newMode;
+            test_flow.main[id].subitem.paras[4].value = newNumericMethod;
+            
+        }else if (cat === 'waiting'){
+            paraCollection = $('#'+paraContainerID+' input');
+            $.each(paraCollection,(index,item)=>{
+                test_flow.main[id].subitem.paras[index].value = $(item).val()
+            })
+        }else if (cat === 'loop'){
+            let loopid = paras.filter(item=>item.name=='loop id')[0].value;
+            let ids = module.exports.searchLoopStartEndByID(loopid,test_flow.main);
+            let endloopindex = ids[1]
+            paraCollection = $('#'+paraContainerID+' input');
+            let newLoopCounts = paraCollection[1].value;
+            test_flow.main[id].subitem.paras[1].value = newLoopCounts;
+            test_flow.main[endloopindex].subitem.paras[0].value = newLoopCounts;
+        }else if (cat === 'subprog'){
+            paraCollection = $('#'+paraContainerID+' input');
+            $.each(paraCollection,(index,item)=>{
+                test_flow.main[id].subitem.paras[index].value = $(item).val()
+            })
+        }else if (cat === 'teardown'){
+            paraCollection = $('#'+paraContainerID+' input');
+            $.each(paraCollection,(index,item)=>{
+                test_flow.teardown.subitem.paras[index].value = $(item).val()
+            })
+        }
+        return test_flow;
+    },
   };
