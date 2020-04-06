@@ -230,6 +230,61 @@ function createProgressBar(title='Progress bar', text='', detail=''){
 
 }
 
+const createReportViewerWindow = () => {
+  let reportViewerWindow = new BrowserWindow({
+    width: 800, 
+    height: 600,
+    icon: __dirname + '/img/appIcon.jpg',
+    parent: mainWindow,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  })
+  reportViewerWindow.loadURL(require('url').format({
+    pathname: path.join(__dirname, './sections/reportViewer.html'),
+    protocol: 'file:',
+    slashes: true
+  }))
+  
+  reportViewerWindow.removeMenu();
+
+  reportViewerWindow.on('closed', () => {
+    reportViewerWindow = null
+  })
+
+}
+
+const createReportDesignerWindow = () => {
+  let reportDesignerWindow = new BrowserWindow({
+    width: 800, 
+    height: 600,
+    icon: __dirname + '/img/appIcon.jpg',
+    parent: mainWindow,
+    webPreferences: {
+      nodeIntegration: true
+    }
+  })
+  reportDesignerWindow.loadURL(require('url').format({
+    pathname: path.join(__dirname, './sections/reportDesigner.html'),
+    protocol: 'file:',
+    slashes: true
+  }))
+  
+  reportDesignerWindow.removeMenu();
+
+  reportDesignerWindow.on('closed', () => {
+    reportDesignerWindow = null
+  })
+
+}
+
+ipcMain.on('call-report-viewer-window', (event) =>{
+  createReportViewerWindow();
+})
+
+ipcMain.on('call-report-designer-window', (event) =>{
+  createReportDesignerWindow();
+})
 
 ipcMain.on('start-indet-progressbar', (event, title, text, msg) =>{
   createProgressBar(title, text, msg);

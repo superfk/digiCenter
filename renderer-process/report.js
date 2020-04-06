@@ -3,6 +3,23 @@ var moment = require('moment');
 let tools = require('../assets/shared_tools');
 let ws
 
+var Stimulsoft = require("stimulsoft-reports-js");
+
+Stimulsoft.Base.StiLicense.key =
+	"6vJhGtLLLz2GNviWmUTrhSqnOItdDwjBylQzQcAOiHm03mN0+gfDK1Lbh88KidC50MUN9xADIxmQc8dC" +
+	"8LPhoN7XTOwJGtRN5GNRp4MXQ5jhmJZ0MfzOI5JTNGy/pzOHsBkQkDyjmOYLLv5T0bypmo3RDMUFJKW9" +
+	"6KyeaG0ooJLxNY0GPZmpz0H2LdoR9vZ3hzNI9pI2NJ5fBfs6jDeUspLkjOVrIXj7dcrXUSC/0EXy4W/Y" +
+	"NIgTTfKI/N+gUeNGO891Gyj/9iNQvymhxCdNtRyy5VGDGBSG0WVatVQDpswDxFvqifTHAQ0YWYUYCrgn" +
+	"5frkQqabQPrJvKJJQ6TGd9iDRi15X07I7d8b93cYGYuvLgjJumcEmaFEwK/LL4UkEJmp02EzwTeBhw34" +
+	"vS3dg6l1FsuBC37WEN1m9updsrB1yAwwschLj0s42BCCKrteBUTjfYqhg1T/vFXOfazsdlOrWYrFRiar" +
+	"MyepmSqrMRplCzqX8AOoe8/Vi2H3zH5JrFjygGZp+pvC5Qlot2GGdP17wiww5ycxrFMp3FrWv+kOrEZK" +
+  "AR0HCq68tnlNf+AW";
+  
+
+Stimulsoft.Base.StiFontCollection.addOpentypeFontFile("./assets/css/fonts/Roboto-Black.ttf");
+
+var report = Stimulsoft.Report.StiReport.createNewReport();
+
 var now = moment().format("YYYY-MM-DDTHH:mm:ss.000");
 const export2fileBtn = document.getElementById('export-test-data-to-file');
 const mytable_visible = document.getElementById('report-csv-table-visible');
@@ -169,16 +186,6 @@ export2fileBtn.addEventListener('click', (event) => {
   ipcRenderer.send('show-file-export');
 })
 
-
-exportStart.addEventListener('click', (event) => {
-  savelog('Click export to file button', 'info', 1);
-  let t = $('#test-data-table-in-report').DataTable();
-  let tableData = t.data().toArray();
-  let fpath = document.getElementById('export-filename');
-  let expOpt = getExportOptions()
-  ws.send(tools.parseCmd('export_test_data_from_client',{'tabledata':tableData, 'path':fpath.value, 'option':expOpt}));
-})
-
 var getExportOptions = function(){
   var opt = [];
   if ($('#export-option-csv').is(":checked"))
@@ -195,8 +202,14 @@ var getExportOptions = function(){
   return opt;
 }
 
-
-
+exportStart.addEventListener('click', (event) => {
+  savelog('Click export to file button', 'info', 1);
+  let t = $('#test-data-table-in-report').DataTable();
+  let tableData = t.data().toArray();
+  let fpath = document.getElementById('export-filename');
+  let expOpt = getExportOptions()
+  ws.send(tools.parseCmd('export_test_data_from_client',{'tabledata':tableData, 'path':fpath.value, 'option':expOpt}));
+})
 
 function createTable(tableData) {
   
@@ -334,3 +347,22 @@ generateEventPlot();
 repositionChart();
 
 $('#chart-tab').on('click', repositionChart )
+
+// /////////////////////////////
+// StiReport
+// /////////////////////////////
+$('#call-viewer').on('click', ()=>{
+  createViewer();
+})
+
+function createViewer() {
+  ipcRenderer.send('call-report-viewer-window');
+}
+
+$('#call-designer').on('click', ()=>{
+  createDesigner();
+})
+
+function createDesigner() {
+  ipcRenderer.send('call-report-designer-window');
+}
