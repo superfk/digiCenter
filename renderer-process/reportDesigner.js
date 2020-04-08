@@ -1,3 +1,9 @@
+const {ipcRenderer} = require("electron");
+const appRoot = require('electron-root-path').rootPath;
+const path = require('path');
+
+
+var designer, report;
 
 Stimulsoft.Base.StiLicense.key = 
 "6vJhGtLLLz2GNviWmUTrhSqnOItdDwjBylQzQcAOiHncDzQDe6bFww6Bip9/CL33fxnJPP3QrZTug8MsoatxwE/til" + 
@@ -11,6 +17,29 @@ Stimulsoft.Base.StiLicense.key =
 var options = new Stimulsoft.Designer.StiDesignerOptions();
 	options.appearance.fullScreenMode = true;
 
-var designer = new Stimulsoft.Designer.StiDesigner(options, "StiDesigner", false);
 
-designer.renderHtml('designerContent');
+ipcRenderer.on('import-data-to-designer', (event, data)=>{
+
+    // Create the report viewer with specified options
+    designer = new Stimulsoft.Designer.StiDesigner(options, "StiDesigner", false);
+
+    // Create a new report instance
+    report = new Stimulsoft.Report.StiReport();
+
+    // Load report from url
+    report.loadFile(path.join(appRoot, "Report.mrt"));
+    // Assign report to the viewer, the report will be built automatically after rendering the viewer
+    designer.report = report;
+
+    // Create new DataSet object
+    var dataSet = new Stimulsoft.System.Data.DataSet("Data");
+    // Load JSON data file from specified URL to the DataSet object
+    dataSet.readJson(data);
+    // Remove all connections from the report template
+    report.dictionary.databases.clear();
+    // Register DataSet object
+    report.regData("Data", "Data", dataSet);
+
+    designer.renderHtml('designerContent');
+
+})

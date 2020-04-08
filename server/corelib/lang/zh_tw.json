@@ -202,5 +202,7 @@
   "export-start":"執行匯出測試數據",
   "main_indicator_hard":"硬度",
   "main_indicator_temperature":"溫度",
-  "main_indicator_humidity":"濕度"
+  "main_indicator_humidity":"濕度",
+  "report_call-viewer_btn":"報告檢視",
+  "report_call-designer_btn":"報告設計"
 }

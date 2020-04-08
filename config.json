@@ -11,6 +11,6 @@
             "server": "BAR126\\SQLEXPRESS",
             "main_db": "DigiChamber"
         },
-        "mode": "demo"
+        "mode": "product"
     }
 }

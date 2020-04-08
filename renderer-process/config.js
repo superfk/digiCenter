@@ -3,7 +3,7 @@ const path = require('path');
 const { clipboard } = require('electron')
 const remote = require('electron').remote;
 const app = remote.app;
-const appRoot = app.getAppPath();
+const appRoot = require('electron-root-path').rootPath;
 let tools = require('../assets/shared_tools');
 let ws;
 

@@ -352,17 +352,21 @@ $('#chart-tab').on('click', repositionChart )
 // StiReport
 // /////////////////////////////
 $('#call-viewer').on('click', ()=>{
-  createViewer();
+  let tableData = t.data().toArray();
+  let data = JSON.stringify({'data':tableData});
+  createViewer(data);
 })
 
-function createViewer() {
-  ipcRenderer.send('call-report-viewer-window');
+function createViewer(data) {
+  ipcRenderer.send('call-report-viewer-window', data);
 }
 
 $('#call-designer').on('click', ()=>{
-  createDesigner();
+  let tableData = t.data().toArray();
+  let data = JSON.stringify({'data':tableData});
+  createDesigner(data);
 })
 
-function createDesigner() {
-  ipcRenderer.send('call-report-designer-window');
+function createDesigner(data) {
+  ipcRenderer.send('call-report-designer-window', data);
 }

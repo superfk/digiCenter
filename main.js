@@ -3,19 +3,10 @@ const app = electron.app
 const BrowserWindow = electron.BrowserWindow
 const path = require('path')
 const {ipcMain, dialog, shell} = require('electron')
-// const appRoot = require('electron-root-path').rootPath;
-const appRoot = app.getAppPath();
+const appRoot = require('electron-root-path').rootPath;
 const ProgressBar = require('electron-progressbar');
 let tools = require('./assets/shared_tools');
-// const zerorpc = require("zerorpc");
-
-// // zerorpc client
-// const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
-// // create zerorpc instance
-// client.connect("tcp://127.0.0.1:4242");
-// let socket = require('socket.io-client')('http://127.0.0.1:5678/test',{transports:['WebSocket']});
 let ws;
-let openOnce = false;
 
 
 function connect() {
@@ -92,18 +83,21 @@ connect()
  * py process
  *************************************************************/
 
-const PY_DIST_FOLDER = 'pyserver'
+const PY_DIST_FOLDER = 'pyserver_dist'
 const PY_FOLDER = 'server'
 const PY_MODULE = 'api' // without .py suffix
 let PY_INIT_OK = false;
 
 let pyProc = null
 let pyPort = null
-let isProdct = false
 
 //
 const guessPackaged = () => {
   const fullPath = path.join(appRoot, PY_DIST_FOLDER)
+  console.log('full server Path:')
+  console.log(fullPath);
+  console.log('does server existed:')
+  console.log(require('fs').existsSync(fullPath))
   return require('fs').existsSync(fullPath)
 }
 
@@ -112,7 +106,6 @@ const getScriptPath = () => {
     return path.join(appRoot, PY_FOLDER, PY_MODULE + '.py')
   }
   if (process.platform === 'win32') {
-    console.log(path.join(appRoot, PY_DIST_FOLDER, PY_MODULE, PY_MODULE + '.exe'));
     return path.join(appRoot, PY_DIST_FOLDER, PY_MODULE, PY_MODULE + '.exe')
   }
   return path.join(appRoot, PY_DIST_FOLDER, PY_MODULE, PY_MODULE)
@@ -129,6 +122,7 @@ const createPyProc = () => {
 
   if (guessPackaged()) {
     pyProc = require('child_process').execFile(script, [port])
+    console.log('Found server exe:')
     console.log(script);
   } else {
     pyProc = require('child_process').spawn('python', [script, port],{ stdio: 'ignore' })
@@ -186,7 +180,8 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1024, 
     height: 600,
-    icon: __dirname + '/img/appIcon.jpg', 
+    icon: __dirname + '/img/appIcon.jpg',
+    backgroundColor: '#2e2c29',
     webPreferences: {
       nodeIntegration: true
     }
@@ -199,8 +194,9 @@ const createWindow = () => {
 
   if (!guessPackaged()){
     mainWindow.webContents.openDevTools()
+  }else {
+    // mainWindow.removeMenu();
   }
-  
 
   mainWindow.on('closed', () => {
     mainWindow = null
@@ -230,7 +226,7 @@ function createProgressBar(title='Progress bar', text='', detail=''){
 
 }
 
-const createReportViewerWindow = () => {
+const createReportViewerWindow = (data) => {
   let reportViewerWindow = new BrowserWindow({
     width: 800, 
     height: 600,
@@ -241,49 +237,59 @@ const createReportViewerWindow = () => {
     }
   })
   reportViewerWindow.loadURL(require('url').format({
-    pathname: path.join(__dirname, './sections/reportViewer.html'),
-    protocol: 'file:',
+    pathname: path.join(__dirname, 'sections','reportViewer.html'),
+    protocol: 'file',
     slashes: true
   }))
   
-  reportViewerWindow.removeMenu();
+  // reportViewerWindow.removeMenu();
 
   reportViewerWindow.on('closed', () => {
     reportViewerWindow = null
   })
 
+  reportViewerWindow.webContents.once('did-finish-load', () => {
+    reportViewerWindow.webContents.send('import-data-to-viewer', data)
+  });
+
 }
 
-const createReportDesignerWindow = () => {
+const createReportDesignerWindow = (data) => {
   let reportDesignerWindow = new BrowserWindow({
     width: 800, 
     height: 600,
     icon: __dirname + '/img/appIcon.jpg',
     parent: mainWindow,
+    modal: true,
     webPreferences: {
       nodeIntegration: true
     }
   })
   reportDesignerWindow.loadURL(require('url').format({
-    pathname: path.join(__dirname, './sections/reportDesigner.html'),
+    pathname: path.join(__dirname, 'sections','reportDesigner.html'),
     protocol: 'file:',
     slashes: true
   }))
   
-  reportDesignerWindow.removeMenu();
+  // reportDesignerWindow.removeMenu();
 
   reportDesignerWindow.on('closed', () => {
     reportDesignerWindow = null
   })
 
+  reportDesignerWindow.webContents.once('did-finish-load', () => {
+    reportDesignerWindow.webContents.send('import-data-to-designer', data)
+  });
+
+ 
 }
 
-ipcMain.on('call-report-viewer-window', (event) =>{
-  createReportViewerWindow();
+ipcMain.on('call-report-viewer-window', (event, data) =>{
+  createReportViewerWindow(data);
 })
 
-ipcMain.on('call-report-designer-window', (event) =>{
-  createReportDesignerWindow();
+ipcMain.on('call-report-designer-window', (event, data) =>{
+  createReportDesignerWindow(data);
 })
 
 ipcMain.on('start-indet-progressbar', (event, title, text, msg) =>{

@@ -1,3 +1,13 @@
+const {ipcRenderer} = require("electron");
+const appRoot = require('electron-root-path').rootPath;
+const path = require('path');
+
+console.log('check if stimulsoft-Reports js file exists')
+// ext_modules/stimulsoft-Reports.JS-2020.2.2/Scripts/stimulsoft.viewer.pack.js
+const fulPath = path.join(path.dirname(__dirname), "ext_modules", "stimulsoft-Reports.JS-2020.2.2", "Scripts" , "stimulsoft.viewer.pack.js")
+console.log(require('fs').existsSync(fulPath));
+
+var viewer, report;
 
 Stimulsoft.Base.StiLicense.key = 
 "6vJhGtLLLz2GNviWmUTrhSqnOItdDwjBylQzQcAOiHncDzQDe6bFww6Bip9/CL33fxnJPP3QrZTug8MsoatxwE/til" + 
@@ -8,19 +18,32 @@ Stimulsoft.Base.StiLicense.key =
 "5XZIMU9KICb9Hm9CLmdBbX79eHSnBsDmxM2wjn6bIqQpSUoSpjOR31lW5b1K4eRqEzl9UmxWzp+w7SNNdbiIf51ok+" + 
 "+WoJ6KhcwRrvF4hROVsnKWZAP1s3m1u6Zhot";
 
-
 var options = new Stimulsoft.Viewer.StiViewerOptions();
-options.appearance.scrollbarsMode = true;
-options.appearance.fullScreenMode = true;
+    options.appearance.scrollbarsMode = true;
+    options.appearance.fullScreenMode = true;
 
-// Create the report viewer with specified options
-var viewer = new Stimulsoft.Viewer.StiViewer(options, "StiViewer", false);
+ipcRenderer.on('import-data-to-viewer', (event, data)=>{
 
-// Create a new report instance
-var report = new Stimulsoft.Report.StiReport();
-// Load report from url
-report.loadFile("../Report.mrt");
-// Assign report to the viewer, the report will be built automatically after rendering the viewer
-viewer.report = report;
+    // Create the report viewer with specified options
+    viewer = new Stimulsoft.Viewer.StiViewer(options, "StiViewer", false);
 
-viewer.renderHtml('viewerContent');
+    // Create a new report instance
+    report = new Stimulsoft.Report.StiReport();
+
+    // Load report from url
+    report.loadFile(path.join(appRoot, "Report.mrt"));
+    // Assign report to the viewer, the report will be built automatically after rendering the viewer
+    viewer.report = report;
+
+    // Create new DataSet object
+    var dataSet = new Stimulsoft.System.Data.DataSet("Data");
+    // Load JSON data file from specified URL to the DataSet object
+    dataSet.readJson(data);
+    // Remove all connections from the report template
+    report.dictionary.databases.clear();
+    // Register DataSet object
+    report.regData("Data", "Data", dataSet);
+
+    viewer.renderHtml('viewerContent');
+
+})

@@ -202,5 +202,7 @@
   "export-start":"In Datei exportieren Button",
   "main_indicator_hard":"Härte",
   "main_indicator_temperature":"Temperatur",
-  "main_indicator_humidity":"rel. Luftfeuchtigkeit"
+  "main_indicator_humidity":"rel. Luftfeuchtigkeit",
+  "report_call-viewer_btn":"Zuschauer",
+  "report_call-designer_btn":"Designer"
 }

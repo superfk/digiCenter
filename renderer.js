@@ -1,7 +1,5 @@
 const { ipcRenderer } = require('electron');
-const app = require('electron').remote.app;
-const path = require('path');
-const appRoot = app.getAppPath();
+const appRoot = require('electron-root-path').rootPath;
 var moment = require('moment');
 var systime_hook = document.getElementById('systime');
 let tools = require('./assets/shared_tools');

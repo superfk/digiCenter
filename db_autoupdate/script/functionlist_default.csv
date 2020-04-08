@@ -23,5 +23,7 @@
 22,stop_test,1,206,Stop Test,停止測試,Stop Test
 23,button-report,0,300,Report Item in Sidebar,左列之報告檢視,Report Symbol in der Sidebar
 24,query-data,1,301,Query Test Data,搜尋測試數據,Testdaten anfragen
-25,export-test-data-to-file,1,302,Export Report Option Button,呼叫匯出測試數據選單,Export Report Option Button
-26,export-start,1,303,Export data to File Button,執行匯出測試數據,In Datei exportieren Button
+25,export-test-data-to-file,1,304,Export Report Option Button,呼叫匯出測試數據選單,Export Report Option Button
+26,export-start,1,305,Export data to File Button,執行匯出測試數據,In Datei exportieren Button
+27,design-report,1,302,Report Viewer Button,報告檢視按鈕,"Schaltfläche ""Bericht anzeigen"""
+28,view-report,1,303,Report Designer Button,報告設計按鈕,"Schaltfläche ""Berichts-Designer"""

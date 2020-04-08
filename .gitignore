@@ -1,1 +1,4 @@
 systemlog
+pyserver_dist
+__pycache__
+/server/build

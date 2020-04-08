@@ -202,5 +202,7 @@
   "export-start":"Export data to File Button",
   "main_indicator_hard":"Hardness",
   "main_indicator_temperature":"Temperature",
-  "main_indicator_humidity":"Humidity"
+  "main_indicator_humidity":"Humidity",
+  "report_call-viewer_btn":"RPViewer",
+  "report_call-designer_btn":"RPDesigner"
 }

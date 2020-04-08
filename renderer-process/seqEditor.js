@@ -1,9 +1,4 @@
 const {ipcRenderer} = require("electron");
-const app = require('electron').remote.app
-// const zerorpc = require("zerorpc");
-// const client = new zerorpc.Client({ timeout: 60, heartbeatInterval: 60000 });
-// // create zerorpc instance
-// client.connect("tcp://127.0.0.1:4242");
 let tools = require('../assets/shared_tools');
 let seqRend = require('../assets/seq_render_lib')
 let ws;

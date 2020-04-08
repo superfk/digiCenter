@@ -11,9 +11,7 @@
   },
   "keywords": [
     "Electron",
-    "Python",
-    "zerorpc",
-    "demo"
+    "Python"
   ],
   "author": "Shawn",
   "license": "MIT",
@@ -21,21 +19,33 @@
     "productName": "digiCenter",
     "appId": "app.release.v000900",
     "copyright": "Bareiss",
-    "extraFiles": [
-      "config.json",
-      "pyserver_dist",
-      "lang"
-    ],
+    "buildVersion": "0.9.0",
     "directories": {
       "output": "builds"
     },
     "win": {
       "icon": "img/icon.ico",
       "files": [
+        "**/*",
+        "ext_modules/stimulsoft-Reports.JS-2020.2.2/Css/*",
+        "ext_modules/stimulsoft-Reports.JS-2020.2.2/Scripts/*",
+        "assets/*",
+        "sections/*",
         "!**/xpyserver_dist/*",
         "!**/builds/*",
         "!**/.vscode/*",
-        "!**/server/*"
+        "!**/server/*",
+        "!**/systemlog/*",
+        "!**/db_autoupdate/*",
+        "!**/forTesting/*",
+        "!**/.git/*",
+        "!**/__pycache__/*"
+      ],
+      "extraFiles": [
+        "config.json",
+        "pyserver_dist",
+        "lang",
+        "Report.mrt"
       ],
       "target": [
         {
@@ -62,6 +72,7 @@
     "bootstrap": "^4.3.1",
     "d3": "^5.14.2",
     "electron-progressbar": "^1.2.0",
+    "electron-root-path": "^1.0.16",
     "electron-settings": "^3.2.0",
     "electron-shortcut-normalizer": "^1.0.0",
     "highlight.js": "^9.15.9",
@@ -79,7 +90,6 @@
     "electron": "^7.0.0",
     "electron-builder": "^21.2.0",
     "electron-packager": "^8.7.2",
-    "electron-rebuild": "^1.8.8",
     "prebuild-install": "^5.3.1"
   }
 }

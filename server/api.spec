@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['api.py'],
-             pathex=['C:\\BaDBManager\\server'],
+             pathex=['C:\\digiCenter\\server'],
              binaries=[],
              datas=[],
              hiddenimports=[],

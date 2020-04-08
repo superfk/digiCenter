@@ -2,7 +2,7 @@ import threading
 import time
 import re
 import matplotlib.pyplot as plt
-from baInstr import BaInstr
+from .baInstr import BaInstr
 import random
 
 class Digitest(BaInstr):

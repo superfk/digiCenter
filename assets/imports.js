@@ -1,4 +1,8 @@
 let fs = require('fs');
+const path = require('path');
+// const electron = require('electron');
+// const app = electron.app;
+// const appRootPath = app.getAppPath();
 
 // const links = document.querySelectorAll('link[rel="import"]')
 
@@ -6,8 +10,13 @@ const links = ['sections/config.html','sections/seqEditor.html','sections/run.ht
 
 // Import and add each page to the DOM
 Array.prototype.forEach.call(links, (link) => {
+  
+  const fullPath = path.join(path.dirname(__dirname), link)
+
   // let template = link.import.querySelector('.task-template')
-  fs.readFile(link, (err, html) => {
+  fs.readFile(fullPath, (err, html) => {
+    console.log('html path')
+    console.log(fullPath)
     if (err){
       console.error(err)
     }else {
