@@ -1,6 +1,4 @@
 systemlog
-pyserver_dist
 __pycache__
 /server/build
 builds
-node_modules
