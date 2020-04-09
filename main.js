@@ -5,6 +5,7 @@ const path = require('path')
 const {ipcMain, dialog, shell} = require('electron')
 const appRoot = require('electron-root-path').rootPath;
 const ProgressBar = require('electron-progressbar');
+const isDev = require('electron-is-dev');
 let tools = require('./assets/shared_tools');
 let ws;
 
@@ -12,7 +13,7 @@ let ws;
 function connect() {
   try{
     const WebSocket = require('ws');
-    ws = new WebSocket('ws://127.0.0.1:5678');
+    ws = new WebSocket('ws://127.0.0.1:6849');
   }catch(e){
     console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
   }
@@ -151,17 +152,6 @@ var init_server = function(){
   ws.send(tools.parseCmd('load_sys_config',curPath));
   ws.send(tools.parseCmd('backend_init'));
   ws.send(tools.parseCmd('load_default_lang',appRoot));
-  // ws.send(JSON.stringify({cmd:"load_sys_config", data:'curPath'}), (res) => {
-  //   console.log(res);
-  //   ws.send(JSON.stringify({cmd:"backend_init", data:'curPath'}), (res,status) => {
-  //     console.log(res,status)
-  //     if (res === 1){
-  //       PY_INIT_OK = true;
-  //     }
-  //     console.log(res);
-  //     createWindow();
-  //   })
-  // })
 }
 
 
@@ -180,7 +170,7 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1024, 
     height: 600,
-    icon: __dirname + '/img/appIcon.jpg',
+    icon: __dirname + '/img/appIcon.png',
     backgroundColor: '#2e2c29',
     webPreferences: {
       nodeIntegration: true
@@ -192,11 +182,17 @@ const createWindow = () => {
     slashes: true
   }))
 
-  if (!guessPackaged()){
-    mainWindow.webContents.openDevTools()
+  mainWindow.maximize();
+
+  if (isDev){
+    mainWindow.webContents.openDevTools();
   }else {
-    // mainWindow.removeMenu();
+    mainWindow.removeMenu();
   }
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.show();
+  })
 
   mainWindow.on('closed', () => {
     mainWindow = null
@@ -230,7 +226,7 @@ const createReportViewerWindow = (data) => {
   let reportViewerWindow = new BrowserWindow({
     width: 800, 
     height: 600,
-    icon: __dirname + '/img/appIcon.jpg',
+    icon: __dirname + '/img/appIcon.png',
     parent: mainWindow,
     webPreferences: {
       nodeIntegration: true
@@ -242,7 +238,7 @@ const createReportViewerWindow = (data) => {
     slashes: true
   }))
   
-  // reportViewerWindow.removeMenu();
+  if (isDev) {reportViewerWindow.removeMenu();}
 
   reportViewerWindow.on('closed', () => {
     reportViewerWindow = null
@@ -258,7 +254,7 @@ const createReportDesignerWindow = (data) => {
   let reportDesignerWindow = new BrowserWindow({
     width: 800, 
     height: 600,
-    icon: __dirname + '/img/appIcon.jpg',
+    icon: __dirname + '/img/appIcon.png',
     parent: mainWindow,
     modal: true,
     webPreferences: {
@@ -271,7 +267,7 @@ const createReportDesignerWindow = (data) => {
     slashes: true
   }))
   
-  // reportDesignerWindow.removeMenu();
+  if (isDev) {reportDesignerWindow.removeMenu();}
 
   reportDesignerWindow.on('closed', () => {
     reportDesignerWindow = null
@@ -354,7 +350,9 @@ app.on('window-all-closed', (e) => {
   e.preventDefault()
   ws.send(tools.parseCmd('close_all'));
   if (process.platform !== 'darwin') {
-    // app.quit()
+    setTimeout(function() {
+      app.quit();
+    }, 10000);
   }
 })
 

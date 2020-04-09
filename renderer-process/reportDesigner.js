@@ -26,20 +26,24 @@ ipcRenderer.on('import-data-to-designer', (event, data)=>{
     // Create a new report instance
     report = new Stimulsoft.Report.StiReport();
 
-    // Load report from url
-    report.loadFile(path.join(appRoot, "Report.mrt"));
-    // Assign report to the viewer, the report will be built automatically after rendering the viewer
-    designer.report = report;
+    try{
+        // Load report from url
+        report.loadFile(path.join(appRoot, "Report.mrt"));
+        // Assign report to the viewer, the report will be built automatically after rendering the viewer
+        designer.report = report;
 
-    // Create new DataSet object
-    var dataSet = new Stimulsoft.System.Data.DataSet("Data");
-    // Load JSON data file from specified URL to the DataSet object
-    dataSet.readJson(data);
-    // Remove all connections from the report template
-    report.dictionary.databases.clear();
-    // Register DataSet object
-    report.regData("Data", "Data", dataSet);
+        // Create new DataSet object
+        var dataSet = new Stimulsoft.System.Data.DataSet("Data");
+        // Load JSON data file from specified URL to the DataSet object
+        dataSet.readJson(data);
+        // Remove all connections from the report template
+        report.dictionary.databases.clear();
+        // Register DataSet object
+        report.regData("Data", "Data", dataSet);
+    }catch{
 
-    designer.renderHtml('designerContent');
-
+    }finally{
+        designer.renderHtml('designerContent');
+    }
+    
 })

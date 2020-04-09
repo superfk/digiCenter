@@ -46,7 +46,7 @@ const config = {
 function connect() {
   try{
     const WebSocket = require('ws');
-    ws = new WebSocket('ws://127.0.0.1:5678');
+    ws = new WebSocket('ws://127.0.0.1:6849');
   }catch(e){
     console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
   }

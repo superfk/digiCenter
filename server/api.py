@@ -634,29 +634,14 @@ class PyServerAPI(object):
 
 def main():
     sokObj = PyServerAPI()
-    # asyncio.ensure_future(sokObj.backend_init(None))
-    # sio.register_namespace(sokObj)
-    # print('reading config.json')
-    # currentDirectory = os.getcwd()
-    # rpc.load_sys_config(currentDirectory+'/config.json')
-    # print('init database')
-    # rpc.backend_init()
-    port=5678
+    port=6849
     addr = 'tcp://127.0.0.1:{}'.format(port)
     print('start running on {}'.format(addr))
-    # web.run_app(app,port=port)
-    # eventlet.wsgi.server(eventlet.listen(('127.0.0.1', port)), app)
-    # s = zerorpc.Server(rpc, heartbeat=None)
-    # s.bind(addr)
-    # s.run()
 
-    start_server = websockets.serve(sokObj.handler, "localhost", port, ping_interval=30)
+    start_server = websockets.serve(sokObj.handler, "127.0.0.1", port, ping_interval=30)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(start_server)
-    # loop.create_task(sokObj.load_sys_config(None,r'C:\\digiCenter\config.json'))
-    # loop.create_task(sokObj.backend_init(None))
     loop.run_forever()
-    
 
 if __name__ == '__main__':
     main()

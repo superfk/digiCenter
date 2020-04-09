@@ -1,4 +1,8 @@
 {
-    "python.pythonPath": "C:\\Users\\HP\\AppData\\Local\\Programs\\Python\\Python36\\python.exe",
-    "git.ignoreLimitWarning": true
+    "python.pythonPath": "C:\\digiCenter\\server\\venv\\Scripts\\python.exe",
+    "git.ignoreLimitWarning": true,
+    "python.venvPath": "C:\\digiCenter\\server\\venv\\Scripts\\python.exe",
+    "python.venvFolders": [
+        "C:\\digiCenter\\server\\venv\\Scripts\\python.exe"
+    ]
 }

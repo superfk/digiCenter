@@ -2,10 +2,6 @@ const {ipcRenderer} = require("electron");
 const appRoot = require('electron-root-path').rootPath;
 const path = require('path');
 
-console.log('check if stimulsoft-Reports js file exists')
-// ext_modules/stimulsoft-Reports.JS-2020.2.2/Scripts/stimulsoft.viewer.pack.js
-const fulPath = path.join(path.dirname(__dirname), "ext_modules", "stimulsoft-Reports.JS-2020.2.2", "Scripts" , "stimulsoft.viewer.pack.js")
-console.log(require('fs').existsSync(fulPath));
 
 var viewer, report;
 
@@ -31,19 +27,25 @@ ipcRenderer.on('import-data-to-viewer', (event, data)=>{
     report = new Stimulsoft.Report.StiReport();
 
     // Load report from url
-    report.loadFile(path.join(appRoot, "Report.mrt"));
-    // Assign report to the viewer, the report will be built automatically after rendering the viewer
-    viewer.report = report;
+    try{
+        report.loadFile(path.join(appRoot, "Report.mrt"));
+        // Assign report to the viewer, the report will be built automatically after rendering the viewer
+        viewer.report = report;
 
-    // Create new DataSet object
-    var dataSet = new Stimulsoft.System.Data.DataSet("Data");
-    // Load JSON data file from specified URL to the DataSet object
-    dataSet.readJson(data);
-    // Remove all connections from the report template
-    report.dictionary.databases.clear();
-    // Register DataSet object
-    report.regData("Data", "Data", dataSet);
+        // Create new DataSet object
+        var dataSet = new Stimulsoft.System.Data.DataSet("Data");
+        // Load JSON data file from specified URL to the DataSet object
+        dataSet.readJson(data);
+        // Remove all connections from the report template
+        report.dictionary.databases.clear();
+        // Register DataSet object
+        report.regData("Data", "Data", dataSet);
 
-    viewer.renderHtml('viewerContent');
+    }catch{
+
+    }finally{
+        viewer.renderHtml('viewerContent');
+    }
+    
 
 })
