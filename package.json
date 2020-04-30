@@ -79,7 +79,7 @@
     "electron-shortcut-normalizer": "^1.0.0",
     "highlight.js": "^9.15.9",
     "hydrogen": "^0.2.0",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "minimist": "^1.2.5",
     "moment": "^2.24.0",
     "popper": "^1.0.1",
