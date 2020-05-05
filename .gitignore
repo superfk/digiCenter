@@ -2,3 +2,4 @@ systemlog
 __pycache__
 /server/build
 builds
+/xpyserver_dist
