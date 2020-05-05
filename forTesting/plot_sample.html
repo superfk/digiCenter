@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<style>
+body {
+    width: 100%;
+    height: 100%;
+}
+.scaling-svg-container {
+    position: relative; 
+    height: 800px; 
+    width: 800px;
+    /* override this inline for aspect ratio other than square */
+}
+
+@keyframes sample-moving {
+    0%   {transform: translateX(-50%)}
+    50% {transform: translateX(-25%)}
+    100% {transform: translateX(-25%)}
+  }
+
+
+#indentor-svg {
+    position: absolute; 
+    height: 150px; 
+    width: 30px;
+    top: 20px;
+    left: 50%;
+    -ms-transform: translateX(-50%);
+    transform: translateX(-50%);
+    fill: rgb(175, 184, 179);
+}
+
+#sample-svg {
+    position: absolute;
+    top: 240px;
+    left: 50%;
+    -ms-transform: translateX(-50%);
+    transform: translateX(-50%);
+    animation: sample-moving 2s linear infinite alternate;
+}
+
+</style>
+
+<body>
+
+<div class="scaling-svg-container">
+    <svg id="indentor-svg" version="1.1" viewBox="0.0 0.0 30 188" fill="none" stroke="none" stroke-linecap="square" stroke-miterlimit="10" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"><clipPath id="p.0"><path d="m0 0l30.236221 0l0 188.97638l-30.236221 0l0 -188.97638z" clip-rule="nonzero"/></clipPath><g clip-path="url(#p.0)"><path fill="#000000" fill-opacity="0.0" d="m0 0l30.236221 0l0 188.97638l-30.236221 0z" fill-rule="evenodd"/><path fill="#cfe2f3" d="m1.8608583 2.1630204l24.555061 0l0 162.57835l-24.555061 0z" fill-rule="evenodd"/><path stroke="#434343" stroke-width="1.0" stroke-linejoin="round" stroke-linecap="butt" d="m1.8608583 2.1630204l24.555061 0l0 162.57835l-24.555061 0z" fill-rule="evenodd"/><path fill="#cfe2f3" d="m4.630789 164.74138l9.5076 20.77623l9.5076 -20.77623z" fill-rule="evenodd"/><path stroke="#434343" stroke-width="1.0" stroke-linejoin="round" stroke-linecap="butt" d="m4.630789 164.74138l9.5076 20.77623l9.5076 -20.77623z" fill-rule="evenodd"/></g></svg>
+    <svg id='sample-svg' width="174" height="48" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" overflow="hidden"><defs><clipPath id="clip0"><path d="M0 1 174 1 174 49 0 49Z" fill-rule="evenodd" clip-rule="evenodd"/></clipPath></defs><g clip-path="url(#clip0)" transform="matrix(1 0 0 1 -0 -1)"><path d="M1.50005 10.1667C1.50005 5.93254 40.0036 2.50005 87.5 2.50005 134.997 2.50005 173.5 5.93254 173.5 10.1667L173.5 40.8334C173.5 45.0676 134.997 48.5 87.5 48.5 40.0036 48.5 1.50005 45.0676 1.50005 40.8334Z" fill="#D9D9D9" fill-rule="evenodd"/><path d="M173.5 10.1667C173.5 14.4009 134.997 17.8334 87.5 17.8334 40.0036 17.8334 1.50005 14.4009 1.50005 10.1667" stroke="#595959" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/><path d="M1.50005 10.1667C1.50005 5.93254 40.0036 2.50005 87.5 2.50005 134.997 2.50005 173.5 5.93254 173.5 10.1667L173.5 40.8334C173.5 45.0676 134.997 48.5 87.5 48.5 40.0036 48.5 1.50005 45.0676 1.50005 40.8334Z" stroke="#595959" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/></g></svg>
+</div>
+
+
+</body>
+</html>
+

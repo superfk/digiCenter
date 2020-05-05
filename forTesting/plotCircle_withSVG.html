@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+
+<style>
+.baseCircle {
+    fill: rgb(252, 255, 203);
+    stroke: black;
+    stroke-width: 1px;
+}
+
+.uut {
+    fill: rgb(233, 231, 225);
+    stroke: rgb(95, 93, 93);
+    stroke-width: 1px;
+}
+
+.uut:hover {
+    fill: lightgreen;
+}
+
+.textuut {
+    font-family:Arial, Helvetica, sans-serif;
+    pointer-events: none;
+}
+
+</style>
+<body>
+
+
+
+<div>
+<svg id="cont" height="1000" width="1000" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+</svg>
+<script>
+let circles = [];
+let baseR = 120;
+let uutN = 25;
+let childR = 100;
+let radius = 10;
+
+var svgns = "http://www.w3.org/2000/svg",
+    container = document.getElementById( 'cont' );
+
+function plotBaseTable(){
+    var circle = document.createElementNS(svgns, 'circle');
+    circle.setAttributeNS(null, 'class', 'baseCircle');
+    circle.setAttributeNS(null, 'cx', 150);
+    circle.setAttributeNS(null, 'cy', 150);
+    circle.setAttributeNS(null, 'r', baseR);
+    // circle.setAttributeNS(null, 'style', 'fill: lightyellow; stroke: black; stroke-width: 1px;' );
+    container.appendChild(circle);
+
+}
+
+function plotSmallHoles( circleN = 25){
+    circles = [];
+    for (i=0;i<circleN;i++){
+        let theda = i*2*Math.PI/circleN;
+        let cx = 150+childR*Math.cos(theda);
+        let cy = 150+childR*Math.sin(theda);
+        
+        singleCircle = {'cx':cx, 'cy':cy, 'radius':radius};
+        circles.push(singleCircle);
+
+        var circle = document.createElementNS(svgns, 'circle');
+        circle.setAttributeNS(null, 'class', 'uut');
+        circle.setAttributeNS(null, 'cx', cx);
+        circle.setAttributeNS(null, 'cy', cy);
+        circle.setAttributeNS(null, 'r', radius);
+        // circle.setAttributeNS(null, 'style', 'fill: lightgray; stroke: black; stroke-width: 1px;' );
+        container.appendChild(circle);
+
+        var text = document.createElementNS(svgns, 'text');
+        text.setAttributeNS(null, 'class', 'textuut');
+        text.setAttributeNS(null, 'x', cx);
+        text.setAttributeNS(null, 'y', cy);
+        text.setAttributeNS(null,"font-size","12")
+        text.setAttributeNS(null, 'style', 'fill: red' );
+        text.setAttributeNS(null,"text-anchor","middle");
+        text.setAttributeNS(null,"alignment-baseline","central");
+        var textNode = document.createTextNode(i);
+        text.appendChild(textNode);
+        container.appendChild(text);
+
+    }
+}
+
+plotBaseTable();
+plotSmallHoles(12);
+
+
+
+</script> 
+
+</body>
+</html>

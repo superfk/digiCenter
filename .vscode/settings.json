@@ -1,0 +1,8 @@
+{
+    "python.pythonPath": "C:\\digiCenter\\server\\venv\\Scripts\\python.exe",
+    "git.ignoreLimitWarning": true,
+    "python.venvFolders": [
+        "C:\\digiCenter\\server\\venv\\Scripts\\python.exe"
+    ],
+    "editor.codeActionsOnSave": null
+}

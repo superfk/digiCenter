@@ -1,0 +1,212 @@
+ <!-- template -->
+ <template class="task-template">
+    <link rel="stylesheet" type="text/css" href="assets/css/run.css">
+    <script src="ext_modules/d3/d3.min.js"></script>
+    
+        <section id="run-section" class="section js-section u-category-windows" draggable="true">
+            
+            <!-- batch info -->
+            <div class="w3-container w3-cell" id="batchInfoPanel">
+                <div class="w3-container w3-display-container w3-padding-16">
+                  <i onclick="w3_close()" class="fa fa-remove w3-hide-large w3-button w3-transparent w3-display-topright"></i>
+                  <h3 data-lang='run_batchinfo_title' data-lang_type='innertext'>Batch Info</h3>
+                  <div id='batchSelectorDiv' class='batchSelector'>
+                    <div data-lang='run_batch_selector_title' data-lang_type='innertext'>Batch Selector</div>
+                    <a href="#" id='new_a_batch' data-auth='new_a_batch' class="w3-button w3-center" style='width:30px;height:auto;padding: 0;'><i class="fas fa-plus w3-medium"></i></a>
+                    <a href="#" id='load_a_batch' data-auth='load_a_batch' class="w3-button w3-center" style='width:30px;height:auto;padding: 0;'><i class="far fa-folder-open w3-medium"></i></a>
+                  </div>
+                  <form id='batchInfoForm' target="_blank">
+                    <div id='batchFormContent' class='batchContent'>
+                        <p><i class="fas fa-align-left"></i><label data-lang='run_load_seq_title' data-lang_type='innertext'> Load Sequence</label>
+                            <a href="#" id='open_test_seq' data-auth='open_test_seq' class="w3-button w3-center" style='display: inline-block;width:30px;height:auto;padding: 0;'><i class="far fa-folder-open w3-medium"></i></a>
+                        
+                            
+                        </p>
+                        <input class="w3-input w3-border" type="text" data-lang='run_load_seq_plhd' data-lang_type='plhd' placeholder="Please load sequence file" name="SeqName" disabled readonly required> 
+                        <p><i class="fab fa-product-hunt"></i><label data-lang='run_project_title' data-lang_type='innertext'> Project</label></p>
+                        <input class="w3-input w3-border" type="text" name="Project" required>          
+                        <p><i class="fab fa-bootstrap"></i><label data-lang='run_batch_title' data-lang_type='innertext'> Batch</label></p>
+                        <input class="w3-input w3-border" type="text" name="Batch" required>         
+                        <p><i class="fab fa-buffer"></i><label data-lang='run_n_sample_title' data-lang_type='innertext'> Number of Samples</label></p>
+                        <input class="w3-input w3-border" type="number" name="NumberOfSample" value='1' min='1'>              
+                        <p><i class="far fa-sticky-note"></i><label data-lang='run_note_title' data-lang_type='innertext'> Test Note</label></p>
+                        <textarea cols="5" rows="5" name="Note"></textarea>
+                    </div>
+                    <p><button id='batchConfirm' data-auth='batchConfirm' class="w3-button w3-block w3-green w3-center" type="submit" 
+                        data-lang='run_confirm_btn' data-lang_type='innertext'><i class="fas fa-check-double"></i> Confirm</button></p>
+                  </form>
+                </div>
+            <!-- end of batch info -->
+            </div>
+
+            <!-- test tool bar -->
+            <div class='w3-bar w3-card w3-large testToolBar'>
+
+                <div class="w3-bar-item">
+                    <a href="#" id='start_test' data-auth='start_test' class="w3-button w3-center w3-green" 
+                    data-lang='run_start_btn' data-lang_type='innertext'><i class="far fa-play-circle"></i> Start</a>
+                </div>
+                <div class="w3-bar-item">
+                    <a href="#" id='stop_test' data-auth='stop_test' class="w3-button w3-center w3-red" 
+                    data-lang='run_stop_btn' data-lang_type='innertext'><i class="far fa-stop-circle"></i> Stop</a>
+                </div>
+            <!-- end of test tool bar -->
+            </div>
+
+            <!-- test main panel -->
+            <div class="testMainPanel">
+
+                <!-- seq section -->
+                <div class='w3-card seqSection'>
+                    <div class="w3-container cardHeader" data-lang='run_test_seq_title' data-lang_type='innertext'>
+                        Test Sequence
+                    </div>
+                    <div class="w3-container cardContent">
+                        <ul id='testSeqContainer'>
+                        </ul>
+                    </div>
+                <!-- end of seq section -->
+                </div>
+
+                <!-- graph section -->
+                <div class='graphSection'>
+
+                    <!-- realtime temp and humidity gauge section -->
+                    <div class='w3-card' style='width:fit-content;flex: 0 1 150px;min-width: 340px;display:none' >
+                        <div class="w3-container cardHeader" data-lang='run_rt_th_title' data-lang_type='innertext'>
+                            Realtime temperature and humidity gauge
+                        </div>
+                        <div class="w3-container cardContent" style="overflow: hidden;vertical-align: middle;">
+                            <span id="actualTempGauge" style="display: inline-block;"></span>
+                            <span id="actualHumGauge" style="display: inline-block;"></span>
+                        </div>
+                    <!-- end of realtime temp and humidity gauge section -->
+                    </div>
+
+                    <!-- hardness graph section -->
+                    <div class='w3-card' style='position: relative;flex: 1 1 auto'>
+                        <div class="w3-container cardHeader" data-lang='run_h_chart_title' data-lang_type='innertext'>
+                            Hardness graph
+                        </div>
+                        <div id="hardness_graph" class="w3-container cardContent"></div>
+                    <!-- end of hardness graph section -->
+                    </div>
+    
+                    <!-- hardness verse temperature graph section -->
+                    <div class='w3-card' style='position: relative; flex: 1 1 auto;'>
+                        <div class="w3-container cardHeader" data-lang='run_event_chart_title' data-lang_type='innertext'>
+                            Event graph
+                        </div>
+                        <div id="event_graph" class="w3-container cardContent"></div>
+                    <!-- end of hardness verse temperature graph section -->
+                    </div>
+    
+                    
+                    
+
+                <!-- end of graph section -->
+                </div>
+
+                
+
+            <!-- end of test main panel -->
+            </div>
+     
+      
+        </section>
+
+        <!-- Showing Moving Sample Dialog Modal -->
+        <div id="modal_moving_sample_dialog" class="w3-modal" style='z-index:20'>
+            <div class="w3-modal-content w3-animate-opacity w3-card-4">
+                <div class="w3-container w3-yellow"> 
+                    <h2 id="modal_moving_sample_dialog_title" data-lang='modal_moving_sample_dialog_title' data-lang_type='innertext' style="margin-top: 1rem">Moving Sample</h2>
+                </div>
+                <div class='w3-row' style='height:380px;'>
+                    <!-- left side -->
+                    <div class="w3-container w3-half" style="padding-top: 16px;">
+                        <div class="w3-cell-row">
+                            <div class='w3-container w3-cell' style="height:100%;">
+                                <div>
+                                    <div class='w3-large' data-lang='modal_moving_sample_sampleID' data-lang_type='innertext' style='display: inline-block !important;'>Sample ID</div>
+                                    <div id='dataset_sampleid' class='w3-large' style='display: inline-block !important;'></div>
+                                </div>
+                                <div>
+                                    <div class='w3-medium' data-lang='modal_moving_sample_mear_data' data-lang_type='innertext' style='display: inline-block !important;'>Measured Data</div>
+                                    <div id='dataset_counter' class='w3-medium' style='display: inline-block !important;'></div>
+                                </div>
+                                <div class='w3-row w3-padding-8'>
+                                    <div id='dataset_mean' class='w3-half'></div>
+                                    <div id='dataset_stdev' class='w3-half'></div>
+                                </div>
+                                <div class='dataset-table-container'>
+                                    <table id='modal_moving_sample_dialog_dataset' class="w3-table-all w3-hoverable">
+                                    </table>
+                                </div>
+                                
+                            </div>
+                            
+                        </div>
+                    </div>
+                    <!-- right side -->
+                    <div class="w3-container w3-half">
+                        <div class="scaling-svg-container">
+                            <svg id="indentor-svg" version="1.1" viewBox="0.0 0.0 30 188" fill="none" stroke="none" stroke-linecap="square" stroke-miterlimit="10" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns="http://www.w3.org/2000/svg"><clipPath id="p.0"><path d="m0 0l30.236221 0l0 188.97638l-30.236221 0l0 -188.97638z" clip-rule="nonzero"/></clipPath><g clip-path="url(#p.0)"><path fill="#000000" fill-opacity="0.0" d="m0 0l30.236221 0l0 188.97638l-30.236221 0z" fill-rule="evenodd"/><path fill="#cfe2f3" d="m1.8608583 2.1630204l24.555061 0l0 162.57835l-24.555061 0z" fill-rule="evenodd"/><path stroke="#434343" stroke-width="1.0" stroke-linejoin="round" stroke-linecap="butt" d="m1.8608583 2.1630204l24.555061 0l0 162.57835l-24.555061 0z" fill-rule="evenodd"/><path fill="#cfe2f3" d="m4.630789 164.74138l9.5076 20.77623l9.5076 -20.77623z" fill-rule="evenodd"/><path stroke="#434343" stroke-width="1.0" stroke-linejoin="round" stroke-linecap="butt" d="m4.630789 164.74138l9.5076 20.77623l9.5076 -20.77623z" fill-rule="evenodd"/></g></svg>
+                            <svg id='sample-svg' width="174" height="48" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" overflow="hidden"><defs><clipPath id="clip0"><path d="M0 1 174 1 174 49 0 49Z" fill-rule="evenodd" clip-rule="evenodd"/></clipPath></defs><g clip-path="url(#clip0)" transform="matrix(1 0 0 1 -0 -1)"><path d="M1.50005 10.1667C1.50005 5.93254 40.0036 2.50005 87.5 2.50005 134.997 2.50005 173.5 5.93254 173.5 10.1667L173.5 40.8334C173.5 45.0676 134.997 48.5 87.5 48.5 40.0036 48.5 1.50005 45.0676 1.50005 40.8334Z" fill="#D9D9D9" fill-rule="evenodd"/><path d="M173.5 10.1667C173.5 14.4009 134.997 17.8334 87.5 17.8334 40.0036 17.8334 1.50005 14.4009 1.50005 10.1667" stroke="#595959" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/><path d="M1.50005 10.1667C1.50005 5.93254 40.0036 2.50005 87.5 2.50005 134.997 2.50005 173.5 5.93254 173.5 10.1667L173.5 40.8334C173.5 45.0676 134.997 48.5 87.5 48.5 40.0036 48.5 1.50005 45.0676 1.50005 40.8334Z" stroke="#595959" stroke-miterlimit="8" fill="none" fill-rule="evenodd"/></g></svg>
+                        </div>
+                    </div>
+                </div>
+
+                    <div id="modal_moving_sample_dialog_text" data-lang='modal_moving_sample_dialog_text' data-lang_type='innerhtml' class="w3-container w3-large w3-padding-16">
+                        <h3>Press <strong>Retry</strong> if last value is not acceptable!</h3>
+                        <h3>Press <strong>Next</strong> to mearsure at next position!</h3>
+                    </div>
+                    <div class="w3-container">
+                        <div class='w3-bar w3-padding-16' style="margin-left: 0px;">
+                            <div class='w3-bar-item'>
+                                <button id='retry_mear_after_move_sample' class="w3-btn w3-orange" data-lang='modal_moving_sample_retry_btn' data-lang_type='innertext' style="width:200px">Retry</button>
+                            </div>
+                            <div class='w3-bar-item'>
+                                <button id='start_mear_after_move_sample' class="w3-btn w3-green" data-lang='modal_moving_sample_next_btn' data-lang_type='innertext' style="width:200px">Next</button>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>
+
+        <!-- Showing Batch Selector Dialog Modal -->
+        <div id="modal_batch_select_dialog" class="w3-modal" style='z-index:20'>
+            <div class="w3-modal-content w3-animate-opacity w3-card-4">
+                <div class="w3-container w3-yellow">
+                    <span onclick="document.getElementById('modal_batch_select_dialog').style.display='none'" 
+                        class="w3-button w3-display-topright">&times;</span>
+                    <h2 id="modal_batch_select_dialog_title" data-lang='modal_batch_select_dialog_title' data-lang_type='innertext' style="margin-top: 1rem">Load Batch</h2>
+                </div>
+                <div class="w3-container">
+                    <div class="w3-panel">
+                        <table id='batchHistoryTable' class="hover compact" style="width:100%">
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Batch</th>
+                                    <th>Last Run</th>
+                                    <th>Note</th>
+                                    <th>Seq. Name</th>
+                                </tr>
+                            </thead>
+                        </table>
+                    </div>
+                    <div class="w3-panel">
+                        <button id='SelectBatch' class="w3-btn w3-green" style="width:200px">Select</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+        
+        <script>
+            require('./renderer-process/run.js');
+            
+        </script>
+        
+      </template>
+      

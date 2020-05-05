@@ -1,0 +1,339 @@
+#batchInfoPanel{
+    height:100%;
+    width:300px;
+    background-color: var(--color-c2);
+    color:  #F2F2F2;
+    position:fixed!important;
+    left: 0;
+    top:0;
+    bottom: 0px;
+    z-index:1;
+    overflow:auto;
+    padding: 8px;
+}
+
+.batchSelector > div{
+    color:  #F2F2F2;
+    font-size: larger;
+    display: inline-block;
+}
+
+.batchContent{
+    border: 1px solid lightslategrey;
+    padding:8px;
+}
+
+#batchInfoPanel h3{
+    padding: 5px 0 0px 0px;
+    width: 95%;
+    box-sizing: border-box;
+    border-bottom: 1px solid lightslategrey;
+    font-size: 24px;
+    color: var(--color-c4);
+}
+
+#batchInfoForm p{
+    margin: 5px 0px 2px 0px;
+    color:  rgb(199, 192, 192);
+}
+
+#batchInfoPanel label{
+    padding-left: 5px;
+}
+
+textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 100%; width:100%;}
+
+.testToolBar {
+    position: absolute;
+    left: 300px;
+    top:0;
+    height: 60px;
+    background: linear-gradient(45deg, var(--color-c1),var(--color-c4));
+    color:  #F2F2F2;
+}
+
+.testMainPanel{
+    position: absolute;
+    left: 300px;
+    top:60px;
+    right: 0px;
+    bottom: 0px;
+    background-color: white;
+    color:  var(--color-c5);
+    overflow: auto;
+}
+
+.testMainPanel > .seqSection{
+    position: absolute;
+    left: 0;
+    top:0;
+    bottom: 10px;
+    background-color: white;
+    color:  var(--color-c5);
+    width: 750px;
+    margin: 10px;
+}
+
+
+
+.testMainPanel > .graphSection{
+    display: flex;
+    flex-flow: column;
+    position: absolute;
+    left: 770px;
+    top:0;
+    right: 10px;
+    bottom: 0px;
+    background-color: white;
+    color:  var(--color-c5);
+    height: 100%;
+    margin: 0px;
+    padding: 10px 10px 10px 10px;
+    overflow: auto;
+}
+
+.cardHeader{
+    display: flex;
+    align-items: center;
+    justify-content: left;
+}
+
+.testMainPanel .cardHeader{
+    background: linear-gradient(45deg, var(--color-c3),var(--color-c4));
+    color: white;
+    height: 24px;
+}
+
+.testMainPanel .cardContent{
+    width: 100%;
+    height: 90%;
+    overflow: auto;
+}
+
+
+.testMainPanel > .graphSection .w3-card{
+    margin-bottom: 10px;
+}
+
+.testMainPanel > .graphSection .w3-card .cardContent{
+    overflow: hidden;
+}
+
+
+.seqSection > .cardContent{
+    height: 95%;
+    position: absolute;
+    top:24px;
+    bottom: 10px;
+    
+}
+
+#testSeqContainer{
+    margin: 0px !important;
+    padding: 10px 5px 10px 0px !important;
+    width: 100%;
+    overflow: auto;
+}
+
+#testSeqContainer li .w3-bar-item { 
+    padding: 5px; 
+    height:40px;
+    display: flex;
+    align-items: center;
+    justify-content: left;
+}
+
+#testSeqContainer .paraText {
+    position: relative;
+    top: 0;
+    white-space: nowrap;
+    overflow-x: hidden;
+    text-overflow: ellipsis;
+    width: auto !important;
+    max-width: 600px;
+    margin-left: 10px;
+    color: rgb(11, 17, 100);
+    font-size: smaller;
+    display:inline-block;
+  }
+
+#testSeqContainer .active-item { background: #F39814; color: white; }
+#testSeqContainer li.disabledStep {background: gray!important; color: white;}
+
+.seqSection > .cardContent > ul {
+    list-style-type: none;
+  }
+  
+.seqSection > .cardContent > ul > li {
+    /* You need to turn on relative positioning so the line is placed relative to the item rather than absolutely on the page */
+    position: relative;
+
+    /* Use padding to space things out rather than margins as the line would get broken up otherwise */
+    margin: 0;
+    padding: 0px !important;
+    padding-left: 0px;
+    border-bottom: 1px solid lightgray;
+}
+
+#testSeqContainer .loop {box-shadow: 2px 0px 0px 0px}
+
+/* .loopStart{box-shadow: 6px 0px 0px 0px red;} */
+#testSeqContainer .loopEnd{box-shadow: 2px 0px 0px 0px}
+#testSeqContainer .lopCount{
+  font-size: 14px;
+  margin:0px 0px 0px 0px!important;
+  padding: 5px 2px 5px 2px !important;
+  justify-content: center  !important;
+  background-color:#3498db;
+  color:#fff;
+  visibility: hidden;
+  width:26px!important;}
+  
+#testSeqContainer .lopCount-enabled{visibility: visible;}
+#testSeqContainer .lopCount-start-enabled{
+  visibility: visible;
+  background-color:transparent;
+  color:transparent;
+  border-top: 2px solid !important;
+}
+
+#testSeqContainer .stepParas{
+    font-size:14px;
+    justify-content: left;
+}
+
+#testSeqContainer  .stepResult{
+    font-size: 14px;
+    color: var(--color-c1);
+    font-weight: bold;
+    text-align:left;
+    visibility: visible;
+    width:140px!important;
+    overflow-x: hidden;
+}
+
+#testSeqContainer  .stepResult::before{
+    display: inline-block;
+    content: 'value: ';
+    font-size: 12px;
+    color: rgb(88, 85, 85);
+    margin-right: 2px;
+}
+
+.dataset-table-container{
+    overflow: auto;
+    width:100%;
+    height: 250px;
+    font-size: small;
+    border: 2px solid lightslategray;
+}
+
+.scaling-svg-container {
+    position: relative; 
+    height: 300px; 
+    width: 300px;
+    /* override this inline for aspect ratio other than square */
+}
+
+#indentor-svg {
+    position: absolute; 
+    height: 200px; 
+    width: 30px;
+    top: 20px;
+    left: 50%;
+    -ms-transform: translateX(-50%);
+    transform: translateX(-50%);
+    fill: rgb(175, 184, 179);
+}
+
+@keyframes sample-moving {
+    0%   {transform: translateX(-50%)}
+    50% {transform: translateX(-25%)}
+    100% {transform: translateX(-25%)}
+  }
+
+#sample-svg {
+    position: absolute; 
+    top: 240px;
+    left: 50%;
+    -ms-transform: translateX(-50%);
+    transform: translateX(-50%);
+    animation: sample-moving 2s linear infinite alternate;
+}
+
+#indentor-svg:hover {
+    fill: lightgreen;
+}
+
+#sample-svg:hover {
+    fill: lightgreen;
+}
+
+.btnEnable {
+    pointer-events: auto;
+    opacity: 1.0;
+}
+
+.btnDisable {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+/* step status color */
+
+.run-init{
+    background-color: ghostwhite;
+    color: black
+}
+
+.run-pass{
+    background-color: lightgreen;
+    color: black
+}
+
+.run-wait{
+    background-color: orange;
+    color: black
+}
+
+.run-pause{
+    background-color: yellow;
+    color: black
+}
+
+.run-skip{
+    background-color: gray;
+    color: black
+}
+
+.run-next{
+    background-color: orange;
+    color: black
+}
+
+.run-fail{
+    background-color: red;
+    color: black
+}
+
+progress[value] {
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0;
+    margin: 0;
+    position: absolute;
+    left:0;
+    bottom: 0px;
+    
+    width: 100%;
+    height: 3px;
+}
+
+progress[value]::-webkit-progress-bar {
+    background-color: white !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25) inset;
+  }
+
+  progress[value]::-webkit-progress-value {
+    background-color: rgb(60, 136, 223);
+  }
