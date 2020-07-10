@@ -290,7 +290,7 @@ class Excel_ExportWorker(ExportWorker):
         df_obj = self.df.select_dtypes(['object'])
         self.df[df_obj.columns] = df_obj.apply(lambda x: x.str.strip())
         print(self.df)
-        self.df.to_excel(path,  sheet_name='Test_Data', engine='openpyxl', index=False )
+        self.df.to_excel(path,  sheet_name='Test_Data', engine='openpyxl')
 
 class OpenExcel():
     def __init__(self):

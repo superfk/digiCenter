@@ -170,7 +170,7 @@
   "server_reply_batch_cont_title":"Batch continued",
   "server_manual_end_test_reason":"Manually Stop",
   "server_manual_end_test_title":"Test End",
-  "server_errorl_end_test_reason":"Error occurred during test: ",
+  "server_error_end_test_reason":"Error occurred during test: ",
   "server_error_end_test_title":"Test End",
   "server_final_end_test_reason":"test completed successfully",
   "server_final_end_test_title":"Test End",
@@ -200,9 +200,16 @@
   "query-data":"Query Test Data",
   "export-test-data-to-file":"Export Report Option Button",
   "export-start":"Export data to File Button",
+  "view-report":"RPViewer",
+  "design-report":"RPDesigner",
   "main_indicator_hard":"Hardness",
   "main_indicator_temperature":"Temperature",
-  "main_indicator_humidity":"Humidity",
-  "report_call-viewer_btn":"RPViewer",
-  "report_call-designer_btn":"RPDesigner"
+  "machine_connected":"connected",
+  "machine_disconnected":"disconnected",
+  "digitest_disconnect_msg":"DigiTest Disconnected",
+  "digichamber_disconnect_msg":"DigiChamber Disconnected",
+  "please_select_one_batch":"Please select at least one batch",
+  "save_config_ok":"Save Configuration OK",
+  "save_config_NG":"Save Configuration Failed",
+  "script_not_existed":"Test Sequence File not Existed!"
 }

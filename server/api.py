@@ -27,6 +27,7 @@ import threading
 import random
 import asyncio
 import websockets
+import traceback
 from loguru import logger
 
 
@@ -223,10 +224,9 @@ class PyServerAPI(object):
                     self.lg.debug('Not found this cmd: {}'.format(cmd))
         except Exception as e:
             try:
-                err_msg = '{}'.format(e)
+                err_msg = traceback.format_exc()
                 self.lg.debug(err_msg)
                 await self.sendMsg(websocket,'reply_server_error',{'error':err_msg})
-                self.local_log_to_db('system error: {}'.format(err_msg))
             except:
                 self.lg.debug('error during excetipn handling')
                 self.lg.debug(e)
@@ -240,8 +240,9 @@ class PyServerAPI(object):
         try:
             await websocket.send(json.dumps(msg))
         except Exception as e:
+            err_msg = traceback.format_exc()
             self.lg.debug('error during send message with websocket')
-            self.lg.debug(e)
+            self.lg.debug(err_msg)
             
         
     async def continousSend(self):
@@ -250,8 +251,9 @@ class PyServerAPI(object):
                 if self.users:
                     await asyncio.wait([self.sendMsg(user,'ping', random.random()) for user in self.users])
             except Exception as e:
+                err_msg = traceback.format_exc()
                 self.lg.debug('error during send ping message with websocket')
-                self.lg.debug(e)
+                self.lg.debug(err_msg)
             finally:
                 await asyncio.sleep(10)
             
@@ -281,7 +283,6 @@ class PyServerAPI(object):
         self.productProcess.set_lang(self.lang_data)
         self.lg.debug('update lang file with lang {}'.format(lang))
         self.userMang.set_lang(self.lang_data, lang)
-        self.local_log_to_db('update lang file with lang {}'.format(lang))
         await self.sendMsg(websocket,'reply_update_default_lang', {'langID':lang, 'langData':self.lang_data})
     
     async def get_server_time(self, websocket):
@@ -303,22 +304,18 @@ class PyServerAPI(object):
     async def update_machine_remote(self, websocket, ip):
         self.config['system']['machine_ip'] = ip
         util.write_system_config(path=self.config_path, data = self.config)
-        self.local_log_to_db('update machine ip to {}'.format(ip), audit=True)
 
     async def update_digitest_remote(self, websocket, COM):
         self.config['system']['digitest_COM'] = COM
         util.write_system_config(path=self.config_path, data = self.config)
-        self.local_log_to_db('update digitest COM to {}'.format(COM), audit=True)
 
     async def update_default_export_folder(self, websocket, folder):
         self.config['system']['default_export_folder'] = folder
         util.write_system_config(path=self.config_path, data = self.config)
-        self.local_log_to_db('update default_export_folder to {}'.format(folder), audit=True)
     
     async def update_database_server(self, websocket, servername):
         self.config['system']['database']["server"] = servername
         util.write_system_config(path=self.config_path, data = self.config)
-        self.local_log_to_db('update database server name to {}'.format(servername), audit=True)
     
     async def check_config_updated(self, websocket, configs):
         results = []
@@ -347,22 +344,12 @@ class PyServerAPI(object):
             self.userMang.db = self.db
             self.userMang.set_log_to_db_func(self.local_log_to_db)
             self.productProcess.db = self.db
-            self.local_log_to_db('database connection ok')
             await self.sendMsg(websocket,cmd='result_of_backendinit',data=res)
 
     async def login(self, websocket, username, password):
-        login_ok, reason, user, role, fn_list, first = self.userMang.login(username, password)
-        if login_ok:
-            if first:
-                self.local_log_to_db('user [{}] with role [{}] first login'.format(user,role), audit=True)
-            else:
-                self.local_log_to_db('user [{}] with role [{}] login ok'.format(user,role), audit=True)
-        else:
-            self.local_log_to_db('user [{}] with role [{}] login failed, reason is [{}]'.format(username, role, reason), audit=True)
-        await self.sendMsg(websocket,'reply_login',(login_ok, reason, user, role, fn_list, first))
+        await self.sendMsg(websocket,'reply_login',self.userMang.login(username, password))
     
     async def logout(self, websocket):
-        self.local_log_to_db('user [{}] logout'.format(self.userMang.user.username), audit=True)
         await self.sendMsg(websocket,'reply_logout',self.userMang.log_out())
         
     async def get_user_account_list(self, websocket):
@@ -419,8 +406,9 @@ class PyServerAPI(object):
             self.db.insert('System_log', fields, values)
             self.lg.debug('save system log into database with field: {}, values: {}'.format(fields,values))
         except Exception as e:
+            err_msg = traceback.format_exc()
             self.lg.debug('error when save system log into database in local function')
-            self.lg.debug(e)
+            self.lg.debug(err_msg)
 
     async def get_syslog_from_db(self,websocket, start, end):
         fields = ["Timestamp", "User_Name", "User_Role", "Log_Type", "Log_Message", "Audit"]
@@ -455,14 +443,10 @@ class PyServerAPI(object):
     
     async def run_cmd(self, websocket,data):
         respObj = {'error':False,'res':None}
-        try:
-            data = json.loads(data)
-            scriptName = data['cmd']
-            data = data['data']
-            response = await self.productProcess.run_script(websocket,scriptName,data)
-        except Exception as e:
-            self.lg.debug('error during excetipn handling in run_cmd')
-            self.lg.debug(e)
+        data = json.loads(data)
+        scriptName = data['cmd']
+        data = data['data']
+        response = await self.productProcess.run_script(websocket,scriptName,data)
     
     async def init_hw(self, websocket):
         ip = self.config['system']['machine_ip']
@@ -482,29 +466,21 @@ class PyServerAPI(object):
             isConn_chamber = self.productProcess.init_digiChamber_controller(self.digiChamber)
             if isConn_chamber:
                 self.lg.debug('digiChamber init OK')
-                self.local_log_to_db('digiChamber init OK')
-            else:
-                self.lg.debug('digiChamber init failed')
-                self.local_log_to_db('digiChamber init failed')
             isConn_digitest = self.productProcess.init_digitest_controller(self.digiTest,COM)
             if isConn_digitest:
                 self.lg.debug('digiTest init OK')
-                self.local_log_to_db('digiTest init OK')
-            else:
-                self.lg.debug('digiTest init failed')
-                self.local_log_to_db('digiTest init failed')
             await self.sendMsg(websocket,'reply_init_hw',{'resp_code':1, 'res':self.lang_data['server_hw_init_ok']})
             await self.sendMsg(websocket,'reply_init_hw_status',{'digitest':isConn_digitest, 'digichamber': isConn_chamber})
         except Exception as e:
+            err_msg = traceback.format_exc()
             self.lg.debug('error during excetipn handling in init_hw')
-            self.lg.debug(e)
-            self.local_log_to_db('error during excetipn handling in init_hw, reason: {}'.format(e))
-            await self.sendMsg(websocket,'reply_init_hw',{'resp_code':0, 'res':self.lang_data['server_hw_init_NG'], 'reason':'{}'.format(e)})
+            self.lg.debug(err_msg)
+            await self.sendMsg(websocket,'reply_init_hw',{'resp_code':0, 'res':self.lang_data['server_hw_init_NG'], 'reason':'{}'.format(err_msg)})
             await self.sendMsg(websocket,'reply_init_hw_status',{'digitest':isConn_digitest, 'digichamber': isConn_chamber})
 
     async def run_seq(self, websocket):
-        self.productProcess.create_seq()
-        await self.productProcess.run_seq(websocket)
+        scriptExisted = self.productProcess.create_seq()
+        await self.productProcess.run_seq(websocket)      
 
     def stop_seq(self):
         self.lg.debug('execute stop seq')
@@ -578,8 +554,9 @@ class PyServerAPI(object):
             self.lg.debug(values)
             self.db.insert('Test_Data', fields, values)
         except Exception as e:
+            err_msg = traceback.format_exc()
             self.lg.debug('Save Test Data error!')
-            self.lg.debug(e)
+            self.lg.debug(err_msg)
     
     async def export_test_data_from_client(self, websocket,tableData, filename='testdata', options=['csv']):
         export_folder = self.config['system']['default_export_folder']
@@ -608,8 +585,9 @@ class PyServerAPI(object):
             title = self.lang_data['server_export_ok_title']
             await self.sendMsg(websocket,'reply_export_test_data_from_client',{'resp_code': 1, 'title':title, 'res':txt})
         except Exception as e:
+            err_msg = traceback.format_exc()
             self.lg.debug('export Test Data error!')
-            self.lg.debug(e)
+            self.lg.debug(err_msg)
             txt = self.lang_data['server_export_NG_reason']
             title = self.lang_data['server_export_NG_title']
             await self.sendMsg(websocket,'reply_export_test_data_from_client',{'resp_code': 0, 'title':title, 'res':txt})
@@ -659,14 +637,29 @@ class PyServerAPI(object):
 
 def main():
     sokObj = PyServerAPI()
-    port=6849
+    # asyncio.ensure_future(sokObj.backend_init(None))
+    # sio.register_namespace(sokObj)
+    # print('reading config.json')
+    # currentDirectory = os.getcwd()
+    # rpc.load_sys_config(currentDirectory+'/config.json')
+    # print('init database')
+    # rpc.backend_init()
+    port=5678
     addr = 'tcp://127.0.0.1:{}'.format(port)
     print('start running on {}'.format(addr))
+    # web.run_app(app,port=port)
+    # eventlet.wsgi.server(eventlet.listen(('127.0.0.1', port)), app)
+    # s = zerorpc.Server(rpc, heartbeat=None)
+    # s.bind(addr)
+    # s.run()
 
-    start_server = websockets.serve(sokObj.handler, "127.0.0.1", port, ping_interval=30)
+    start_server = websockets.serve(sokObj.handler, "localhost", port, ping_interval=30)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(start_server)
+    # loop.create_task(sokObj.load_sys_config(None,r'C:\\digiCenter\config.json'))
+    # loop.create_task(sokObj.backend_init(None))
     loop.run_forever()
+    
 
 if __name__ == '__main__':
     main()

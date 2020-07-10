@@ -86,9 +86,9 @@ module.exports = {
       html_elem.innerText = value==null?'--':value.toFixed(pres);
     },
 
-    updateStatusIndicator: function (html_elem, status=null){
+    updateStatusIndicator: function (html_elem, status=null, langForConn='connected', langForDisonn='disconnected'){
       // update status
-      html_elem.innerText = status==false?'disconnected':'connected';
+      html_elem.innerText = status==false?langForDisonn:langForConn;
       // update indicator color
       module.exports.changeStatus(html_elem, status);
     }

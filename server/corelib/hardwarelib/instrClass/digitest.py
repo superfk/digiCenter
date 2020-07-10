@@ -1,8 +1,19 @@
+import sys, os
 import threading
 import time
 import re
 import matplotlib.pyplot as plt
-from .baInstr import BaInstr
+
+PACKAGE_PARENT = '..'
+SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+DB_DIR = SCRIPT_DIR
+indentLevel = 2
+for i in range(indentLevel):
+    DB_DIR = os.path.split(DB_DIR)[0]
+sys.path.append(os.path.normpath(os.path.join(PACKAGE_PARENT,SCRIPT_DIR)))
+sys.path.append(os.path.normpath(DB_DIR))
+print(sys.path)
+from baInstr import BaInstr
 import random
 
 class Digitest(BaInstr):
@@ -424,7 +435,6 @@ def test_rotation_single_mear():
 
 def test_rotation_graph_mear():
     ba = DummyDigitest()
-    print(ba.isConnectRotation())
     
     ba.open_rs232("COM3")
 
@@ -461,7 +471,94 @@ def test_rotation_graph_mear():
     ba.set_rotation_home()
     ba.close_rs232()
 
+def test_rotation():
+    ba = Digitest()
+   
+    ba.open_rs232("COM5")
+    print(ba.isConnectRotation())
+
+    ret = ba.get_ms_method()
+    print(ret)
+    ba.config(debug=True)
+    ba.set_remote(True)
+    ba.set_std_graph_mode()
+    duration_s = 3
+    ret = ba.set_ms_duration(duration_s)
+    print(ret)
+
+    ba.config(debug=False)
+    ret = ba.isConnectRotation()
+    print(ret)
+    sample_N, mear_n = ba.get_rotation_info()
+    print('rotaion sample_N: {}, mear_n: {}'.format(sample_N, mear_n))
+    if sample_N:
+        ret = ba.set_rotation_home()
+        print(ret)
+
+        for N in range(sample_N):
+            for n in range(mear_n):
+                ret = ba.set_rotation_pos(N+1,n+1)
+                if not ret[0]:
+                    print(ret[1])
+                    return
+                else:
+                    print(ret[1])
+                    # ba.start_mear()
+                    # ret = ba.get_buffered_value()
+                    # for r in ret:
+                    #     print('Hardness Result: {}'.format(r))
+                    time.sleep(1)
+        ba.set_rotation_home()
+    ba.close_rs232()
+
+def go_to_sample(N=0, n=0):
+    ba = Digitest()
+   
+    ba.open_rs232("COM5")
+    print(ba.isConnectRotation())
+
+    ret = ba.get_ms_method()
+    print(ret)
+    ba.config(debug=True)
+    ba.set_remote(True)
+
+    ba.config(debug=False)
+    ret = ba.isConnectRotation()
+    print(ret)
+    sample_N, mear_n = ba.get_rotation_info()
+    print('rotaion sample_N: {}, mear_n: {}'.format(sample_N, mear_n))
+    if sample_N:
+        ret = ba.set_rotation_pos(N,n)
+    ba.close_rs232()
+
+def mearsure():
+    ba = Digitest()
+
+    def mear(ba):
+        ret = ba.start_mear()
+        while True:
+            ret = ba.get_single_value()
+            if ret:
+                return float(ret[1])
+            else:
+                time.sleep(0.1)
+
+    
+    ba.open_rs232("COM5")
+
+    ret = ba.get_ms_method()
+    print(ret)
+    ba.config(debug=True)
+    ba.set_remote(True)
+    ba.set_std_mode()
+    duration_s = 1
+    ret = ba.set_ms_duration(duration_s)
+    print(ret)
+    ret = mear(ba)
+    print('Hardness Result: {}'.format(ret))
+    ba.close_rs232()
+
 if __name__ == '__main__':
     # test_rotation_single_mear()
     # test_rotation_graph_mear()
-    pass
+    mearsure()

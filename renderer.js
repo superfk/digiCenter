@@ -1,11 +1,14 @@
 const { ipcRenderer } = require('electron');
-const appRoot = require('electron-root-path').rootPath;
+const app = require('electron').remote.app;
+const path = require('path');
+const appRoot = app.getAppPath();
 var moment = require('moment');
 var systime_hook = document.getElementById('systime');
 let tools = require('./assets/shared_tools');
 let ws;
-let lang_data = {};
+// let lang_data = {};
 let monitorValue;
+window.lang_data = {};
 
 let login_ok = false;
 let reason = '';
@@ -38,7 +41,7 @@ const current_login_role = document.getElementById('login_userrole');
 function connect() {
   try{
     const WebSocket = require('ws');
-    ws = new WebSocket('ws://127.0.0.1:6849');
+    ws = new WebSocket('ws://127.0.0.1:5678');
   }catch(e){
     console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
   }
@@ -91,14 +94,14 @@ function connect() {
             changeLoginAuth(fn_list);
             // first login
             if (first){
-              ipcRenderer.send('show-warning-alert',"First Login!", reason);
+              ipcRenderer.send('show-warning-alert',window.lang_data.modal_warning_title, reason);
               $('#first_login_panel').show();
               $('#normal_login_panel').hide();
               window.addEventListener('keypress', checkkeypressFirstLogin);
               hasLogin = false;
             }else{
               user=='Guest'?hasLogin=false:hasLogin=true;
-              ipcRenderer.send('show-warning-alert',"Login Failed", reason);
+              ipcRenderer.send('show-warning-alert',window.lang_data.modal_warning_title, reason);
               $('#modal_login').hide();
               window.removeEventListener('keypress', checkkeypressLogin);
             }
@@ -122,18 +125,18 @@ function connect() {
           break;
         case 'reply_set_new_password_when_first_login':
           if (data[0]){
-              ipcRenderer.send('show-info-alert',"Set Password OK", data[1]);
+              ipcRenderer.send('show-info-alert',window.lang_data.modal_info_title, data[1]);
               $('#first_login_panel').hide();
               $('#normal_login_panel').show();
             }else{
-              ipcRenderer.send('show-warning-alert',"Set Password Failed", data[1]);
+              ipcRenderer.send('show-warning-alert',window.lang_data.modal_warning_title, data[1]);
             }
             window.addEventListener('keypress', checkkeypressLogin);
             window.removeEventListener('keypress', checkkeypressFirstLogin);
           break;
         case 'reply_update_default_lang':
           let lang_ID = data.langID;
-          lang_data = data.langData;
+          window.lang_data = data.langData;
           setLang(lang_ID);
           autoUpdateLang();
           break;
@@ -146,10 +149,9 @@ function connect() {
           }
           break;
         case 'reply_init_hw_status':
-          console.log(data)
-          tools.updateStatusIndicator(machine_hard_idct_status,data.digitest)
-          tools.updateStatusIndicator(machine_temp_idct_status,data.digichamber)
-          tools.updateStatusIndicator(machine_humi_idct_status,data.digichamber)
+          tools.updateStatusIndicator(machine_hard_idct_status,data.digitest,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'])
+          tools.updateStatusIndicator(machine_temp_idct_status,data.digichamber,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'])
+          tools.updateStatusIndicator(machine_humi_idct_status,data.digichamber,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'])
           break;
         case 'update_cur_status':
           updateIndicator(data.dt,data.temp,data.hum)
@@ -325,9 +327,11 @@ function setLang(lang){
     if (element.id === lang){
       $('.lang-flags').removeClass('langSelected');
       $(element).addClass('langSelected');
+      $('#lang-button').text($(element).html())
     }
   })
 }
+
 
 
 // detect select language
@@ -341,7 +345,7 @@ $('.lang-flags').on('click', function(){
 function autoUpdateLang(){
   $('[data-lang!=""]').each(function(i, elt){
     var elt = $(elt);
-    let txt = lang_data[elt.data('lang')];
+    let txt = window.lang_data[elt.data('lang')];
     var field_type = elt.data('lang_type');
     if (hasLogin && elt.attr('id') ==='login_username'){
       // do nothing
@@ -380,15 +384,15 @@ function monitorFunction(){
 function updateIndicator(hard=null, temp=null, hum=null){
   if (hard!=null){
     tools.updateNumIndicator(machine_hard_idct,hard.value, 1)
-    tools.updateStatusIndicator(machine_hard_idct_status,hard.status)
+    tools.updateStatusIndicator(machine_hard_idct_status,hard.status,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'])
   }
   if (temp!=null){
     tools.updateNumIndicator(machine_temp_idct,temp.value, 1)
-    tools.updateStatusIndicator(machine_temp_idct_status,temp.status)
+    tools.updateStatusIndicator(machine_temp_idct_status,temp.status,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'])
   }
   if (hum!=null){
     tools.updateNumIndicator(machine_humi_idct,hum.value, 1)
-    tools.updateStatusIndicator(machine_humi_idct_status,hum.status)
+    tools.updateStatusIndicator(machine_humi_idct_status,hum.status,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'])
   }
   
 }

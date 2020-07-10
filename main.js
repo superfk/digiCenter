@@ -13,7 +13,7 @@ let ws;
 function connect() {
   try{
     const WebSocket = require('ws');
-    ws = new WebSocket('ws://127.0.0.1:6849');
+    ws = new WebSocket('ws://127.0.0.1:5678');
   }catch(e){
     console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
   }
@@ -170,7 +170,7 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 1024, 
     height: 600,
-    icon: __dirname + '/img/appIcon.png',
+    icon: __dirname + '/img/icon.ico',
     backgroundColor: '#2e2c29',
     webPreferences: {
       nodeIntegration: true
@@ -226,7 +226,7 @@ const createReportViewerWindow = (data) => {
   let reportViewerWindow = new BrowserWindow({
     width: 800, 
     height: 600,
-    icon: __dirname + '/img/appIcon.png',
+    icon: __dirname + '/img/icon.ico',
     parent: mainWindow,
     webPreferences: {
       nodeIntegration: true
@@ -254,7 +254,7 @@ const createReportDesignerWindow = (data) => {
   let reportDesignerWindow = new BrowserWindow({
     width: 800, 
     height: 600,
-    icon: __dirname + '/img/appIcon.png',
+    icon: __dirname + '/img/icon.ico',
     parent: mainWindow,
     modal: true,
     webPreferences: {

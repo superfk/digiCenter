@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <script type="text/javascript" src="ext_modules/DataTables/jQuery-3.3.1/jquery-3.3.1.js"></script>
+    <script type="text/javascript" src="ext_modules/jquery-3.4.1.min.js"></script>
 
     <link href="ext_modules/tabulator/dist/css/tabulator_simple.min.css" rel="stylesheet">
     <script type="text/javascript" src="ext_modules/tabulator/dist/js/tabulator.min.js"></script>
@@ -24,17 +24,12 @@
     <link rel="stylesheet" type="text/css" href="ext_modules/vitalets-bootstrap-datepicker/css/datepicker.css">
     <link rel="stylesheet" type="text/css" href="ext_modules/jquery-ui/jquery-ui.css">
     <link rel="stylesheet" type="text/css" href="ext_modules/material-design-icons/iconfont/material-icons.css">
-
-    
-    <!-- <script src="assets/jquery-1.12.4.min.js"></script> -->
-    <!-- <script type="text/javascript" src="assets/jquery-ui/jquery-ui.js"></script> -->
     <script type="text/javascript" src="ext_modules/DataTables/datatables.js"></script>
     <script type="text/javascript" src="ext_modules/DataTables/AutoFill-2.3.3/js/dataTables.autoFill.min.js"></script>
     <script type="text/javascript" src="ext_modules/DataTables/Select-1.3.0/js/dataTables.select.min.js"></script>
-    <!-- <script type="text/javascript" src="assets/DataTables/RowReorder-1.2.4/js/dataTables.rowReorder.min.js"></script> -->
     <script type="text/javascript" src="node_modules/moment/min/moment.min.js"></script>
     <script type="text/javascript" src="ext_modules/vitalets-bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
-    <script type="text/javascript" src="ext_modules/plotly-latest.min.js"></script>
+    <script type="text/javascript" src="ext_modules/plotly-latest.min.js"></script> 
     
     
     <style>
@@ -44,24 +39,38 @@
 <body class="w3-light-grey">
 
   <!-- Top container -->
-  <header class="main-header w3-bar w3-top w3-white w3-border w3-border-teal" style="z-index:4;">
-    <img src="img/Bareiss_LOGO.png"  style="width:150px; margin-left: 1rem;margin-top: 0.5rem;">
-    <a id='login' href="#" class="w3-button w3-right loginNG"  data-lang='head_clicklogin_tooltip' data-lang_type='title' title='click to login'><i class="fa fa-user w3-xxlarge"></i></a>
+  <header class="main-header w3-bar w3-top w3-white w3-border w3-border-teal" style="z-index:4;overflow: visible !important;">
+    <div class='w3-bar-item w3-center' style="height: 100%; width: 200px; display: flex;justify-content: center;align-items: center;">
+      <img src="img/Bareiss_LOGO.png"  class='w3-center' style="width: 100%;">
+    </div>
+    <a id='login' href="#" class="w3-button w3-right loginNG"  data-lang='head_clicklogin_tooltip' data-lang_type='title' ><i class="fa fa-user w3-xxlarge"></i></a>
     <div class='w3-bar-item w3-container w3-right'>
         <ul class="w3-ul w3-tiny" style="margin: 0rem;padding: 0rem;border: 0rem;">
             <li id='login_username' data-lang='head_login_username' data-lang_type='innerhtml' class="w3-medium" style="margin: 0rem;padding: 0rem;font-weight:bold;">Please Login</li>
             <li id='login_userrole' style="margin: 0rem;padding: 0rem">(Guest)</li>
         </ul>      
     </div>
-    <a id='zh_tw' href="#" class="w3-right w3-display-container w3-button lang-flags" style="height: 48px;width: 48px;margin: 3px 3px">
-        <img src="img/flags/zh-tw.png" class="w3-display-middle" style="height: 32px; width: 32px">
+    <div class="w3-dropdown-hover w3-right" style="height: 100%;" >
+      <button id='lang-button' class="w3-button" style="height: 100%;">Language</button>
+      <div class="w3-dropdown-content w3-bar-block w3-border" style="border-bottom: 1px solid #ccc;">
+        <a id='en' href="#" class="w3-bar-item w3-button lang-flags">English</a>
+        <a id='de' href="#" class="w3-bar-item w3-button lang-flags">German</a>
+        <a id='zh_cn' href="#" class="w3-bar-item w3-button lang-flags">简体中文</a>
+        <a id='zh_tw' href="#" class="w3-bar-item w3-button lang-flags">繁體中文</a>
+      </div>
+    </div>
+    <!-- <a id='zh_tw' href="#" class="w3-right w3-display-container w3-button lang-flags" style="height: 48px;margin: 3px 3px">
+        繁體中文
     </a>
-    <a id='de' href="#" class="w3-right w3-display-container w3-button lang-flags" style="height: 48px;width: 48px;margin: 3px 3px">
-      <img src="img/flags/de.png" class="w3-display-middle" style="height: 32px; width: 32px">
+    <a id='zh_cn' href="#" class="w3-right w3-display-container w3-button lang-flags" style="height: 48px;margin: 3px 3px">
+        简体中文
     </a>
-    <a id='en' href="#" class="w3-right w3-display-container w3-button lang-flags" style="height: 48px;width: 48px;margin: 3px 3px">
-      <img src="img/flags/en.png" class="w3-display-middle" style="height: 32px; width: 32px">
+    <a id='de' href="#" class="w3-right w3-display-container w3-button lang-flags" style="height: 48px;margin: 3px 3px">
+        German
     </a>
+    <a id='en' href="#" class="w3-right w3-display-container w3-button lang-flags" style="height: 48px;margin: 3px 3px">
+        English
+    </a> -->
     
 
   </header>
@@ -123,7 +132,7 @@
             <i class="fas fa-thermometer-quarter" style='margin-right: 5px;'></i>
             <div data-lang='main_indicator_temperature' data-lang_type='innertext'>Temperature</div>
           </div>
-          <div class='idct-status'>disconnect</div>
+          <div class='idct-status' data-lang='main_temperature_status' data-lang_type='innertext'>disconnect</div>
         </div>
 
         <div class="w3-container w3-cell machine-indicator-container-right">

@@ -1,6 +1,7 @@
 const {ipcRenderer} = require("electron");
 let tools = require('../assets/shared_tools');
-let seqRend = require('../assets/seq_render_lib')
+let seqRend = require('../assets/seq_render_lib');
+const { lang } = require("moment");
 let ws
 
 // **************************************
@@ -18,8 +19,7 @@ let batchInForm = document.querySelectorAll("#batchFormContent > input[name='Bat
 let numsampleInForm = document.querySelectorAll("#batchFormContent > input[name='NumberOfSample']")[0]
 let noteInForm = document.querySelectorAll("#batchFormContent > textarea[name='Note']")[0]
 let selectHistoryBatch = document.getElementById('SelectBatch')
-let batchConfirmBtn = document.getElementById('batchConfirm');
-let startSeqBtn = document.getElementById('start_test');
+let batchConfirmAndStartBtn = document.getElementById('batchConfirmAndStart');
 let stopSeqBtn = document.getElementById('stop_test');
 let loadSeqBtn = document.getElementById('open_test_seq');
 let dialog = document.getElementById('modal_moving_sample_dialog');
@@ -300,7 +300,7 @@ function updateGaugeRefValue(locationID, refvalue, selection='t'){
 function connect() {
   try{
     const WebSocket = require('ws');
-    ws = new WebSocket('ws://127.0.0.1:6849');
+    ws = new WebSocket('ws://127.0.0.1:5678');
   }catch(e){
     console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
   }
@@ -330,12 +330,9 @@ function connect() {
           break;
         case 'reply_init_hw':
           if(data.resp_code==1){
-            startBtn_disable();
-            stopBtn_disable();
-            batchInfo_disable();
             batchSelector_enable();
           }else{
-            ipcRenderer.send('show-alert-alert','Alert',data.res + '\n' + data.reason);
+            ipcRenderer.send('show-alert-alert',window.lang_data.modal_alert_title,data.res + '\n' + data.reason);
           }
           break;
         case 'update_sequence':
@@ -367,6 +364,7 @@ function connect() {
           if (data.resp_code == 1){
             // confirmed batch
             batch_confirmed();
+            immediate_start_test();
           }else if (data.resp_code == 0){
             ipcRenderer.send('show-option-dialog', data.title, data.reason, 'continue-batch');            
           }
@@ -415,6 +413,7 @@ batchForm.addEventListener('submit',(e)=>{
   let numSample = batchinfo.filter(item=>item.name=='NumberOfSample')[0].value;
   let note = batchinfo.filter(item=>item.name=='Note')[0].value;
   batchinfo = {'project':proj, 'batch':batch, 'notes':note, 'seq_name':seqName, 'numSample':numSample}
+  console.log('batchinfo',batchinfo)
   ws.send(tools.parseCmd('create_batch',batchinfo));
 })
 
@@ -432,7 +431,7 @@ batchNew.addEventListener('click', ()=>{
 batchLoad.addEventListener('click', ()=>{
   showBatchSelectDialog();
   batchContent_disable();
-  batchConfirmBtn_enable();
+  batchConfirmAndStartBtn_enable();
 })
 
 selectHistoryBatch.addEventListener('click', ()=>{
@@ -470,22 +469,9 @@ $( window ).resize(function() {
   repositionChart();
 });
 
-startSeqBtn.addEventListener('click',()=>{
-  startBtn_disable();
-  stopBtn_enable();
-  $('#testSeqContainer li').removeClass(run_status_classes).addClass('run-init');
-  getBatchInfo();
-  generateEventPlot();
-  generateHardnessPlot();
-  repositionChart();
-  markers=[];
-  ws.send(tools.parseCmd('run_seq',''));
-})
 
 stopSeqBtn.addEventListener('click',()=>{
   ws.send(tools.parseCmd('stop_seq',''));
-  startBtn_enable();
-  stopBtn_disable();
 })
 
 // **************************************
@@ -494,10 +480,6 @@ stopSeqBtn.addEventListener('click',()=>{
 
 function init(){
   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_default_seq_path')));
-  startBtn_disable();
-  stopBtn_disable();
-  batchInfo_disable();
-  batchSelector_enable();
 }
 
 function batchSelector_enable(){
@@ -512,12 +494,12 @@ function batchSelector_disable(){
 
 function batchInfo_enable(){
   batchContent_enable();
-  batchConfirmBtn_enable();
+  batchConfirmAndStartBtn_enable();
 }
 
 function batchInfo_disable(){
   batchContent_disable();
-  batchConfirmBtn_disable();
+  batchConfirmAndStartBtn_disable();
 }
 
 function batchContent_enable(){
@@ -539,20 +521,12 @@ function batchContent_disable(){
   $(noteInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
 }
 
-function batchConfirmBtn_enable(){
-  $(batchConfirmBtn).removeClass('btnEnable btnDisable').addClass('btnEnable');
+function batchConfirmAndStartBtn_enable(){
+  $(batchConfirmAndStartBtn).removeClass('btnEnable btnDisable').addClass('btnEnable');
 }
 
-function batchConfirmBtn_disable(){
-  $(batchConfirmBtn).removeClass('btnEnable btnDisable').addClass('btnDisable');
-}
-
-function startBtn_disable(){
-  $(startSeqBtn).removeClass('btnEnable btnDisable').addClass('btnDisable');
-}
-
-function startBtn_enable(){
-  $(startSeqBtn).removeClass('btnEnable btnDisable').addClass('btnEnable');
+function batchConfirmAndStartBtn_disable(){
+  $(batchConfirmAndStartBtn).removeClass('btnEnable btnDisable').addClass('btnDisable');
 }
 
 function stopBtn_disable(){
@@ -597,15 +571,28 @@ function selectedHistoryBatch(){
     dialog.style.display='none';
     ws.send(tools.parseCmd('run_cmd',tools.parseCmd('load_seq',{path: selectedData.Last_seq_name})));
   }else{
-    ipcRenderer.send('show-info-alert','Please Select Batch','Please select at least one batch');
+    ipcRenderer.send('show-info-alert',window.lang_data.modal_info_title, window.lang_data.please_select_one_batch);
   }
   
 }
 
 function batch_confirmed(){
-  startBtn_enable();
+  // startBtn_enable();
   batchInfo_disable();
   batchSelector_disable();
+}
+
+function immediate_start_test(){
+  // start test
+  batchConfirmAndStartBtn_disable();
+  stopBtn_enable();
+  $('#testSeqContainer li').removeClass(run_status_classes).addClass('run-init');
+  getBatchInfo();
+  generateEventPlot();
+  generateHardnessPlot();
+  repositionChart();
+  markers=[];
+  ws.send(tools.parseCmd('run_seq',''));
 }
 
 function updateSingleStep(res){
@@ -756,16 +743,17 @@ function start_mear_after_move_sample(isRetry=false){
 }
 
 function endOfTest(res){
+  console.log('[end of test]',res)
   let interrupted = res.interrupted;
+  let title = res.title;
   let reason = res.reason;
-  
-  startBtn_disable();
-  stopBtn_disable();
-  batchInfo_disable();
   batchSelector_enable();
+  batchContent_enable()
+  batchConfirmAndStartBtn_enable();
+  stopBtn_disable();
   if (!interrupted){
-    ipcRenderer.send('show-info-alert',res.title,reason);
+    ipcRenderer.send('show-info-alert',title,reason);
   }else{
-    ipcRenderer.send('show-warning-alert',res.title,reason);
+    ipcRenderer.send('show-warning-alert',title,reason);
   }
 }

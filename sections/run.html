@@ -32,25 +32,13 @@
                         <p><i class="far fa-sticky-note"></i><label data-lang='run_note_title' data-lang_type='innertext'> Test Note</label></p>
                         <textarea cols="5" rows="5" name="Note"></textarea>
                     </div>
-                    <p><button id='batchConfirm' data-auth='batchConfirm' class="w3-button w3-block w3-green w3-center" type="submit" 
-                        data-lang='run_confirm_btn' data-lang_type='innertext'><i class="fas fa-check-double"></i> Confirm</button></p>
+                    <p><button id='batchConfirmAndStart' data-auth='start_test' class="w3-button w3-block w3-green w3-center" type="submit" 
+                        data-lang='run_start_btn' data-lang_type='innertext'><i class="fas fa-check-double"></i> Start</button></p>
                   </form>
+                  <button id='stop_test' data-auth='stop_test' class="w3-button w3-block w3-center w3-red" 
+                    data-lang='run_stop_btn' data-lang_type='innertext'> Stop</a>
                 </div>
             <!-- end of batch info -->
-            </div>
-
-            <!-- test tool bar -->
-            <div class='w3-bar w3-card w3-large testToolBar'>
-
-                <div class="w3-bar-item">
-                    <a href="#" id='start_test' data-auth='start_test' class="w3-button w3-center w3-green" 
-                    data-lang='run_start_btn' data-lang_type='innertext'><i class="far fa-play-circle"></i> Start</a>
-                </div>
-                <div class="w3-bar-item">
-                    <a href="#" id='stop_test' data-auth='stop_test' class="w3-button w3-center w3-red" 
-                    data-lang='run_stop_btn' data-lang_type='innertext'><i class="far fa-stop-circle"></i> Stop</a>
-                </div>
-            <!-- end of test tool bar -->
             </div>
 
             <!-- test main panel -->

@@ -36,7 +36,7 @@ let seqPath_under_save = ''
 function connect() {
     try{
         const WebSocket = require('ws');
-        ws = new WebSocket('ws://127.0.0.1:6849');
+        ws = new WebSocket('ws://127.0.0.1:5678');
     }catch(e){
         console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
     }
@@ -341,11 +341,13 @@ ipcRenderer.on('load-seq-editor', (event, path) => {
 });
 
 function updateSequence(res){
+    console.log('[res]',res)
     test_flow.setup = res.setup;
     test_flow.main = res.main;
     test_flow.loop = res.loop;
     test_flow.teardown = res.teardown;
     seqRend.sortSeq('seqContainer',test_flow.setup, test_flow.main, test_flow.teardown,true);
+    updateTempTimeChart();
   }
 
 tempBox.addEventListener('click', () =>{

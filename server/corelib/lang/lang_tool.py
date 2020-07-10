@@ -157,8 +157,8 @@ if __name__ == '__main__':
     langset = ['en','de','zh_tw']
     # lg = TimeRotateLogger('syslog', 'M', 5)
     # writeSingleToExcel('de')
-    writeAllToJson(source='all_lang_V1.4.xlsx')
-    data = load_json_lang_from_json('','de')
+    writeAllToJson(source='all_lang_V1.5.xlsx')
+    data = load_json_lang_from_json('','zh_cn')
     logger.debug(data)
     # data = str(data).encode("utf8").decode("utf8", "ignore")
     # data = load_json_lang_from_xlsx('all.xlsx', 'en')

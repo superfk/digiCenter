@@ -1,3 +1,4 @@
+import traceback
 from productlib import pd_product
 import corelib.utility.utility as util
 import os, sys
@@ -59,8 +60,7 @@ class DigiChamberProduct(pd_product.Product):
         elif scriptName=='get_cur_temp_and_humi':
             await self.get_cur_temp_and_humi(websocket)
         else:
-            print('No this case: {}'.format(scriptName))
-        return 0
+            self.log_to_db_func('No this case: {}'.format(scriptName), 'error', false)
 
     async def init_seq(self):
         self.script=None
@@ -99,6 +99,7 @@ class DigiChamberProduct(pd_product.Product):
         
 
     async def load_seq(self,websocket, path):
+        self.script = None
         data = util.readFromJSON(path)
         self.script=data
         await self.socketCallback(websocket, 'update_sequence', self.script)
@@ -112,48 +113,52 @@ class DigiChamberProduct(pd_product.Product):
         self.batchInfo = batchInfo
     
     def create_seq(self):
-        setup = self.script['setup']
-        main = self.script['main']
-        teardown = self.script['teardown']
-        self.stepsClass = []
-        self.mainClass = []
-        for s in main:
-            if s['cat']=='temperature':
-                stepObj = seqClass.TemperatureStep()
-            elif s['cat']=='hardness':
-                stepObj = seqClass.HardnessStep()
-            elif s['cat']=='waiting':
-                stepObj = seqClass.WaitingStep()
-            elif s['cat']=='loop':
-                item = s['subitem']['item']
-                if item == 'loop start':
-                    stepObj = seqClass.ForLoopStartStep()
-                elif item == 'loop end':
-                    stepObj = seqClass.ForLoopEndStep()           
-            elif s['cat']=='subprog':
-                stepObj = seqClass.SubProgramStep()
-            else:
-                pass
-            stepObj.set_paras(step=s)
+        if self.script:
+            setup = self.script['setup']
+            main = self.script['main']
+            teardown = self.script['teardown']
+            self.stepsClass = []
+            self.mainClass = []
+            for s in main:
+                if s['cat']=='temperature':
+                    stepObj = seqClass.TemperatureStep()
+                elif s['cat']=='hardness':
+                    stepObj = seqClass.HardnessStep()
+                elif s['cat']=='waiting':
+                    stepObj = seqClass.WaitingStep()
+                elif s['cat']=='loop':
+                    item = s['subitem']['item']
+                    if item == 'loop start':
+                        stepObj = seqClass.ForLoopStartStep()
+                    elif item == 'loop end':
+                        stepObj = seqClass.ForLoopEndStep()           
+                elif s['cat']=='subprog':
+                    stepObj = seqClass.SubProgramStep()
+                else:
+                    pass
+                stepObj.set_paras(step=s)
+                stepObj.set_digiChamber_hw_control(self.dChamb)
+                stepObj.set_digitest_hw_control(self.digiTest)              
+                self.mainClass.append(stepObj)         
+            
+            # combine setup main teardown steps
+            stepObj = seqClass.SetupStep()
+            stepObj.set_paras(step=setup)
             stepObj.set_digiChamber_hw_control(self.dChamb)
-            stepObj.set_digitest_hw_control(self.digiTest)              
-            self.mainClass.append(stepObj)         
-        
-        # combine setup main teardown steps
-        stepObj = seqClass.SetupStep()
-        stepObj.set_paras(step=setup)
-        stepObj.set_digiChamber_hw_control(self.dChamb)
-        stepObj.set_digitest_hw_control(self.digiTest) 
-        self.stepsClass.append(stepObj)
-        for m in self.mainClass:
-            self.stepsClass.append(m)
-        stepObj = seqClass.TeardownStep()
-        stepObj.set_paras(step=teardown)
-        stepObj.set_digiChamber_hw_control(self.dChamb)
-        stepObj.set_digitest_hw_control(self.digiTest)
-        self.stepsClass.append(stepObj)
-        self.lg.debug('created steps class')
-        self.lg.debug(self.stepsClass)
+            stepObj.set_digitest_hw_control(self.digiTest) 
+            self.stepsClass.append(stepObj)
+            for m in self.mainClass:
+                self.stepsClass.append(m)
+            stepObj = seqClass.TeardownStep()
+            stepObj.set_paras(step=teardown)
+            stepObj.set_digiChamber_hw_control(self.dChamb)
+            stepObj.set_digitest_hw_control(self.digiTest)
+            self.stepsClass.append(stepObj)
+            self.lg.debug('created steps class')
+            self.lg.debug(self.stepsClass)
+            return True
+        else:
+            return False
 
     async def run_seq(self,websocket):
         try:
@@ -170,78 +175,92 @@ class DigiChamberProduct(pd_product.Product):
             startTime = time.time()
             totalStepsCounts = len(self.stepsClass)
             cursor = 0
-            
-            for s in self.stepsClass:
-                # set inital start time to calculate relative time
-                s.set_initTime(startTime)
-                s.set_result_callback(self.sendResultCallback)
-                s.set_communicate_callback(self.sendCommunicateCallback)
-                s.stopMsgQueue = self.stopMsgQueue
-                s.set_batchinfo(self.batchInfo)
 
-            # main process 
-            while True:
-                # check whether stop this loop
-                if cursor >= totalStepsCounts or self.testStop:
-                    break
-                if self.pause:
-                    # if this process pause, ignore remain procedure and go back to beginning of while loop
-                    time.sleep(0.2)
-                    continue
-                # continuous process
-                self.lg.debug('current cursor: {}'.format(cursor))
-                # get payload step
-                step = self.stepsClass[cursor]
+            # check script existed
+            if self.script:
+                for s in self.stepsClass:
+                    # set inital start time to calculate relative time
+                    s.set_initTime(startTime)
+                    s.set_result_callback(self.sendResultCallback)
+                    s.set_communicate_callback(self.sendCommunicateCallback)
+                    s.stopMsgQueue = self.stopMsgQueue
+                    s.set_batchinfo(self.batchInfo)
 
-                curStepName = step.__class__.__name__
-                self.lg.debug('current step name: {}'.format(curStepName))
-
-                if curStepName == 'HardnessStep':
-                    step.retry = self.retry
-                    self.retry = False
-                    # only for demo, MUST remove later
-                    senCoeff = 5
-                    step.dummyHardBase = 50 - senCoeff*math.log10(self.dChamb.get_real_temperature()/23)
-
-                # do step
-                testResult = step.do()
-                self.lg.debug('output of testResult: {}'.format(testResult))
-
-                # handle result
-                if testResult['status'] in ['PASS','FAIL','SKIP','MEAR_NEXT']:
-                    if curStepName != 'ForLoopEndStep':
-                        if curStepName == 'HardnessStep' and testResult['status'] == 'PASS':
-                            self.saveResult2DatabaseCallback(testResult)
-                            cursor += 1
-                        elif curStepName == 'HardnessStep' and testResult['status'] == 'MEAR_NEXT':
-                            self.saveResult2DatabaseCallback(testResult)
+                # main process 
+                while True:
+                    # check hw connection
+                    if not self.dChamb.connected or not self.digiTest.connected:
+                        self.set_test_stop()
+                        if not self.digiTest.connected:
+                            self.errorMsg = self.lang_data['digitest_disconnect_msg']
                         else:
-                            cursor += 1  
-                    else:
-                        if not step.loopDone:
-                            # starting from loop start
-                            startIdx, endIdx = self.findLoopPair(step.loopid, self.stepsClass)
-                            cursor = startIdx
-                        else:
-                            '''reset loop because if another loop run this loop again 
-                            that not lead to immediately stop'''
-                            startIdx, endIdx = self.findLoopPair(step.loopid, self.stepsClass)
-                            for s in range(startIdx,endIdx+1):
-                                self.stepsClass[s].reset_loopiter()
-                            step.resetLoop()
-                            cursor += 1
-                elif testResult['status'] in ['PAUSE']:
-                    self.pause = True
+                            self.errorMsg = self.lang_data['digichamber_disconnect_msg']
+                        break
+                    # check whether stop this loop
+                    if cursor >= totalStepsCounts or self.testStop:
+                        break
+                    if self.pause:
+                        # if this process pause, ignore remain procedure and go back to beginning of while loop
+                        time.sleep(0.2)
+                        continue
+                    # continuous process
+                    self.lg.debug('current cursor: {}'.format(cursor))
+                    # get payload step
+                    step = self.stepsClass[cursor]
 
-                # check if finish final step
-                if cursor >= totalStepsCounts:
-                    self.testStop=True
+                    curStepName = step.__class__.__name__
+                    self.lg.debug('current step name: {}'.format(curStepName))
+
+                    if curStepName == 'HardnessStep':
+                        step.retry = self.retry
+                        self.retry = False
+                        # only for demo, MUST remove later
+                        senCoeff = 5
+                        step.dummyHardBase = 50 - senCoeff*math.log10(self.dChamb.get_real_temperature()/23)
+
+                    # do step
+                    testResult = step.do()
+                    self.lg.debug('output of testResult: {}'.format(testResult))
+
+                    # handle result
+                    if testResult['status'] in ['PASS','FAIL','SKIP','MEAR_NEXT']:
+                        if curStepName != 'ForLoopEndStep':
+                            if curStepName == 'HardnessStep' and testResult['status'] == 'PASS':
+                                self.saveResult2DatabaseCallback(testResult)
+                                cursor += 1
+                            elif curStepName == 'HardnessStep' and testResult['status'] == 'MEAR_NEXT':
+                                self.saveResult2DatabaseCallback(testResult)
+                            else:
+                                cursor += 1  
+                        else:
+                            if not step.loopDone:
+                                # starting from loop start
+                                startIdx, endIdx = self.findLoopPair(step.loopid, self.stepsClass)
+                                cursor = startIdx
+                            else:
+                                '''reset loop because if another loop run this loop again 
+                                that not lead to immediately stop'''
+                                startIdx, endIdx = self.findLoopPair(step.loopid, self.stepsClass)
+                                for s in range(startIdx,endIdx+1):
+                                    self.stepsClass[s].reset_loopiter()
+                                step.resetLoop()
+                                cursor += 1
+                    elif testResult['status'] in ['PAUSE']:
+                        self.pause = True
+
+                    # check if finish final step
+                    if cursor >= totalStepsCounts:
+                        self.testStop=True
+            else:
+                # script not exsisted
+                self.set_test_stop()
+                self.errorMsg = self.lang_data['script_not_existed']
 
         except Exception as e:
             self.lg.debug('error during excetipn handling in test sequence prcess')
             self.lg.debug(e)
             self.errorMsg = '{}'.format(e)
-            self.interruptStop = True
+            self.set_test_stop()
 
         finally:
             if self.interruptStop:
@@ -249,8 +268,8 @@ class DigiChamberProduct(pd_product.Product):
                 self.stopMsgQueue.task_done()
                 self.lg.debug('reached end_of_test, interrupted')
                 if self.errorMsg:
-                    txt = self.lang_data['server_manual_end_test_reason'] + self.errorMsg
-                    title = self.lang_data['server_manual_end_test_title']
+                    txt = self.lang_data['server_error_end_test_reason'] + ' ' + self.errorMsg
+                    title = self.lang_data['server_error_end_test_title']
                     self.sendCommunicateCallback('end_of_test',{'interrupted':True,'title':title,'reason':txt})
                     self.errorMsg = None
                 else:
@@ -306,13 +325,12 @@ class DigiChamberProduct(pd_product.Product):
                     humInfo['status']=False
                     humInfo['value']=None 
             except Exception as e:
+                err_msg = traceback.format_exc()
                 self.lg.debug('digiChamber get temperature error')
-                self.lg.debug(e)
+                self.lg.debug(err_msg)
             finally:
                 status = {'dt':dtInfo,'temp':tempInfo, 'hum':humInfo}
                 await self.socketCallback(websocket,'update_cur_status',status)
-                # print('###################')
-                # print(status)
 
     def findLoopPair(self, loopid, mainClass):
         for i,s in enumerate(mainClass):

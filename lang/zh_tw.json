@@ -170,7 +170,7 @@
   "server_reply_batch_cont_title":"批號繼續",
   "server_manual_end_test_reason":"手動中斷測試",
   "server_manual_end_test_title":"測試停止",
-  "server_errorl_end_test_reason":"測試中發生錯誤: ",
+  "server_error_end_test_reason":"測試中發生錯誤: ",
   "server_error_end_test_title":"測試停止",
   "server_final_end_test_reason":"測試完成",
   "server_final_end_test_title":"測試停止",
@@ -200,9 +200,16 @@
   "query-data":"搜尋測試數據",
   "export-test-data-to-file":"呼叫匯出測試數據選單",
   "export-start":"執行匯出測試數據",
+  "view-report":"報告檢視",
+  "design-report":"報告設計",
   "main_indicator_hard":"硬度",
   "main_indicator_temperature":"溫度",
-  "main_indicator_humidity":"濕度",
-  "report_call-viewer_btn":"報告檢視",
-  "report_call-designer_btn":"報告設計"
+  "machine_connected":"已連線",
+  "machine_disconnected":"已斷線",
+  "digitest_disconnect_msg":"DigiTest斷開",
+  "digichamber_disconnect_msg":"DigiChamber斷開",
+  "please_select_one_batch":"請至少選擇一個批次",
+  "save_config_ok":"保存配置OK",
+  "save_config_NG":"保存配置失敗",
+  "script_not_existed":"測試序列文件不存在！"
 }

@@ -320,21 +320,22 @@ class UserManag(object):
         # condition = r" INNER JOIN [FunctionList] ON [UserPermission].Functions=[FunctionList].Functions WHERE [User_Role]='{}' ORDER BY [FunctionList].[Display_order]".format(userrole)
         # fn_list = self.db.select('UserRoleList',f, condition)
         exe_str = """
-        SELECT FunctionList.Display_order, FunctionList.{}, UserPermission.[Enabled], UserPermission.Visibled, FunctionList.Tree_index, FunctionList.Functions
+        SELECT FunctionList.Display_order, UserPermission.[Enabled], UserPermission.Visibled, FunctionList.Tree_index, FunctionList.Functions
         FROM FunctionList
         Left JOIN UserPermission ON (FunctionList.Functions = UserPermission.Functions AND UserPermission.User_Role = '{}')
         ORDER BY FunctionList.Display_order;
-        """.format(self.lang_key, userrole)
+        """.format(userrole)
         fn_list = self.db.execute(exe_str)
         final_fun = []
         for f in fn_list:
             d = {}
             d['Index'] = f[0]
-            d["Functions"] =  {'indent':f[4],'name':f[1]}
-            d["Enabled"] = f[2]
-            d["Visibled"] = f[3]
-            d['Tree Index'] = f[4]
-            d['fnc_name']= f[5]
+            translatedFuncName = self.lang[f[4]]
+            d["Functions"] =  {'indent':f[4],'name':translatedFuncName}
+            d["Enabled"] = f[1]
+            d["Visibled"] = f[2]
+            d['Tree Index'] = f[3]
+            d['fnc_name']= f[4]
             final_fun.append(d)
         return final_fun
 

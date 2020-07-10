@@ -16,7 +16,7 @@ Stimulsoft.Base.StiLicense.key =
   "AR0HCq68tnlNf+AW";
   
 
-Stimulsoft.Base.StiFontCollection.addOpentypeFontFile("./assets/css/fonts/Roboto-Black.ttf");
+Stimulsoft.Base.StiFontCollection.addOpentypeFontFile("../assets/css/fonts/Roboto-Black.ttf");
 
 var report = Stimulsoft.Report.StiReport.createNewReport();
 
@@ -46,7 +46,7 @@ const config = {
 function connect() {
   try{
     const WebSocket = require('ws');
-    ws = new WebSocket('ws://127.0.0.1:6849');
+    ws = new WebSocket('ws://127.0.0.1:5678');
   }catch(e){
     console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
   }

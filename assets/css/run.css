@@ -55,7 +55,7 @@ textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 10
 .testMainPanel{
     position: absolute;
     left: 300px;
-    top:60px;
+    top:0px;
     right: 0px;
     bottom: 0px;
     background-color: white;

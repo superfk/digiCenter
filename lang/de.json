@@ -170,7 +170,7 @@
   "server_reply_batch_cont_title":"Batch wird weiterbearbeitet",
   "server_manual_end_test_reason":"Manueller Stop",
   "server_manual_end_test_title":"Testende",
-  "server_errorl_end_test_reason":"Fehler während des Tests:",
+  "server_error_end_test_reason":"Fehler während des Tests:",
   "server_error_end_test_title":"Testende",
   "server_final_end_test_reason":"Test erfolgreich abgeschlossen",
   "server_final_end_test_title":"Testende",
@@ -200,9 +200,16 @@
   "query-data":"Testdaten anfragen",
   "export-test-data-to-file":"Export Report Option Button",
   "export-start":"In Datei exportieren Button",
+  "view-report":"Zuschauer",
+  "design-report":"Designer",
   "main_indicator_hard":"Härte",
   "main_indicator_temperature":"Temperatur",
-  "main_indicator_humidity":"rel. Luftfeuchtigkeit",
-  "report_call-viewer_btn":"Zuschauer",
-  "report_call-designer_btn":"Designer"
+  "machine_connected":"in Verbindung gebracht",
+  "machine_disconnected":"getrennt",
+  "digitest_disconnect_msg":"DigiTest Disconnected",
+  "digichamber_disconnect_msg":"DigiChamber Disconnected",
+  "please_select_one_batch":"Bitte wählen Sie mindestens eine Charge",
+  "save_config_ok":"Konfiguration speichern OK",
+  "save_config_NG":"Konfiguration speichern fehlgeschlagen",
+  "script_not_existed":"Prüfablauf Datei nicht existiert!"
 }

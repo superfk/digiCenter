@@ -3,7 +3,7 @@ const path = require('path');
 const { clipboard } = require('electron')
 const remote = require('electron').remote;
 const app = remote.app;
-const appRoot = require('electron-root-path').rootPath;
+const appRoot = app.getAppPath();
 let tools = require('../assets/shared_tools');
 let ws;
 
@@ -16,7 +16,7 @@ const db_server = document.getElementById("db_server");
 const apply_change_general = document.getElementById("apply_change_general");
 const btn_getHostName = document.getElementById("auto_getHostname_btn");
 const computerName = document.getElementById("computerName");
-
+let wsReady = false
 
 // **************************************
 // websocket functions
@@ -25,7 +25,8 @@ const computerName = document.getElementById("computerName");
 function connect() {
   try{
       const WebSocket = require('ws');
-      ws = new WebSocket('ws://127.0.0.1:6849');
+      ws = new WebSocket('ws://127.0.0.1:5678');
+      
   }catch(e){
       console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
   }
@@ -68,9 +69,9 @@ function connect() {
               break;
             case 'reply_checking_config':
               if (data){
-                ipcRenderer.send('show-info-alert', "Info","Saving Configuration OK");
+                ipcRenderer.send('show-info-alert', window.lang_data.modal_info_title, window.lang_data.save_config_ok);
               }else{
-                ipcRenderer.send('show-alert-alert', "Error","Saving Configuration Failed");
+                ipcRenderer.send('show-alert-alert', window.lang_data.modal_alert_title, window.lang_data.save_config_NG);
               }
               break;
             case 'get_hostname':
@@ -82,7 +83,7 @@ function connect() {
             case 'reply_add_new_user':
               switch(data[0]) {
                 case 0:
-                  ipcRenderer.send('show-warning-alert', 'Warning', data[1])
+                  ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, data[1])
                   $('#new-user-account-modal').hide();
                   break;
                 case 1:
@@ -103,28 +104,28 @@ function connect() {
               if (data[0]===1){
                 get_user_accounts();
               }else{
-                ipcRenderer.send('show-warning-alert', 'Warning', data[1]);
+                ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, data[1]);
               }
               break;
             case 'reply_activate_user':
               if (data[0]===1){
                 get_user_accounts();
               }else{
-                ipcRenderer.send('show-warning-alert', 'Warning', data[1]);
+                ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, data[1]);
               }
               break;
             case 'reply_deactivate_user':
               if (data[0]===1){
                 get_user_accounts();
               }else{
-                ipcRenderer.send('show-warning-alert', 'Warning', data[1]);
+                ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, data[1]);
               }
               break;
             case 'reply_give_new_password':
               if (data[0]===1){
                 get_user_accounts();
               }else{
-                ipcRenderer.send('show-warning-alert', 'Warning', data[1]);
+                ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, data[1]);
               }
               break;
             case 'reply_get_user_role_list':
@@ -142,11 +143,11 @@ function connect() {
             case 'reply_update_fnc_of_role':
               if (data[0] === 1){
                 // update ok
-                ipcRenderer.send('show-info-alert', "Info", data[1]);
+                ipcRenderer.send('show-info-alert', window.lang_data.modal_info_title, data[1]);
                 get_function_list();
               }else{
                 // update error
-                ipcRenderer.send('show-warning-alert', "Warning", data[1]);
+                ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, data[1]);
                 get_function_list();
               }
               break;
@@ -160,7 +161,7 @@ function connect() {
                 get_function_list();
               }else{
                 // update error
-                ipcRenderer.send('show-warning-alert', "Warning", data[1]);
+                ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, data[1]);
                 get_function_list();
               }
               break;
@@ -173,7 +174,7 @@ function connect() {
                 get_function_list();
               }else{
                 // update error
-                ipcRenderer.send('show-warning-alert', "Warning", data[1]);
+                ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, data[1]);
                 get_user_roles()
                 selected_role = "Guest"
                 get_function_list();
@@ -184,7 +185,7 @@ function connect() {
             case 'reply_get_syslog_from_db':
               if(data[0] == 1){
                 createTable(data[1])
-                ipcRenderer.send('show-info-alert', "Info", data[2]);
+                ipcRenderer.send('show-info-alert', window.lang_data.modal_info_title, data[2]);
                 $("#systemlog_link").attr("href", data[3])
                 $("#systemlog_link").html(data[3])
               }
@@ -192,6 +193,9 @@ function connect() {
             case 'update_sys_default_config':
               updateServerSeqFolder(data);
               break;
+            case 'reply_server_error':
+                console.log(data.error);
+                break;
             default:
                 console.log('Not found this cmd' + cmd)
           }
@@ -338,7 +342,9 @@ user_account_tab.addEventListener('click', (event) =>{
 })
 
 ipcRenderer.on('refresh_user_accounts', (event) => {
-  get_user_accounts();
+  if (ws.readyState === 1){
+    get_user_accounts();
+  }
 })
 
 function get_user_accounts(){
@@ -457,7 +463,6 @@ new_use_confirm_btn.on('click',function(){
 
 function copy2clipboard(event){
   var rndpw = $('#rnd_pw').text();
-  console.log(rndpw);
   clipboard.writeText(rndpw);
 }
 
@@ -546,7 +551,9 @@ function get_user_roles(){
 }
 
 function get_function_list(){
-  ws.send(tools.parseCmd('get_function_list', {'role':selected_role}));
+  if(ws.readyState===1){
+    ws.send(tools.parseCmd('get_function_list', {'role':selected_role}));
+  }
 }
 
 
