@@ -328,6 +328,7 @@ function setLang(lang){
       $('.lang-flags').removeClass('langSelected');
       $(element).addClass('langSelected');
       $('#lang-button').text($(element).html())
+      window.langID = lang;
     }
   })
 }
@@ -367,9 +368,8 @@ function autoUpdateLang(){
           // code block
       }
     }
-    
   });
-
+  ipcRenderer.send('trigger_tanslate')
 }
 
 

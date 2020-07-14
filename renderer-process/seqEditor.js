@@ -46,7 +46,6 @@ function connect() {
     });
     
     ws.on('ping',()=>{
-        
         ws.send(tools.parseCmd('pong','from seqEditor'));
       })
       
@@ -372,15 +371,6 @@ loopBox.addEventListener('click', () =>{
     appendSeq(end);
 })
 
-subprogBox.addEventListener('click', () =>{
-    // let paras= [
-    //     new seqRend.TextPara('path','',unit='',readOnly=false)
-    // ]
-    // let step = seqRend.makeSingleStep('subprog', 'program config', paras);
-    // appendSeq(step);
-
-})
-
 let preArray = [];
 let postArray = [];
 
@@ -421,15 +411,8 @@ function makeSortable(){
                 seqRend.sortSeq('seqContainer',test_flow.setup, test_flow.main, test_flow.teardown,true);
                 updateTempTimeChart();
                 closeRightMenu();
-
             }
-            
-
-            // IE doesn't register the blur when sorting
-            // so trigger focusout handlers to remove .ui-state-focus
             ui.item.children( "a" ).triggerHandler( "focusout" );
-        
-            
         }
       });
 }
@@ -463,33 +446,23 @@ function genParasPanel(parain){
 }
 
 
-$('body').on('click', '#seqContainer > li > div > a',function() {
-    let nh = this.innerText;
-
-    let regexp = '(Setup)';
-    let matches_array = nh.match(regexp);
-    if (matches_array !== null){
+$('body').on('click', '#seqContainer > li',function() {
+    let dataStepId = $(this).data('stepid');
+    if (dataStepId === -1){
         // genParasPanel(test_flow.setup);
         return;
     }
-
-    regexp = '(Teardown)';
-    matches_array = nh.match(regexp);
-    if(matches_array !== null){
+    if (dataStepId === 9999){
         genParasPanel(test_flow.teardown);
         return;
     }
-
-    regexp = '([0-9]+)';
-    matches_array = nh.match(regexp);
     // get step ID
-    if(matches_array !== null){
-        let seqID = matches_array[0];
+    if(dataStepId >=0 && dataStepId<9999){
         $('#seqContainer > li').each((index,elem)=>{
             $(elem).removeClass('active-item');
         });
-        $(this).parents('li').toggleClass('active-item');
-        genParasPanel(test_flow.main[seqID-1]);
+        $(this).toggleClass('active-item');
+        genParasPanel(test_flow.main[dataStepId]);
         return;
     }
 
@@ -522,11 +495,15 @@ $('body').on('click', '.delete_list', function() {
     
 });
 
-
 applyParaBtn.addEventListener('click',()=>{
     test_flow = seqRend.applyChange(paraContainerID='paraContainer', test_flow=test_flow, activePara=activePara)
     seqRend.sortSeq('seqContainer',test_flow.setup, test_flow.main, test_flow.teardown,true);
     makeSortable();
     updateTempTimeChart();
+})
 
+// detect select language
+ipcRenderer.on('trigger_tanslate', (event)=>{
+    seqContainer.innerHTML = seqRend.refreshSeq(test_flow,true);
+    makeSortable();
 })

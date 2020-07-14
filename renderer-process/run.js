@@ -39,6 +39,7 @@ let test_flow = {
     loop: loop_seq,
     teardown: teardown_seq
 };
+let loadSeqPathObj = {path:'', name:''};
 const plotMargin = { t: 40, r: 80, l: 40, b: 50};
 const config = {
   displaylogo: false,
@@ -66,6 +67,25 @@ generateGauge('actualHumGauge', 50, 0, 100,'Humidity');
 // **************************************
 // generate graph functions
 // **************************************
+
+function genTraceForHardnessPlot(sampleSize=1){
+  const sampleArr = Array(sampleSize);
+  const traceArr = sampleArr.map((elm,idx)=>{
+    return {
+      x: [],
+      y: [],
+      mode: 'lines+markers',
+      type: 'scatter',
+      name: `sample${idx+1}`,
+      marker: { size: 6},
+      line: {
+        width: 2
+      }
+    }
+  })
+  return traceArr;
+}
+
 
 function generateEventPlot(){
 
@@ -130,19 +150,11 @@ function generateEventPlot(){
 
 function generateHardnessPlot(){
   
-    var trace = {
-      // x: h_data_x,
-      type: "scattergl",
-      x:[],
-      y: [],
-      mode: 'markers',
-      marker: { size: 6},
-      line: {
-        width: 2
-      }
-    };
+    let batchinfo = getBatchInfo();
+    let numSample = batchinfo.filter(item=>item.name=='NumberOfSample')[0].value;
+    const traceArr = genTraceForHardnessPlot(numSample)
   
-    var data = [trace];
+    var data = traceArr;
     
     var layout = {
       xaxis: {
@@ -407,7 +419,8 @@ connect()
 batchForm.addEventListener('submit',(e)=>{
   e.preventDefault();
   let batchinfo = getBatchInfo();
-  let seqName = $('#batchInfoForm input[name=SeqName]').val();
+  // let seqName = $('#batchInfoForm input[name=SeqName]').val();
+  let seqName = loadSeqPathObj.path;
   let proj = batchinfo.filter(item=>item.name=='Project')[0].value;
   let batch = batchinfo.filter(item=>item.name=='Batch')[0].value;
   let numSample = batchinfo.filter(item=>item.name=='NumberOfSample')[0].value;
@@ -443,9 +456,8 @@ loadSeqBtn.addEventListener('click', ()=>{
 })
 
 ipcRenderer.on('load-seq-run', (event, path) => {
-
-  $('#batchInfoForm input[name=SeqName]').val(path)
-
+  updateLoadedPathObj(path)
+  $('#batchInfoForm input[name=SeqName]').val(loadSeqPathObj.name)
   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('load_seq',{path: path})));
 
 });
@@ -453,7 +465,8 @@ ipcRenderer.on('load-seq-run', (event, path) => {
 ipcRenderer.on('continue-batch', (event, resp)=>{
   if (resp == 0){
     let batchinfo = getBatchInfo();
-    let seqName = $('#batchInfoForm input[name=SeqName]').val();
+    // let seqName = $('#batchInfoForm input[name=SeqName]').val();
+    let seqName = loadSeqPathObj.path;
     let proj = batchinfo.filter(item=>item.name=='Project')[0].value;
     let batch = batchinfo.filter(item=>item.name=='Batch')[0].value;
     let numSample = batchinfo.filter(item=>item.name=='NumberOfSample')[0].value;
@@ -563,7 +576,9 @@ function selectedHistoryBatch(){
   let isSelected = table.rows( '.selected' ).any();
   if (isSelected){
     let selectedData = table.row( '.selected' ).data();
-    $(seqNameInForm).val(selectedData.Last_seq_name);
+    // $(seqNameInForm).val(selectedData.Last_seq_name);
+    updateLoadedPathObj(selectedData.Last_seq_name)
+    $(seqNameInForm).val(loadSeqPathObj.name)
     $(projInForm).val(selectedData.Project_Name);
     $(batchInForm).val(selectedData.Batch_Name);
     $(noteInForm).val(selectedData.Note);
@@ -636,6 +651,7 @@ function updateSingleStep(res){
 }
 
 function updateStepByCat(res){
+  console.log(res)
   let stepid = res.stepid;
   let stepname = res.name;
   let value = res.value;
@@ -757,3 +773,16 @@ function endOfTest(res){
     ipcRenderer.send('show-warning-alert',title,reason);
   }
 }
+
+const updateLoadedPathObj = (abspath) => {
+  loadSeqPathObj.path = abspath;
+  loadSeqPathObj.name = abspath.replace(/^.*[\\\/]/, '')
+  return loadSeqPathObj
+}
+
+// detect select language
+ipcRenderer.on('trigger_tanslate', (event)=>{
+  if(test_flow.setup.para !== undefined){
+    $('#testSeqContainer').html(seqRend.refreshSeq(test_flow,false))
+  }
+})

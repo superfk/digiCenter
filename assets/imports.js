@@ -15,8 +15,6 @@ Array.prototype.forEach.call(links, (link) => {
 
   // let template = link.import.querySelector('.task-template')
   fs.readFile(fullPath, (err, html) => {
-    console.log('html path')
-    console.log(fullPath)
     if (err){
       console.error(err)
     }else {

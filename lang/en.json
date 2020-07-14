@@ -204,6 +204,7 @@
   "design-report":"RPDesigner",
   "main_indicator_hard":"Hardness",
   "main_indicator_temperature":"Temperature",
+  "main_indicator_humidity":"Humidity",
   "machine_connected":"connected",
   "machine_disconnected":"disconnected",
   "digitest_disconnect_msg":"DigiTest Disconnected",
@@ -211,5 +212,12 @@
   "please_select_one_batch":"Please select at least one batch",
   "save_config_ok":"Save Configuration OK",
   "save_config_NG":"Save Configuration Failed",
-  "script_not_existed":"Test Sequence File not Existed!"
+  "script_not_existed":"Test Sequence File not Existed!",
+  "seq_step":"Step",
+  "seq_sequence_setup":"Sequence Setup",
+  "seq_sequence_teardown":"Sequence Teardown",
+  "seq_enable":"Enable",
+  "seq_delete":"Delete",
+  "open_teach_pos_pdf":"Click me to open guide of teaching position",
+  "side_posteach":"MearPos Guide"
 }

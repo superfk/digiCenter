@@ -2,14 +2,34 @@
 <html>
 
 <style>
+    * {
+        margin: 0;
+        padding: 0;;
+    }
+html, body {
+    width: 100%;
+    height: 100%;
+}
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+#cont {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
 .baseCircle {
-    fill: rgb(252, 255, 203);
+    fill: #bdc3c7;
     stroke: black;
     stroke-width: 1px;
 }
 
 .uut {
-    fill: rgb(233, 231, 225);
+    fill: #ecf0f1;
     stroke: rgb(95, 93, 93);
     stroke-width: 1px;
 }
@@ -23,71 +43,85 @@
     pointer-events: none;
 }
 
+
 </style>
-<body>
+<body onresize="replot()">
+<div class='container'>
+    <svg id="cont" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    </svg>
+</div>
 
-
-
-<div>
-<svg id="cont" height="1000" width="1000" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-</svg>
 <script>
-let circles = [];
-let baseR = 120;
-let uutN = 25;
-let childR = 100;
-let radius = 10;
+    let circles = [];
+    let baseR = 200;
+    let uutN = 25;
+    let childR = baseR - 30;
+    let radius = 15;
+    const cx = 150;
+    const cy = 150;
 
-var svgns = "http://www.w3.org/2000/svg",
-    container = document.getElementById( 'cont' );
+    var svgns = "http://www.w3.org/2000/svg",
+        container = document.getElementById( 'cont' );
 
-function plotBaseTable(){
-    var circle = document.createElementNS(svgns, 'circle');
-    circle.setAttributeNS(null, 'class', 'baseCircle');
-    circle.setAttributeNS(null, 'cx', 150);
-    circle.setAttributeNS(null, 'cy', 150);
-    circle.setAttributeNS(null, 'r', baseR);
-    // circle.setAttributeNS(null, 'style', 'fill: lightyellow; stroke: black; stroke-width: 1px;' );
-    container.appendChild(circle);
-
-}
-
-function plotSmallHoles( circleN = 25){
-    circles = [];
-    for (i=0;i<circleN;i++){
-        let theda = i*2*Math.PI/circleN;
-        let cx = 150+childR*Math.cos(theda);
-        let cy = 150+childR*Math.sin(theda);
-        
-        singleCircle = {'cx':cx, 'cy':cy, 'radius':radius};
-        circles.push(singleCircle);
-
+    function plotBaseTable(){
         var circle = document.createElementNS(svgns, 'circle');
-        circle.setAttributeNS(null, 'class', 'uut');
-        circle.setAttributeNS(null, 'cx', cx);
-        circle.setAttributeNS(null, 'cy', cy);
-        circle.setAttributeNS(null, 'r', radius);
-        // circle.setAttributeNS(null, 'style', 'fill: lightgray; stroke: black; stroke-width: 1px;' );
+        circle.setAttributeNS(null, 'class', 'baseCircle');
+        circle.setAttributeNS(null, 'cx', '50%');
+        circle.setAttributeNS(null, 'cy', '50%');
+        circle.setAttributeNS(null, 'r', baseR);
+        // circle.setAttributeNS(null, 'style', 'fill: lightyellow; stroke: black; stroke-width: 1px;' );
         container.appendChild(circle);
-
-        var text = document.createElementNS(svgns, 'text');
-        text.setAttributeNS(null, 'class', 'textuut');
-        text.setAttributeNS(null, 'x', cx);
-        text.setAttributeNS(null, 'y', cy);
-        text.setAttributeNS(null,"font-size","12")
-        text.setAttributeNS(null, 'style', 'fill: red' );
-        text.setAttributeNS(null,"text-anchor","middle");
-        text.setAttributeNS(null,"alignment-baseline","central");
-        var textNode = document.createTextNode(i);
-        text.appendChild(textNode);
-        container.appendChild(text);
-
     }
-}
 
-plotBaseTable();
-plotSmallHoles(12);
+    function plotSmallHoles( circleN = 25){
+        const baseContainer = document.querySelector( '#cont' );
+        const baseCircle = document.querySelector( '#cont .baseCircle' );
+        const {x,y,width,height} = baseContainer.getBBox()
+        console.log(baseContainer)
+        console.log(x,y,width,height)
+        const newCenterX = x+width/2;
+        const newCenterY = y+height/2;
+        circles = [];
+        for (i=0;i<circleN;i++){
+            let theda = i*2*(Math.PI)/circleN;
+            smcx = newCenterX+childR*Math.cos(theda-0.5*Math.PI);
+            smcy = newCenterY+childR*Math.sin(theda+0.5*Math.PI);
+            
+            singleCircle = {'cx':smcx, 'cy':smcy, 'radius':radius};
+            circles.push(singleCircle);
 
+            var circle = document.createElementNS(svgns, 'circle');
+            circle.setAttributeNS(null, 'class', 'uut');
+            circle.setAttributeNS(null, 'cx', smcx);
+            circle.setAttributeNS(null, 'cy', smcy);
+            circle.setAttributeNS(null, 'r', radius);
+            // circle.setAttributeNS(null, 'style', 'fill: lightgray; stroke: black; stroke-width: 1px;' );
+            container.appendChild(circle);
+
+            var text = document.createElementNS(svgns, 'text');
+            text.setAttributeNS(null, 'class', 'textuut');
+            text.setAttributeNS(null, 'x', smcx);
+            text.setAttributeNS(null, 'y', smcy);
+            text.setAttributeNS(null,"font-size","12")
+            text.setAttributeNS(null, 'style', 'fill: red' );
+            text.setAttributeNS(null,"text-anchor","middle");
+            text.setAttributeNS(null,"alignment-baseline","central");
+            var textNode = document.createTextNode(i+1);
+            text.appendChild(textNode);
+            container.appendChild(text);
+
+        }
+    }
+
+    plotBaseTable();
+    plotSmallHoles(25);
+
+    const replot = () => {
+        const baseContainer = document.querySelector( '#cont' );
+        baseContainer.innerHTML=''
+        plotBaseTable();
+        plotSmallHoles(25);
+    }
 
 
 </script> 

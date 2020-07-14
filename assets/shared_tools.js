@@ -29,9 +29,9 @@ module.exports = {
     },
     
 
-    plotly_addNewDataToPlot: function (locationID, xval,yval, y2val=null){
+    plotly_addNewDataToPlot: function (locationID, xval,yval, y2val=null, sampleId=0){
       if(y2val == null){
-        Plotly.extendTraces(locationID, {x: [[xval]],y: [[yval]]}, [0])
+        Plotly.extendTraces(locationID, {x: [[xval]],y: [[yval]]}, [sampleId])
       }else{
         Plotly.extendTraces(locationID, {x: [[xval],[xval]],y: [[yval], [y2val]]}, [0,1])
       }

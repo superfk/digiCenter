@@ -1,13 +1,7 @@
 
 from datetime import datetime
 import time
-import threading
 import random
-import asyncio
-import json
-import types
-import queue
-import datetime
 import numpy as np
 
 dummy_delay = 0.1
@@ -318,10 +312,6 @@ class HardnessStep(DigiCenterStep):
         # change config
         if not self.retry:
             self.config_digitest()
-            # check if it is the beginning of measurement
-            # if self.curSampleId == 0:
-            #     self.set_result(0.0,'WAITING',None,'MS',self.singleResult)
-            #     self.resultCallback(self.result)
         else:
             try:
                 self.retry = False
@@ -332,8 +322,6 @@ class HardnessStep(DigiCenterStep):
 
         # do measurement
         while True:
-
-            
             # check if all data mearsured
             if self.singleResult['done']:
                 print('cursampleid/total: {} / {}'.format(self.curSampleId, self.batchinfo.numSamples))                                     
@@ -345,6 +333,7 @@ class HardnessStep(DigiCenterStep):
                     self.reset_result()
                     break
                 else:
+                    # measure next sample
                     self.set_result(self.singleResult['result'],'MEAR_NEXT', None, eventName=r'{}'.format(self.curSampleId, progs=100)
                     ,hardness_dataset=self.singleResult) 
                     self.resultCallback(self.result)
@@ -395,9 +384,12 @@ class HardnessStep(DigiCenterStep):
             else:
                 # rotate on one sample
                 print('rotate on one sample with position {}'.format(len(self.singleResult['dataset'])))
-                self.hwDigitest.set_rotation_pos(sample_N=self.curSampleId, mear_pos_n=self.get_mear_counts())
-                time.sleep(0.1)
-       
+                move_completed, response = self.hwDigitest.set_rotation_pos(sample_N=self.curSampleId, mear_pos_n=self.get_mear_counts())
+                if move_completed:
+                    pass
+                else:
+                    self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
+                    self.resultCallback(self.result)
         return self.result
 
     def add_data(self, value):

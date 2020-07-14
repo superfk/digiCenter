@@ -204,6 +204,7 @@
   "design-report":"Designer",
   "main_indicator_hard":"Härte",
   "main_indicator_temperature":"Temperatur",
+  "main_indicator_humidity":"Feuchtigkeit",
   "machine_connected":"in Verbindung gebracht",
   "machine_disconnected":"getrennt",
   "digitest_disconnect_msg":"DigiTest Disconnected",
@@ -211,5 +212,12 @@
   "please_select_one_batch":"Bitte wählen Sie mindestens eine Charge",
   "save_config_ok":"Konfiguration speichern OK",
   "save_config_NG":"Konfiguration speichern fehlgeschlagen",
-  "script_not_existed":"Prüfablauf Datei nicht existiert!"
+  "script_not_existed":"Prüfablauf Datei nicht existiert!",
+  "seq_step":"Schritt",
+  "seq_sequence_setup":"Sequenz-Setup",
+  "seq_sequence_teardown":"Sequenz Teardown",
+  "seq_enable":"Aktivieren",
+  "seq_delete":"Löschen",
+  "open_teach_pos_pdf":"Klicken Sie auf mich, um den Leitfaden für die Lehrposition zu öffnen",
+  "side_posteach":"MearPos Führer"
 }

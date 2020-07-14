@@ -204,6 +204,7 @@
   "design-report":"报告设计",
   "main_indicator_hard":"硬度",
   "main_indicator_temperature":"温度",
+  "main_indicator_humidity":"湿度",
   "machine_connected":"连接的",
   "machine_disconnected":"断开",
   "digitest_disconnect_msg":"DigiTest断开",
@@ -211,5 +212,12 @@
   "please_select_one_batch":"请至少选择一个批次",
   "save_config_ok":"保存配置OK",
   "save_config_NG":"保存配置失败",
-  "script_not_existed":"测试序列文件不存在！"
+  "script_not_existed":"测试序列文件不存在！",
+  "seq_step":"步骤",
+  "seq_sequence_setup":"流程准备程序",
+  "seq_sequence_teardown":"流程结束程序",
+  "seq_enable":"启用",
+  "seq_delete":"删除",
+  "open_teach_pos_pdf":"点击我打开教学位置指南",
+  "side_posteach":"量测点教学"
 }

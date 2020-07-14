@@ -121,7 +121,7 @@ module.exports = {
         for (i = 0; i < seq.length; i++) {
             let {cat, subitem} = seq[i];
             // titles.push(`Step ${i+1} :: ${tools.capitalize(cat)} :: ${tools.capitalize(subitem['item'])}`);
-            titles.push(`Step ${i+1} :: ${tools.capitalize(cat)}`);
+            titles.push(`${window.lang_data['seq_step']} ${i+1} :: ${tools.capitalize(cat)}`);
         }
       
         return titles;
@@ -167,53 +167,60 @@ module.exports = {
         return curstr;
       },
 
-      generateStartSeq: function (setup_seq, editable=false) {
-        let stepParaText = "";
-        let curstr = `
-        <li class='w3-flat-nephritis' data-stepid=-1>
-          <div class='w3-bar'>
-            <a href="#" class='w3-bar-item'>
-                ${module.exports.genIconByCat(setup_seq.cat, setup_seq.subitem['paras'])}Sequence Setup${stepParaText}
-            </a>
-            <div class="w3-bar-item w3-right lopCount">00</div>
-            ${editable?
-                `<div class='w3-bar-item w3-right w3-small' style='width:50px' >Delete</div>
-                <div class='w3-bar-item w3-right w3-small' style='width:50px' >Enable</div>`
-                :
-                ``
-                }
-          </div> 
-        </li>
-        `;
-        return curstr;
-      },
-
-      genTeardownTest: function (paras=null){
-          if (paras==null){
-            paras= [
-                new module.exports.NumberPara('safe temperature',30,unit='&#8451',max=50,min=0,readOnly=false)
-            ]
-          }
-        teardown_seq = module.exports.makeSingleStep('teardown','teardown', paras, true, 9999);
-        return teardown_seq;
+    generateStartSeq: function (setup_seq, editable=false) {
+    let stepParaText = "";
+    let curstr = `
+    <li class='w3-flat-nephritis' data-stepid=-1>
+        <div class='w3-bar'>
+        <a href="#" class='w3-bar-item'>
+            ${module.exports.genIconByCat(setup_seq.cat, setup_seq.subitem['paras'])}${window.lang_data['seq_sequence_setup']}${stepParaText}
+        </a>
+        <div class="w3-bar-item w3-right lopCount">00</div>
+        ${editable?
+            `<div class='w3-bar-item w3-right w3-small' style='width:50px' >${window.lang_data['seq_delete']}</div>
+            <div class='w3-bar-item w3-right w3-small' style='width:50px' >${window.lang_data['seq_enable']}</div>`
+            :
+            ``
+            }
+        </div> 
+    </li>
+    `;
+    return curstr;
     },
-      
-      generateEndSeq: function (teardown_seq, editable=false) {
-        let stepParaText = module.exports.genShortParaText(teardown_seq.cat, teardown_seq.subitem);
-        let curstr = `
-        <li class='w3-flat-alizarin' data-stepid=9999>
-            <div class='w3-bar'>
-                <a href="#" class='w3-bar-item'>
-                    ${module.exports.genIconByCat(teardown_seq.cat, teardown_seq.subitem['paras'])}Sequence Teardown${stepParaText}
-                </a>
-            </div>
-            ${editable?'':module.exports.genProgBarByCat(teardown_seq.cat)}  
-            
-        </li>
-        `;
-        return curstr;
-      },
 
+    genTeardownTest: function (paras=null){
+        if (paras==null){
+        paras= [
+            new module.exports.NumberPara('safe temperature',30,unit='&#8451',max=50,min=0,readOnly=false)
+        ]
+        }
+    teardown_seq = module.exports.makeSingleStep('teardown','teardown', paras, true, 9999);
+    return teardown_seq;
+    },
+    
+    generateEndSeq: function (teardown_seq, editable=false) {
+    let stepParaText = module.exports.genShortParaText(teardown_seq.cat, teardown_seq.subitem);
+    let curstr = `
+    <li class='w3-flat-alizarin' data-stepid=9999>
+        <div class='w3-bar'>
+            <a href="#" class='w3-bar-item'>
+                ${module.exports.genIconByCat(teardown_seq.cat, teardown_seq.subitem['paras'])}${window.lang_data['seq_sequence_teardown']}${stepParaText}
+            </a>
+        </div>
+        ${editable?'':module.exports.genProgBarByCat(teardown_seq.cat)}  
+        
+    </li>
+    `;
+    return curstr;
+    },
+    refreshSeq: function (test_flow,editable=false){
+        console.log(test_flow)
+        let refreshedHTML = '';
+        refreshedHTML += module.exports.generateStartSeq(test_flow.setup, editable)
+        refreshedHTML += module.exports.generateSeq(test_flow.main, editable)
+        refreshedHTML += module.exports.generateEndSeq(test_flow.teardown ,editable)
+        return refreshedHTML
+    },
     sortSeq: function(container_id, setup_seq, seq, teardown_seq, editable=false){
         let middleSeqs =  module.exports.generateSeq(seq, editable);
         $('#'+container_id).html(module.exports.generateStartSeq(setup_seq, editable) + middleSeqs + module.exports.generateEndSeq(teardown_seq, editable));

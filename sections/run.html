@@ -190,6 +190,17 @@
                 </div>
             </div>
         </div>
+
+        <!-- Showing Batch Setup Modal -->
+        <div id="modal_batch_setup_dialog" class="w3-modal" style='z-index:20'>
+            <div class="w3-modal-content w3-animate-opacity w3-card-4">
+                <div class="w3-container w3-yellow">
+                    <span onclick="document.getElementById('modal_batch_setup_dialog').style.display='none'" 
+                        class="w3-button w3-display-topright">&times;</span>
+                    <h2 id="modal_batch_setup_dialog_title" data-lang='modal_batch_setup_dialog_title' data-lang_type='innertext' style="margin-top: 1rem">Load Batch</h2>
+                </div>
+            </div>
+        </div>
         
         <script>
             require('./renderer-process/run.js');

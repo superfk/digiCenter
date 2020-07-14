@@ -176,8 +176,6 @@ class PyServerAPI(object):
                     start = data['start']
                     end = data['end']
                     await self.get_syslog_from_db(websocket, start, end)
-                # elif cmd == 'machine_connect':
-                #     await self.machine_connect(websocket)
                 elif cmd == 'run_cmd':
                     await self.run_cmd(websocket,data)
                 elif cmd == 'init_hw':
@@ -236,7 +234,6 @@ class PyServerAPI(object):
         filter_cmd = ['update_cur_status', 'pong']
         if cmd not in filter_cmd:
             self.lg.debug('server sent msg: {}'.format(msg))
-
         try:
             await websocket.send(json.dumps(msg))
         except Exception as e:
@@ -244,7 +241,6 @@ class PyServerAPI(object):
             self.lg.debug('error during send message with websocket')
             self.lg.debug(err_msg)
             
-        
     async def continousSend(self):
         while True:
             try:
@@ -256,7 +252,6 @@ class PyServerAPI(object):
                 self.lg.debug(err_msg)
             finally:
                 await asyncio.sleep(10)
-            
 
     async def load_sys_config(self, websocket, path):
         self.config = util.read_system_config(path)
@@ -453,10 +448,10 @@ class PyServerAPI(object):
         port = self.config['system']['machine_port']
         COM = self.config['system']['digitest_COM']
         mode = self.config['system']['mode']
+        isConn_chamber = False
+        isConn_digitest= False
         # set instance of hw
         try:
-            isConn_chamber = False
-            isConn_digitest= False
             if mode == 'demo':
                 self.digiChamber = DummyChamber(ip,port)
                 self.digiTest = DummyDigitest()
@@ -479,7 +474,7 @@ class PyServerAPI(object):
             await self.sendMsg(websocket,'reply_init_hw_status',{'digitest':isConn_digitest, 'digichamber': isConn_chamber})
 
     async def run_seq(self, websocket):
-        scriptExisted = self.productProcess.create_seq()
+        self.productProcess.create_seq()
         await self.productProcess.run_seq(websocket)      
 
     def stop_seq(self):
@@ -634,32 +629,15 @@ class PyServerAPI(object):
             await self.sendMsg(websocket,'reply_close_all')
         
 
-
 def main():
     sokObj = PyServerAPI()
-    # asyncio.ensure_future(sokObj.backend_init(None))
-    # sio.register_namespace(sokObj)
-    # print('reading config.json')
-    # currentDirectory = os.getcwd()
-    # rpc.load_sys_config(currentDirectory+'/config.json')
-    # print('init database')
-    # rpc.backend_init()
     port=5678
-    addr = 'tcp://127.0.0.1:{}'.format(port)
-    print('start running on {}'.format(addr))
-    # web.run_app(app,port=port)
-    # eventlet.wsgi.server(eventlet.listen(('127.0.0.1', port)), app)
-    # s = zerorpc.Server(rpc, heartbeat=None)
-    # s.bind(addr)
-    # s.run()
-
-    start_server = websockets.serve(sokObj.handler, "localhost", port, ping_interval=30)
+    start_server = websockets.serve(sokObj.handler, "127.0.0.1", port, ping_interval=30)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(start_server)
-    # loop.create_task(sokObj.load_sys_config(None,r'C:\\digiCenter\config.json'))
-    # loop.create_task(sokObj.backend_init(None))
+    addr = 'tcp://127.0.0.1:{}'.format(port)
+    print('start running on {}'.format(addr))
     loop.run_forever()
     
-
 if __name__ == '__main__':
     main()

@@ -6,6 +6,7 @@ const {ipcMain, dialog, shell} = require('electron')
 const appRoot = require('electron-root-path').rootPath;
 const ProgressBar = require('electron-progressbar');
 const isDev = require('electron-is-dev');
+const PDFWindow = require('electron-pdf-window')
 let tools = require('./assets/shared_tools');
 let ws;
 
@@ -442,8 +443,6 @@ ipcMain.on('show-option-dialog', (event, title, msg, callback) => {
     console.log(err)
   })
 })
-
-
 ipcMain.on('ignoreMouse', (event,state) => {
   mainWindow.setIgnoreMouseEvents(state);
 })
@@ -451,12 +450,35 @@ ipcMain.on('ignoreMouse', (event,state) => {
 ipcMain.on('exejavascript', (event,code) => {
   mainWindow.webContents.executeJavaScript(code);
 })
-
-
 ipcMain.on('updateFootStatus', (event,msg) => {
   updatefoot(msg);
 })
-
 ipcMain.on('login-changed', (event) => {
   mainWindow.webContents.send('refresh_user_accounts');
+})
+ipcMain.on('trigger_tanslate', (event) => {
+  mainWindow.webContents.send('trigger_tanslate');
+})
+
+ipcMain.on('openTeachPosPdf', (event, langID) => {
+  let teachPdfWin = new PDFWindow({
+    width: 800,
+    height: 600
+  })
+
+  let pdfPath = __dirname + `/doc/${langID}/Teach_digitest.pdf`;
+  if(langID===undefined){
+    pdfPath = __dirname + `/doc/en/Teach_digitest.pdf`;
+  }
+
+  teachPdfWin.loadURL(pdfPath)
+  teachPdfWin.maximize();
+  teachPdfWin.removeMenu();
+  teachPdfWin.once('ready-to-show', () => {
+    teachPdfWin.show();
+  })
+  teachPdfWin.on('closed', () => {
+    teachPdfWin = null
+  })
+
 })

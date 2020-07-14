@@ -16,6 +16,7 @@ const db_server = document.getElementById("db_server");
 const apply_change_general = document.getElementById("apply_change_general");
 const btn_getHostName = document.getElementById("auto_getHostname_btn");
 const computerName = document.getElementById("computerName");
+const openTeachPosPdf = document.getElementById('open_teach_pos_pdf');
 let wsReady = false
 
 // **************************************
@@ -306,6 +307,14 @@ apply_change_general.addEventListener('click', (event) => {
 btn_getHostName.addEventListener('click', (event) => {
   ws.send(tools.parseCmd('getHostName'));
 });
+
+// ===============================================================
+// Teach Pos Panel                                            |
+// ===============================================================
+openTeachPosPdf.addEventListener('click', ()=>{
+  var langID = window.langID;
+  ipcRenderer.send('openTeachPosPdf',langID)
+})
 
 // ===============================================================
 // User Account Panel                                            |
