@@ -192,19 +192,23 @@ class PyServerAPI(object):
                     isRetry = data
                     self.productProcess.continuous_mear(isRetry)
                 elif cmd == 'create_batch':
-                    project = data['project']
-                    batch = data['batch']
-                    notes = data['notes']
-                    seq_name = data['seq_name']
-                    numSamples = data['numSample']
-                    await self.create_batch(websocket,project, batch, notes, seq_name, numSamples)
+                    batches = data
+                    for bc in batches:
+                        project = bc['project']
+                        batch = bc['batch']
+                        notes = bc['notes']
+                        seq_name = bc['seq_name']
+                        numSamples = bc['numSample']
+                        await self.create_batch(websocket,project, batch, notes, seq_name, numSamples)
                 elif cmd == 'continue_batch':
-                    project = data['project']
-                    batch = data['batch']
-                    notes = data['notes']
-                    seq_name = data['seq_name']
-                    numSamples = data['numSample']
-                    await self.continues_batch(websocket,project, batch, notes, seq_name, numSamples)
+                    batches = data
+                    for bc in batches:
+                        project = bc['project']
+                        batch = bc['batch']
+                        notes = bc['notes']
+                        seq_name = bc['seq_name']
+                        numSamples = bc['numSample']
+                        await self.continues_batch(websocket,project, batch, notes, seq_name, numSamples)
                 elif cmd == 'query_batch_history':
                     await self.query_batch_history(websocket)
                 elif cmd == 'stop_seq':
@@ -488,9 +492,9 @@ class PyServerAPI(object):
         data = self.db.select('Batch_data', fields, condition)
         if not len(data)==0:
             # unique batch already exsisted
-            txt = self.lang_data['server_ask_cont_wehn_proj_batch_exist_reason']
+            txt = self.lang_data['server_ask_cont_wehn_proj_batch_exist_reason'].format(batch)
             title = self.lang_data['server_ask_cont_wehn_proj_batch_exist_title']
-            await self.sendMsg(websocket,'reply_create_batch', {'resp_code': 0, 'title':title,'reason':txt})
+            await self.sendMsg(websocket,'reply_create_batch', {'resp_code': 0, 'title':title,'reason':txt, 'batchName':batch})
         else:
             curtime = datetime.datetime.now()
             now = curtime.strftime(r"%Y/%m/%d %H:%M:%S.%f")
@@ -498,9 +502,9 @@ class PyServerAPI(object):
             self.productProcess.setBatchInfo(self.batch)
             values = [project, batch, now, notes, seq_name, numOfSample]
             self.db.insert('Batch_data', fields, values)
-            txt = self.lang_data['server_reply_batch_created_reason']
+            txt = self.lang_data['server_reply_batch_created_reason'].format(batch)
             title = self.lang_data['server_reply_batch_created_title']
-            await self.sendMsg(websocket,'reply_create_batch',{'resp_code': 1, 'title':title,'reason':txt})
+            await self.sendMsg(websocket,'reply_create_batch',{'resp_code': 1, 'title':title,'reason':txt,'batchName':batch})
 
     async def continues_batch(self,websocket, project, batch, notes, seq_name, numOfSample):
         curtime = datetime.datetime.now()
@@ -513,7 +517,6 @@ class PyServerAPI(object):
         self.db.update("Batch_data",fields,values,condition)
         txt = self.lang_data['server_reply_batch_cont_reason']
         title = self.lang_data['server_reply_batch_cont_title']
-        await self.sendMsg(websocket,'reply_create_batch',{'resp_code': 1, 'title':title,'reason':txt})
     
     async def query_batch_history(self,websocket):
         # check project and batch name exsisted?

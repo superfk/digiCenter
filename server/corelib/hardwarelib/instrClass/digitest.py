@@ -58,7 +58,7 @@ class Digitest(BaInstr):
     def get_mode(self):
         return self.write_and_read('GET', 'MS_MODE')
     
-    def get_single_value(self):
+    def get_single_value(self, dummyTemp=0):
         ret = self.write_and_read('GET','MS_VALUE')
         if ret is not None:
             try:
@@ -228,7 +228,7 @@ class DummyDigitest(Digitest):
     def get_mode(self):
         return 'STANDARD_M'
     
-    def get_single_value(self):
+    def get_single_value(self, dummyTemp=0):
         time.sleep(0.1)
         if self.dummyCounter*0.1 < self.duration:
             ret = '"DEVICE BUSY"'
@@ -241,7 +241,8 @@ class DummyDigitest(Digitest):
             return None
         elif ret == 'FINISHED':
             time.sleep(0.1)
-            ret = random.random()*100
+            noise = random.random()*0.5
+            ret = 0.1608 * dummyTemp * dummyTemp - 4.0753 * dummyTemp + 73.43 + noise
             return ret
         else:
             return None

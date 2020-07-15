@@ -48,7 +48,6 @@ function connect() {
             createWindow();
           }else{
             console.log(data.resp)
-
           }
           break;
         case 'reply_server_error':
@@ -395,7 +394,6 @@ ipcMain.on('show-warning-alert', (event, title, msg) => {
   let code = `document.getElementById("modal_warning_message_title").innerHTML="${title}";`;
   code = code + `document.getElementById("modal_warning_message_text").innerHTML="${msg}";`;
   code = code + `document.getElementById("modal_warning_message").style.display="block";`;
-
   mainWindow.webContents.executeJavaScript(code);
   updatefoot(msg, 'w3-yellow');
 
@@ -406,9 +404,7 @@ ipcMain.on('show-alert-alert', (event, title, msg) => {
   let code = `document.getElementById("modal_alert_message_title").innerHTML="${title}";`;
   code = code + `document.getElementById("modal_alert_message_text").innerHTML="${msg}";`;
   code = code + `document.getElementById("modal_alert_message").style.display="block";`;
-
   mainWindow.webContents.executeJavaScript(code);
-
   updatefoot(msg, 'w3-red');
 
 })
@@ -426,7 +422,7 @@ ipcMain.on('show-file-export', (event) => {
   mainWindow.webContents.executeJavaScript(code);
 })
 
-ipcMain.on('show-option-dialog', (event, title, msg, callback) => {
+ipcMain.on('show-option-dialog', (event, title, msg, callback, args) => {
   const options = {
     type: 'info',
     title: title,
@@ -437,7 +433,7 @@ ipcMain.on('show-option-dialog', (event, title, msg, callback) => {
   .then(result => {
     console.log(result.response)
     if (result.response == 0){
-      event.reply(callback, result.response);
+      event.reply(callback, result.response, args);
     }
   }).catch(err => {
     console.log(err)

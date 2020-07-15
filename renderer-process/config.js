@@ -195,8 +195,8 @@ function connect() {
               updateServerSeqFolder(data);
               break;
             case 'reply_server_error':
-                console.log(data.error);
-                break;
+              ipcRenderer.send('show-alert-alert', window.lang_data.modal_alert_title, data.error);
+              break;
             default:
                 console.log('Not found this cmd' + cmd)
           }

@@ -13,7 +13,6 @@
 }
 
 .batchSelector > div{
-    color:  #F2F2F2;
     font-size: larger;
     display: inline-block;
 }
@@ -41,7 +40,15 @@
     padding-left: 5px;
 }
 
-textarea { resize: vertical; max-height: 400px; min-height: 100px; max-width: 100%; width:100%;}
+.sampleSetupListContainer {
+    width: 100%;
+    margin: 5px 0px 2px 0px;
+    padding: 5px;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+textarea { resize: vertical; max-height: 100px; min-height: 50px; max-width: 100%; width:100%;}
 
 .testToolBar {
     position: absolute;
@@ -337,3 +344,85 @@ progress[value]::-webkit-progress-bar {
   progress[value]::-webkit-progress-value {
     background-color: rgb(60, 136, 223);
   }
+
+.sampleBatchConfigPanel{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: baseline;
+    padding: 0;
+    margin: 0;
+    width:  100%;
+    height: 700px;
+    overflow-y: auto;
+    position: relative;
+    border-bottom: 1px solid #ccc;
+}
+
+.sampleBatchConfigContainer {
+    width: 300px;
+    height: 100%;
+    padding: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.sampleBatchCircleContainer {
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 300px;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+#sampleCircle {
+    width: 100%;
+    height: 500px;
+    position: relative;
+}
+.baseCircle {
+    stroke: black;
+    stroke-width: 1px;
+}
+.uut {
+    stroke: rgb(95, 93, 93);
+    stroke-width: 1px;
+}
+.uut:hover {
+    opacity: 0.7;
+}
+.uutfilled {
+    fill: lightgreen;
+    stroke: rgb(95, 93, 93);
+    stroke-width: 2px;
+}
+.uutfilled:hover {
+    opacity: 0.7;
+}
+.textuut {
+    font-family:Arial, Helvetica, sans-serif;
+    pointer-events: none;
+}
+
+.sampleBatchConfigForm {
+    width: 100%;
+    padding: 5px;
+}
+
+.sampleBatchConfigForm label {
+    padding-left: 5px;
+}
+
+.moveBtn {
+    background-color: white;
+    color: black;
+    width: 160px;
+}

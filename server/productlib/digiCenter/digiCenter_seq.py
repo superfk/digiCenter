@@ -350,7 +350,13 @@ class HardnessStep(DigiCenterStep):
             while True:
                 if self.stopMsgQueue.qsize()>0:
                     break
-                h_data = self.hwDigitest.get_single_value()
+                curT = 0.0
+                try:
+                    # only for demo mode
+                    curT = self.hwDigichamber.get_real_temperature()
+                except:
+                    pass
+                h_data = self.hwDigitest.get_single_value(curT)
                 endTime = time.time()
                 countdownTime = endTime - startTime
                 prog = round( countdownTime / (self.mearTime+20) * 100, 0)
@@ -395,8 +401,6 @@ class HardnessStep(DigiCenterStep):
     def add_data(self, value):
         value = round(value,1)        
         self.singleResult['dataset'].append(value)
-        print('single test result')
-        print(self.singleResult)
 
         if self.get_mear_counts() >= self.numTests:
             self.singleResult['done'] = True

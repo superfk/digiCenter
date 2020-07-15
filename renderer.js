@@ -157,7 +157,7 @@ function connect() {
           updateIndicator(data.dt,data.temp,data.hum)
           break;
         case 'reply_server_error':
-          console.log(data.error);
+          ipcRenderer.send('show-alert-alert', window.lang_data.modal_alert_title, data.error);
           break;
         default:
           console.log('Not found this cmd' + cmd)

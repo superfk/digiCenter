@@ -86,6 +86,9 @@ function connect() {
             ipcRenderer.send('show-info-alert',data.title, data.res);
           }
           break;
+        case 'reply_server_error':
+          ipcRenderer.send('show-alert-alert', window.lang_data.modal_alert_title, data.error);
+          break;
         default:
           console.log('Not found this cmd' + cmd)
           break;

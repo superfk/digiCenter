@@ -1,7 +1,6 @@
 const {ipcRenderer} = require("electron");
 let tools = require('../assets/shared_tools');
 let seqRend = require('../assets/seq_render_lib');
-const { lang } = require("moment");
 let ws
 
 // **************************************
@@ -10,15 +9,15 @@ let ws
 
 let defaultSeqPath = null;
 let batchForm = document.getElementById('batchInfoForm');
-let batchFormContent  = document.getElementById('batchFormContent');
+let sampleBatchConfigForm  = document.getElementById('sampleBatchConfigForm');
 let batchNew = document.getElementById('new_a_batch');
 let batchLoad  = document.getElementById('load_a_batch');
-let seqNameInForm = document.querySelectorAll("#batchFormContent > input[name='SeqName']")[0]
-let projInForm = document.querySelectorAll("#batchFormContent > input[name='Project']")[0]
-let batchInForm = document.querySelectorAll("#batchFormContent > input[name='Batch']")[0]
-let numsampleInForm = document.querySelectorAll("#batchFormContent > input[name='NumberOfSample']")[0]
-let noteInForm = document.querySelectorAll("#batchFormContent > textarea[name='Note']")[0]
-let selectHistoryBatch = document.getElementById('SelectBatch')
+let seqNameInFormInput = document.querySelectorAll("#sampleBatchConfigForm > input[name='SeqName']")[0]
+let noteInForm = document.querySelectorAll("#sampleBatchConfigForm > textarea[name='Note']")[0]
+let selectHistoryBatch = document.getElementById('SelectBatch');
+let openSampleSetupListBtn = document.getElementById('openSampleSetupList');
+let sampleSetup = document.getElementById('sampleSetupList');
+let sampleSetupDialog = document.getElementById('modal_batch_setup_dialog');
 let batchConfirmAndStartBtn = document.getElementById('batchConfirmAndStart');
 let stopSeqBtn = document.getElementById('stop_test');
 let loadSeqBtn = document.getElementById('open_test_seq');
@@ -46,6 +45,7 @@ const config = {
   modeBarButtonsToRemove: ['toImage','lasso2d','select2d', 'pan2d','zoom2d','hoverClosestCartesian','hoverCompareCartesian','toggleSpikelines'],
   responsive: false
 };
+let enableKeyDetect = false;
 
 const run_status_classes = 'run-init run-pass run-wait run-skip run-next run-fail run-pause'
 
@@ -150,43 +150,43 @@ function generateEventPlot(){
 
 function generateHardnessPlot(){
   
-    let batchinfo = getBatchInfo();
-    let numSample = batchinfo.filter(item=>item.name=='NumberOfSample')[0].value;
-    const traceArr = genTraceForHardnessPlot(numSample)
+    // let batchinfo = getBatchInfo();
+    // let numSample = batchinfo.filter(item=>item.name=='NumberOfSample')[0].value;
+    // const traceArr = genTraceForHardnessPlot(numSample)
   
-    var data = traceArr;
+    // var data = traceArr;
     
-    var layout = {
-      xaxis: {
-        title: '℃'
-      },
-      yaxis: {
-        title: 'hardness',
-        range: [0, 100]
-      },
-      width: 400,
-      height: 250,
-      margin: plotMargin,
-      autosize: false,
-      font: { color: "dimgray", family: "Arial", size: 10}
-    };
+    // var layout = {
+    //   xaxis: {
+    //     title: '℃'
+    //   },
+    //   yaxis: {
+    //     title: 'hardness',
+    //     range: [0, 100]
+    //   },
+    //   width: 400,
+    //   height: 250,
+    //   margin: plotMargin,
+    //   autosize: false,
+    //   font: { color: "dimgray", family: "Arial", size: 10}
+    // };
     
-    Plotly.newPlot('hardness_graph', data, layout, config);
+    // Plotly.newPlot('hardness_graph', data, layout, config);
   }
 
   
 function repositionChart(){
-  var update = {
-    autosize: true,
-  };
-  if (!$('#hardness_graph').html()===''){
-    // check if chart has data, if no data, the following function will throw error
-    Plotly.relayout('hardness_graph', update);
-    Plotly.relayout('event_graph', update);
-  }
+  // var update = {
+  //   autosize: true,
+  // };
+  // if (!$('#hardness_graph').html()===''){
+  //   // check if chart has data, if no data, the following function will throw error
+  //   Plotly.relayout('hardness_graph', update);
+  //   Plotly.relayout('event_graph', update);
+  // }
 
-  Plotly.relayout('hardness_graph', update);
-  Plotly.relayout('event_graph', update);
+  // Plotly.relayout('hardness_graph', update);
+  // Plotly.relayout('event_graph', update);
 
 }
 
@@ -374,11 +374,11 @@ function connect() {
           break;
         case 'reply_create_batch':
           if (data.resp_code == 1){
-            // confirmed batch
+            ipcRenderer.send('show-info-alert',data.title, data.reason);
             batch_confirmed();
-            immediate_start_test();
           }else if (data.resp_code == 0){
-            ipcRenderer.send('show-option-dialog', data.title, data.reason, 'continue-batch');            
+            let args = {batchName:data.batchName}
+            ipcRenderer.send('show-option-dialog', data.title, data.reason, 'continue-batch', args);            
           }
           break;
         case 'only_update_hardness_indicator':
@@ -386,6 +386,9 @@ function connect() {
           break;
         case 'end_of_test':
           endOfTest(data)
+          break;
+        case 'reply_server_error':
+          ipcRenderer.send('show-alert-alert', window.lang_data.modal_alert_title, data.error);
           break;
         default:
           console.log('Not found this cmd' + cmd)
@@ -416,72 +419,47 @@ connect()
 // event functions
 // **************************************
 
-batchForm.addEventListener('submit',(e)=>{
-  e.preventDefault();
-  let batchinfo = getBatchInfo();
-  // let seqName = $('#batchInfoForm input[name=SeqName]').val();
-  let seqName = loadSeqPathObj.path;
-  let proj = batchinfo.filter(item=>item.name=='Project')[0].value;
-  let batch = batchinfo.filter(item=>item.name=='Batch')[0].value;
-  let numSample = batchinfo.filter(item=>item.name=='NumberOfSample')[0].value;
-  let note = batchinfo.filter(item=>item.name=='Note')[0].value;
-  batchinfo = {'project':proj, 'batch':batch, 'notes':note, 'seq_name':seqName, 'numSample':numSample}
-  console.log('batchinfo',batchinfo)
-  ws.send(tools.parseCmd('create_batch',batchinfo));
-})
-
 batchNew.addEventListener('click', ()=>{
-
-  $(seqNameInForm).val('');
-  $(projInForm).val('');
-  $(batchInForm).val('');
-  $(numsampleInForm).val(1);
-  $(noteInForm).val('');
-
+  $("#sampleBatchConfigForm input[name!='NumberOfSample'],textarea").each((i,elm)=>{
+    elm.value = ''
+  })
   batchInfo_enable();
 })
-
 batchLoad.addEventListener('click', ()=>{
   showBatchSelectDialog();
   batchContent_disable();
   batchConfirmAndStartBtn_enable();
 })
-
 selectHistoryBatch.addEventListener('click', ()=>{
   selectedHistoryBatch();
 })
-
 loadSeqBtn.addEventListener('click', ()=>{
-    loadSeqFromServer();
+  loadSeqFromServer();
 })
 
+$('#setupBatchModal').on('click', ()=>enableKeyDetect = false);
+
+openSampleSetupListBtn.addEventListener('click', ()=>{
+  sampleSetupDialog.style.display='block';
+  initCirclePlot();
+  enableKeyDetect = true;
+})
 ipcRenderer.on('load-seq-run', (event, path) => {
   updateLoadedPathObj(path)
-  $('#batchInfoForm input[name=SeqName]').val(loadSeqPathObj.name)
+  $("#sampleBatchConfigForm input[name='SeqName']").val(loadSeqPathObj.name)
   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('load_seq',{path: path})));
-
 });
-
-ipcRenderer.on('continue-batch', (event, resp)=>{
+ipcRenderer.on('continue-batch', (event, resp, args)=>{
   if (resp == 0){
-    let batchinfo = getBatchInfo();
-    // let seqName = $('#batchInfoForm input[name=SeqName]').val();
-    let seqName = loadSeqPathObj.path;
-    let proj = batchinfo.filter(item=>item.name=='Project')[0].value;
-    let batch = batchinfo.filter(item=>item.name=='Batch')[0].value;
-    let numSample = batchinfo.filter(item=>item.name=='NumberOfSample')[0].value;
-    let note = batchinfo.filter(item=>item.name=='Note')[0].value;
-    batchinfo = {'project':proj, 'batch':batch, 'notes':note, 'seq_name':seqName, 'numSample':numSample}
-    ws.send(tools.parseCmd('continue_batch',batchinfo));
-    batch_confirmed();
+    let batchName = args.batchName;
+    const targetBatch = batches.find(elm=>{return elm.batch===batchName})
+    ws.send(tools.parseCmd('continue_batch',[targetBatch]));
   }
-  
 })
 
 $( window ).resize(function() {
   repositionChart();
 });
-
 
 stopSeqBtn.addEventListener('click',()=>{
   ws.send(tools.parseCmd('stop_seq',''));
@@ -516,21 +494,15 @@ function batchInfo_disable(){
 }
 
 function batchContent_enable(){
-  $(batchFormContent).removeClass('btnEnable btnDisable').addClass('btnEnable');
-  $(seqNameInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
+  $(sampleBatchConfigForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
+  $(seqNameInFormInput).removeClass('btnEnable btnDisable').addClass('btnEnable');
   $(loadSeqBtn).removeClass('btnEnable btnDisable').addClass('btnEnable');
-  $(projInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
-  $(batchInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
-  $(numsampleInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
   $(noteInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
 }
 
 function batchContent_disable(){
-  $(seqNameInForm).removeClass('btnEnable btnDisable').addClass('btnDisable');
+  $(seqNameInFormInput).removeClass('btnEnable btnDisable').addClass('btnDisable');
   $(loadSeqBtn).removeClass('btnEnable btnDisable').addClass('btnDisable');
-  $(projInForm).removeClass('btnEnable btnDisable').addClass('btnDisable');
-  $(batchInForm).removeClass('btnEnable btnDisable').addClass('btnDisable');
-  $(numsampleInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
   $(noteInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
 }
 
@@ -567,20 +539,22 @@ function updateSequence(res){
 }
 
 function getBatchInfo(){
-  let batchData = $('#batchInfoForm').serializeArray();
+  let batchData = $('#sampleBatchConfigForm').serializeArray();
   return batchData;
 }
 
 function selectedHistoryBatch(){
   let table = $('#batchHistoryTable').DataTable();
   let isSelected = table.rows( '.selected' ).any();
+  const projInput = $("#sampleBatchConfigForm input[name='Project']")[0];
+  const batchjInput = $("#sampleBatchConfigForm input[name='Batch']")[0];
   if (isSelected){
     let selectedData = table.row( '.selected' ).data();
-    // $(seqNameInForm).val(selectedData.Last_seq_name);
+    console.log(selectedData)
     updateLoadedPathObj(selectedData.Last_seq_name)
-    $(seqNameInForm).val(loadSeqPathObj.name)
-    $(projInForm).val(selectedData.Project_Name);
-    $(batchInForm).val(selectedData.Batch_Name);
+    $(seqNameInFormInput).val(loadSeqPathObj.name)
+    $(projInput).val(selectedData.Project_Name)
+    $(batchjInput).val(selectedData.Batch_Name)
     $(noteInForm).val(selectedData.Note);
     let dialog = document.getElementById('modal_batch_select_dialog');
     dialog.style.display='none';
@@ -589,12 +563,6 @@ function selectedHistoryBatch(){
     ipcRenderer.send('show-info-alert',window.lang_data.modal_info_title, window.lang_data.please_select_one_batch);
   }
   
-}
-
-function batch_confirmed(){
-  // startBtn_enable();
-  batchInfo_disable();
-  batchSelector_disable();
 }
 
 function immediate_start_test(){
@@ -651,7 +619,6 @@ function updateSingleStep(res){
 }
 
 function updateStepByCat(res){
-  console.log(res)
   let stepid = res.stepid;
   let stepname = res.name;
   let value = res.value;
@@ -735,13 +702,11 @@ function showBatchSelectDialog(){
 
 function showMovingSampleDialog(data){
   let curData = data;
-
   dialog_dataset_id.innerHTML = curData.sampleid
   dialog_dataset_counter.innerHTML = `(${curData.dataset.length} / ${curData.totalCounts})`
   dialog_dataset_list.innerHTML = listDataset(curData.dataset);
   dialog_dataset_mean.innerHTML = `${curData.method}: ${curData.result}`;
   dialog_dataset_stdev.innerHTML = `stdev: ${curData.std}`
-
   dialog.style.display='block';
 }
 
@@ -786,3 +751,163 @@ ipcRenderer.on('trigger_tanslate', (event)=>{
     $('#testSeqContainer').html(seqRend.refreshSeq(test_flow,false))
   }
 })
+
+
+// **************************************
+// generate gauge functions
+// **************************************
+let circles = [];
+let batches = [];
+let batchCounter = 0
+let baseR = 200;
+let uutN = 25;
+let childR = baseR - 30;
+let childTxtR = baseR - 60;
+let radius = 15;
+const options = {
+  "font-size": "1.2rem",
+  "style": 'fill: black',
+  "text-anchor":"middle",
+  "alignment-baseline":"central"
+}
+const svgns = "http://www.w3.org/2000/svg";
+const svgContainer = document.getElementById('sampleCircle');
+
+const createCircle = (container, cx,cy,r, className='', color='white') => {
+  let circle = document.createElementNS(svgns, 'circle');
+  circle.setAttributeNS(null, 'class', className);
+  circle.setAttributeNS(null, 'cx', cx);
+  circle.setAttributeNS(null, 'cy', cy);
+  circle.setAttributeNS(null, 'r', r);
+  circle.setAttributeNS(null, 'style', `fill: ${color}`);
+  // circle.setAttributeNS(null, 'style', 'fill: lightyellow; stroke: black; stroke-width: 1px;' );
+  container.appendChild(circle);
+}
+
+const createText = (container, cx,cy,strTxt='',options={}, className='') => {
+  var text = document.createElementNS(svgns, 'text');
+  text.setAttributeNS(null, 'class', className);
+  text.setAttributeNS(null, 'x', cx);
+  text.setAttributeNS(null, 'y', cy);
+  Object.keys(options).forEach((elm,idx)=>{
+    text.setAttributeNS(null,elm,options[elm])
+  })
+  let textNode = document.createTextNode(strTxt);
+  text.appendChild(textNode);
+  container.appendChild(text);
+}
+
+function createCirclesInstance(){
+  circles = [];
+  batches = [];
+  for(let i=0; i<uutN; i++) {
+    circles.push({id: i, status:'empty', batchInfo:{}, color:'white'});
+  }
+}
+
+function plotBaseTable(){
+  createCircle(svgContainer,'50%','50%',baseR,'baseCircle','#bdc3c7')
+}
+
+function plotSmallHoles( circleN = 25){
+    let bboxRect = svgContainer.getBBox()
+    const newCenterX = bboxRect.x+bboxRect.width/2;
+    const newCenterY = bboxRect.y+bboxRect.height/2;
+
+    circles.forEach((elm)=>{
+      let theda = elm.id*2*(Math.PI)/circleN;
+      let smcx = newCenterX+childR*Math.cos(theda-0.5*Math.PI);
+      let smcy = newCenterY+childR*Math.sin(theda+0.5*Math.PI);
+      let txtcx = newCenterX+childTxtR*Math.cos(theda-0.5*Math.PI);
+      let txtcy = newCenterY+childTxtR*Math.sin(theda+0.5*Math.PI);
+      singleCircle = {'cx':smcx, 'cy':smcy, 'radius':radius};
+      if(elm.status==='empty'){
+        createCircle(svgContainer,smcx,smcy,radius,'uut', 'white')
+      }else if (elm.status==='filled'){
+        createCircle(svgContainer,smcx,smcy,radius,'uutfilled', elm.color)
+      }
+      createText(svgContainer,txtcx,txtcy,strTxt=elm.id+1,options,className='textuut')
+    })
+}
+
+function setCircleOccupy(index=0, batchInfo={}, color='white'){
+  let spcCirlce = circles.find(elm=>elm.id===index)
+  spcCirlce.status = 'filled'
+  spcCirlce.batchInfo = batchInfo
+  spcCirlce.color=color
+  circles.splice(index,1,spcCirlce)
+}
+
+function refreshSeqsInAllSamples(seqPath){
+  circles.forEach(elm=>{
+    elm.batchInfo.seq_name = seqPath;
+  })
+
+}
+
+const initCirclePlot = () => {
+  svgContainer.innerHTML=''
+  plotBaseTable();
+  plotSmallHoles(uutN);
+}
+
+createCirclesInstance()
+
+$('#sampleBatchConfigForm').on('submit', (e)=>{
+  e.preventDefault();
+  let batchinfos = getBatchInfo();
+  let seqPath = loadSeqPathObj.path;
+  let proj = batchinfos.filter(item=>item.name=='Project')[0].value;
+  let batch = batchinfos.filter(item=>item.name=='Batch')[0].value;
+  let numSample = batchinfos.filter(item=>item.name=='NumberOfSample')[0].value;
+  let note = batchinfos.filter(item=>item.name=='Note')[0].value;
+  batchinfo = {'project':proj, 'batch':batch, 'notes':note, 'seq_name':seqPath,'numSample':parseInt(numSample), 'sampleId':0}
+  // const randomColor = Math.floor(Math.random()*16777215).toString(16);
+  let counter = 0;
+  circles.forEach(elm=>{
+    if(counter<numSample){
+      if(elm.status==='empty'){
+        batchinfo.sampleId = counter+1
+        setCircleOccupy(elm.id, batchinfo, tools.pick_color_hsl(batchCounter))
+        counter += 1
+      }
+    }
+  })
+  batches.push(batchinfo)
+  batchCounter += 1
+  refreshSeqsInAllSamples(seqPath)
+  initCirclePlot()
+})
+
+confirmSampleBatchConfigBtn.addEventListener('click',()=>{
+  ws.send(tools.parseCmd('create_batch',batches));
+})
+
+function batch_confirmed(){
+  
+}
+
+$('#sampleBatchConfigClearAllBtn').on('click', ()=>{
+  batchCounter = 0
+  createCirclesInstance();
+  initCirclePlot();
+})
+
+$(document).keydown(function(e){ 
+  let code = e.which;
+  if (enableKeyDetect){
+    if (code == 37){
+      // move last
+      $('#moveLastBtn').focus();
+    }else if (code == 39){
+      // move next
+      $('#moveNextBtn').focus();
+    }else if (code == 38 || code == 40){
+      // move home
+      $('#moveHomeBtn').focus();
+    }else{
+  
+    }
+  }
+  
+});

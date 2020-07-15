@@ -99,10 +99,13 @@ class DigiChamberProduct(pd_product.Product):
         
 
     async def load_seq(self,websocket, path):
-        self.script = None
-        data = util.readFromJSON(path)
-        self.script=data
-        await self.socketCallback(websocket, 'update_sequence', self.script)
+        try:
+            self.script = None
+            data = util.readFromJSON(path)
+            self.script=data
+            await self.socketCallback(websocket, 'update_sequence', self.script)
+        except FileNotFoundError:
+            await self.socketCallback(websocket, 'reply_server_error', {'error':self.lang_data['server_reply_batch_seq_not_found']})
     
     def setDefaultSeqFolder(self,seqPath):
         path = os.path.join(seqPath,'seq_files')

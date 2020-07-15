@@ -71,6 +71,9 @@ function connect() {
             case 'inform_user_seq_differ':
                 ipcRenderer.send('show-option-dialog', data.title, data.reason, 'confirm-save-seq');
                 break;
+            case 'reply_server_error':
+                ipcRenderer.send('show-alert-alert', window.lang_data.modal_alert_title, data.error);
+                break;
             default:
                 console.log('Not found this cmd' + cmd)
             }
