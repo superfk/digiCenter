@@ -3,13 +3,12 @@ from productlib import pd_product
 import corelib.utility.utility as util
 import os, sys
 import productlib.digiCenter.digiCenter_seq as seqClass
-import random
 import asyncio
-import types
 import threading, queue
 import time, datetime
-import math
+import math,random
 from loguru import logger
+import traceback
 
 class DigiChamberProduct(pd_product.Product):
     def __init__(self, pd_name,seqPath=r"C:\\data_exports",msg_callback=None, dbResult_callback=None, model='fix'):
@@ -60,7 +59,7 @@ class DigiChamberProduct(pd_product.Product):
         elif scriptName=='get_cur_temp_and_humi':
             await self.get_cur_temp_and_humi(websocket)
         else:
-            self.log_to_db_func('No this case: {}'.format(scriptName), 'error', false)
+            self.log_to_db_func('No this case: {}'.format(scriptName), 'error', False)
 
     async def init_seq(self):
         self.script=None
@@ -102,7 +101,7 @@ class DigiChamberProduct(pd_product.Product):
         try:
             self.script = None
             data = util.readFromJSON(path)
-            self.script=data
+            self.script = data
             await self.socketCallback(websocket, 'update_sequence', self.script)
         except FileNotFoundError:
             await self.socketCallback(websocket, 'reply_server_error', {'error':self.lang_data['server_reply_batch_seq_not_found']})
@@ -123,6 +122,7 @@ class DigiChamberProduct(pd_product.Product):
             self.stepsClass = []
             self.mainClass = []
             for s in main:
+                foundCat = True
                 if s['cat']=='temperature':
                     stepObj = seqClass.TemperatureStep()
                 elif s['cat']=='hardness':
@@ -138,11 +138,12 @@ class DigiChamberProduct(pd_product.Product):
                 elif s['cat']=='subprog':
                     stepObj = seqClass.SubProgramStep()
                 else:
-                    pass
-                stepObj.set_paras(step=s)
-                stepObj.set_digiChamber_hw_control(self.dChamb)
-                stepObj.set_digitest_hw_control(self.digiTest)              
-                self.mainClass.append(stepObj)         
+                    foundCat=False
+                if foundCat:
+                    stepObj.set_paras(step=s)
+                    stepObj.set_digiChamber_hw_control(self.dChamb)
+                    stepObj.set_digitest_hw_control(self.digiTest)              
+                    self.mainClass.append(stepObj)         
             
             # combine setup main teardown steps
             stepObj = seqClass.SetupStep()
@@ -163,7 +164,20 @@ class DigiChamberProduct(pd_product.Product):
         else:
             return False
 
-    async def run_seq(self,websocket):
+    async def run_seq(self,websocket, batchInfoForSamples):
+        '''
+            0:
+                batchInfo:
+                    batch: "batch0716"
+                    notes: ""
+                    numSample: 5
+                    project: "test0716"
+                    sampleId: 1
+                    seq_name: "C:\data_exports\seq_files\demoSeq.seq"
+                color: "red"
+                id: 0
+                status: "filled"
+        '''
         try:
             # preinit process
             self.in_test_mode = True
@@ -179,6 +193,8 @@ class DigiChamberProduct(pd_product.Product):
             totalStepsCounts = len(self.stepsClass)
             cursor = 0
 
+            print('batchInfoForSamples',batchInfoForSamples)
+
             # check script existed
             if self.script:
                 for s in self.stepsClass:
@@ -188,6 +204,7 @@ class DigiChamberProduct(pd_product.Product):
                     s.set_communicate_callback(self.sendCommunicateCallback)
                     s.stopMsgQueue = self.stopMsgQueue
                     s.set_batchinfo(self.batchInfo)
+                    s.set_batchInfoForSamples(batchInfoForSamples)
 
                 # main process 
                 while True:
@@ -218,8 +235,12 @@ class DigiChamberProduct(pd_product.Product):
                         step.retry = self.retry
                         self.retry = False
                         # only for demo, MUST remove later
-                        senCoeff = 5
-                        step.dummyHardBase = 50 - senCoeff*math.log10(self.dChamb.get_real_temperature()/23)
+                        try:
+                            dmyT = self.dChamb.get_real_temperature()
+                            noise = random.random()*0.5
+                            step.dummyHardBase = 0.0016 * dmyT * dmyT - 0.2468 * dmyT + 57.073 + noise
+                        except:
+                            pass
 
                     # do step
                     testResult = step.do()
@@ -260,9 +281,9 @@ class DigiChamberProduct(pd_product.Product):
                 self.errorMsg = self.lang_data['script_not_existed']
 
         except Exception as e:
+            self.errorMsg = traceback.format_exc()
             self.lg.debug('error during excetipn handling in test sequence prcess')
-            self.lg.debug(e)
-            self.errorMsg = '{}'.format(e)
+            self.lg.debug(self.errorMsg)
             self.set_test_stop()
 
         finally:
@@ -306,15 +327,6 @@ class DigiChamberProduct(pd_product.Product):
         humInfo['value']=None
         if not self.in_test_mode:
             try:
-                dtInfo['status']=self.digiTest.connected
-                if self.digiTest.connected:
-                    dtInfo['value']=self.digiTest.get_single_value()
-                else:
-                    dtInfo['value']= None
-            except Exception as e:
-                self.lg.debug('digitest get value error')
-                self.lg.debug(e)
-            try:
                 if self.dChamb.connected:
                     self.curT = self.dChamb.get_real_temperature()
                     self.curH = self.dChamb.get_real_humidity()
@@ -332,8 +344,19 @@ class DigiChamberProduct(pd_product.Product):
                 self.lg.debug('digiChamber get temperature error')
                 self.lg.debug(err_msg)
             finally:
-                status = {'dt':dtInfo,'temp':tempInfo, 'hum':humInfo}
-                await self.socketCallback(websocket,'update_cur_status',status)
+                try:
+                    dtInfo['status']=self.digiTest.connected
+                    if self.digiTest.connected:
+                        dtInfo['value']=self.digiTest.get_single_value(self.curT)
+                    else:
+                        dtInfo['value']= None
+                except Exception as e:
+                    err_msg = traceback.format_exc()
+                    self.lg.debug('digitest get value error')
+                    self.lg.debug(err_msg)
+                finally:
+                    status = {'dt':dtInfo,'temp':tempInfo, 'hum':humInfo}
+                    await self.socketCallback(websocket,'update_cur_status',status)
 
     def findLoopPair(self, loopid, mainClass):
         for i,s in enumerate(mainClass):

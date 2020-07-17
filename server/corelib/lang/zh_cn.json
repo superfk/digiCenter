@@ -220,5 +220,14 @@
   "seq_enable":"启用",
   "seq_delete":"删除",
   "open_teach_pos_pdf":"点击我打开教学位置指南",
-  "side_posteach":"量测点教学"
+  "side_posteach":"量测点教学",
+  "run_stauts_monitor_title":"样品即时监测",
+  "run_open_sampleSetupList_btn":"测试设定",
+  "modal_batch_setup_dialog_title":"测试设定",
+  "sampleBatchConfigAdd_btn":"新增",
+  "sampleBatchConfigClearAll_btn":"清除所有样品",
+  "moveLastBtn":"移动至上个位置",
+  "moveHomeBtn":"回原点",
+  "moveNextBtn":"移动至下个位置",
+  "sampleSetupConfirmBtn":"确定"
 }

@@ -6,23 +6,22 @@
         <section id="run-section" class="section js-section u-category-windows" draggable="true">
             
             <!-- batch info -->
-            <div class="w3-container w3-cell" id="batchInfoPanel">
+            <div class="w3-container" id="batchInfoPanel">
                 <div class="w3-container w3-display-container w3-padding-16">
-                  <i onclick="w3_close()" class="fa fa-remove w3-hide-large w3-button w3-transparent w3-display-topright"></i>
-                  <h3 data-lang='run_batchinfo_title' data-lang_type='innertext'>Batch Info</h3>
-                  
-                  <form id='batchInfoForm' target="_blank">
-                    <a href="#" id='openSampleSetupList' data-auth='open_sampleSetupList' data-lang='run_open_sampleSetupList_btn' data-lang_type='innertext' class="w3-button w3-block w3-center w3-orange">
-                        <i class="fas fa-spinner w3-medium"></i> Samples Setup
-                    </a>
-                    <div id='sampleSetupList' class='sampleSetupListContainer'>
+                    <h3 data-lang='run_batchinfo_title' data-lang_type='innertext'>Batch Info</h3>
+                    <div class='sampleSetupButtonContainer'>
+                        <button id='openSampleSetupList' data-auth='open_sampleSetupList' class="w3-button w3-block w3-orange "
+                        ><i class="fas fa-spinner w3-medium w3-margin-right"></i><span data-lang='run_open_sampleSetupList_btn' data-lang_type='innertext'>Test Setup</span> </button>
+
+                        <button id='batchConfirmAndStart' data-auth='start_test' class="w3-button w3-block w3-green "
+                        ><i class="fas fa-play w3-medium w3-margin-right"></i> <span data-lang='run_start_btn' data-lang_type='innertext'>Start</span></button>
+
+                        <button id='stop_test' data-auth='stop_test' class="w3-button w3-block  w3-red" 
+                        ><i class="fas fa-stop-circle w3-medium w3-margin-right"></i><span data-lang='run_stop_btn' data-lang_type='innertext'></span></button>
+                    </div>
+                    <!-- <div id='sampleSetupList' class='sampleSetupListContainer'>
                         <svg id="sampleCircleStatus" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
-                    </div>  
-                    <p><button id='batchConfirmAndStart' data-auth='start_test' class="w3-button w3-block w3-green w3-center" type="submit" 
-                        data-lang='run_start_btn' data-lang_type='innertext'><i class="fas fa-check-double"></i> Start</button></p>
-                  </form>
-                  <button id='stop_test' data-auth='stop_test' class="w3-button w3-block w3-center w3-red" 
-                    data-lang='run_stop_btn' data-lang_type='innertext'> Stop</button>
+                    </div>   -->
                     
                 </div>
             <!-- end of batch info -->
@@ -47,13 +46,14 @@
                 <div class='graphSection'>
 
                     <!-- realtime temp and humidity gauge section -->
-                    <div class='w3-card' style='width:fit-content;flex: 0 1 150px;min-width: 340px;display:none' >
-                        <div class="w3-container cardHeader" data-lang='run_rt_th_title' data-lang_type='innertext'>
-                            Realtime temperature and humidity gauge
+                    <div class='w3-card' style='position: relative;flex: 1 1 auto;' >
+                        <div class="w3-container cardHeader" data-lang='run_stauts_monitor_title' data-lang_type='innertext'>
+                            Sample Monitor
                         </div>
                         <div class="w3-container cardContent" style="overflow: hidden;vertical-align: middle;">
-                            <span id="actualTempGauge" style="display: inline-block;"></span>
-                            <span id="actualHumGauge" style="display: inline-block;"></span>
+                            <div id='sampleSetupList' class='sampleSetupListContainer'>
+                                <svg id="sampleCircleStatus" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
+                            </div> 
                         </div>
                     <!-- end of realtime temp and humidity gauge section -->
                     </div>
@@ -212,26 +212,26 @@
                                 <textarea cols="5" rows="5" name="Note"></textarea>
                             </div>
                             <p><button data-auth='sampleBatchConfigAddBtn' class="w3-button w3-block w3-blue w3-center" type="submit" 
-                                data-lang='sampleBatchConfigAdd_btn' data-lang_type='innertext'><i class="fas fa-plus"></i> Add</button></p>
+                                ><i class="fas fa-plus"></i> <span data-lang='sampleBatchConfigAdd_btn' data-lang_type='innertext'>Add</span></button></p>
                             <button id='sampleBatchConfigClearAllBtn' data-auth='sampleBatchConfigClearAllBtn' class="w3-button w3-block w3-red w3-center" type="button" 
-                                data-lang='sampleBatchConfigClearAll_btn' data-lang_type='innertext'><i class="fas fa-eraser"></i> Clear All</button>
+                                ><i class="fas fa-eraser"></i><span data-lang='sampleBatchConfigClearAll_btn' data-lang_type='innertext'>Clear All</span></button>
                           </form>
                           
                     </div>
                     <div class="sampleBatchCircleContainer">
-                        <svg id="sampleCircle" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
+                        <div class="circlecontainer"><svg id="sampleCircle" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg></div>                        
                         <div class="sampleBatchCircleToolbar">
                             <button id='moveLastBtn' data-auth='moveLastBtn' class="w3-button w3-border w3-center moveBtn" type="button" 
-                                data-lang='moveLastBtn' data-lang_type='innertext'><i class="fas fa-chevron-left"></i> To Last Sample</button>
+                                ><i class="fas fa-chevron-left"></i> <span data-lang='moveLastBtn' data-lang_type='innertext'>To Last Sample</span></button>
                             <button id='moveHomeBtn' data-auth='moveHomeBtn' class="w3-button w3-border w3-center moveBtn" type="button" 
-                                data-lang='moveHomeBtn' data-lang_type='innertext'><i class="fas fa-home"></i> Go Home</button>
+                                ><i class="fas fa-home"></i> <span data-lang='moveHomeBtn' data-lang_type='innertext'>Go Home</span></button>
                             <button id='moveNextBtn' data-auth='moveNextBtn' class="w3-button w3-border w3-center moveBtn" type="button" 
-                                data-lang='moveNextBtn' data-lang_type='innertext'><i class="fas fa-chevron-right"></i> To Next Sample</button>
+                                ><i class="fas fa-chevron-right"></i> <span data-lang='moveNextBtn' data-lang_type='innertext'>To Next Sample</span></button>
                         </div>
                     </div>
                 </div>
                 <div style="padding:20px;width: 100%;">
-                    <button id='confirmSampleBatchConfigBtn' class="w3-btn w3-block w3-green" >Confirm</button>
+                    <button id='confirmSampleBatchConfigBtn' class="w3-btn w3-block w3-green" data-lang='sampleSetupConfirmBtn' data-lang_type='innertext' >Confirm</button>
                 </div>
             </div>
         </div>

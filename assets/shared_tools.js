@@ -8,7 +8,6 @@ module.exports = {
         }
         return msg;
     },
-
     random_hsl: function(){
       return "hsla(" + ~~(360 * Math.random()) + "," + "100%,"+ "50%,1)"
     },
@@ -18,17 +17,13 @@ module.exports = {
       alwayIncrLoopColorIdx+=1
       return ouputColor
     },
-
     capitalize: (s) => {
       if (typeof s !== 'string') return ''
       return s.charAt(0).toUpperCase() + s.slice(1)
     },
-    
     parseCmd: function (sriptName, data=null) {
       return JSON.stringify({'cmd':sriptName, 'data':data})
     },
-    
-
     plotly_addNewDataToPlot: function (locationID, xval,yval, y2val=null, sampleId=0){
       if(y2val == null){
         Plotly.extendTraces(locationID, {x: [[xval]],y: [[yval]]}, [sampleId])
@@ -36,7 +31,6 @@ module.exports = {
         Plotly.extendTraces(locationID, {x: [[xval],[xval]],y: [[yval], [y2val]]}, [0,1])
       }
     },
-
     plotly_DeleteDataFromPlot: function (locationID){
       try{
         var data_update = {
@@ -47,7 +41,6 @@ module.exports = {
       }catch(err){
         console.log('no trace in plot')
       }
-      
     },
     plotly_addAnnotation: function (locationID, textin, locateX, locateY, markerArr=[]){
       let ann = {

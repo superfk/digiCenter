@@ -29,6 +29,28 @@ let dialog_dataset_mean = document.getElementById('dataset_mean');
 let dialog_dataset_stdev = document.getElementById('dataset_stdev');
 let start_btn = document.getElementById('start_mear_after_move_sample');
 let retry_btn = document.getElementById('retry_mear_after_move_sample');
+const statusCircle = document.getElementById('sampleCircleStatus')
+let batchInfoForSamples = [];
+let batches = [];
+let batchCounter = 0
+let baseR = 250;
+let baseRStatus = 140;
+let uutN = 25;
+let smallCircleOption = {childR: baseR - 30, childTxtR:  baseR - 60, radius: 15, textOption:{
+  "font-size": "1.2rem",
+  "style": 'fill: black',
+  "text-anchor":"middle",
+  "alignment-baseline":"central"
+}};
+let smallCircleStatusOption = {childR: baseRStatus - 25, childTxtR:  baseRStatus - 50, radius: 8,textOption:{
+  "font-size": "0.8rem",
+  "style": 'fill: black',
+  "text-anchor":"middle",
+  "alignment-baseline":"central"
+}}
+
+const svgns = "http://www.w3.org/2000/svg";
+const svgContainer = document.getElementById('sampleCircle');
 let setup_seq = {};
 let teardown_seq = {};
 let loop_seq = [];
@@ -59,8 +81,6 @@ let machine_humi_idct = document.querySelectorAll('#machine_hum_idct  .idct-numb
 generateEventPlot()
 generateHardnessPlot()
 repositionChart()
-generateGauge('actualTempGauge', 23, -40, 200,'Temperature');
-generateGauge('actualHumGauge', 50, 0, 100,'Humidity');
 
 
 
@@ -68,8 +88,30 @@ generateGauge('actualHumGauge', 50, 0, 100,'Humidity');
 // generate graph functions
 // **************************************
 
+function sec2dt(v) {
+  var MIN = 60
+  var HOUR = 60 * 60
+  
+  var h = Math.floor(v / HOUR)
+  var m =  Math.floor((v - (h * HOUR)) / MIN)
+  var s = Math.floor(v - (h * HOUR) - (m * MIN))
+
+  // you have to provide YYYY-MM-DD
+  // for plotly to understand it as a date
+  return `${h}:${pad(m)}:${pad(s)}`
+}
+
+function pad(v) {
+  return v < 10 ? '0' + v : String(v)
+}
+
+function xaxisToTime(dataArr){
+  return dataArr.map(sec2dt)
+}
+
 function genTraceForHardnessPlot(sampleSize=1){
-  const sampleArr = Array(sampleSize);
+  const sampleArr = new Array(parseInt(sampleSize));
+  sampleArr.fill(0)
   const traceArr = sampleArr.map((elm,idx)=>{
     return {
       x: [],
@@ -77,9 +119,9 @@ function genTraceForHardnessPlot(sampleSize=1){
       mode: 'lines+markers',
       type: 'scatter',
       name: `sample${idx+1}`,
-      marker: { size: 6},
+      marker: { size: 4},
       line: {
-        width: 2
+        width: 1
       }
     }
   })
@@ -110,11 +152,11 @@ function generateEventPlot(){
       x:[],
       y: [],
       yaxis: 'y2',
-      mode: 'lines+markers',
-      marker: { size: 8,color:'blue'},
+      mode: 'markers',
+      marker: { size: 4,color:'blue'},
       line: {
         dash: 'dot',
-        width: 2,
+        width: 1,
         color: 'blue'
       }
     };
@@ -123,10 +165,14 @@ function generateEventPlot(){
 
     var layout = {
       xaxis: {
-        title: 'Time(s)'
+        title: 'Time(s)',
+        zeroline: false,
+        showline: true
       },
       yaxis: {
-        title: '℃'
+        title: '℃',
+        zeroline: false,
+        showline: true
       },
       yaxis2: {
         title: 'hardness',
@@ -139,9 +185,9 @@ function generateEventPlot(){
       showlegend: true,
       legend: {"orientation": "h",x:0, xanchor: 'left',y:1.2,yanchor: 'top'},
       width: 400,
-      height: 300,
+      height: 250,
       margin: plotMargin,
-      autosize: false,
+      autosize: true,
       font: { color: "dimgray", family: "Arial", size: 10}
     };
     
@@ -149,44 +195,45 @@ function generateEventPlot(){
 }
 
 function generateHardnessPlot(){
+    const traceArr = genTraceForHardnessPlot(batchInfoForSamples.length);
   
-    // let batchinfo = getBatchInfo();
-    // let numSample = batchinfo.filter(item=>item.name=='NumberOfSample')[0].value;
-    // const traceArr = genTraceForHardnessPlot(numSample)
-  
-    // var data = traceArr;
+    var data = traceArr;
     
-    // var layout = {
-    //   xaxis: {
-    //     title: '℃'
-    //   },
-    //   yaxis: {
-    //     title: 'hardness',
-    //     range: [0, 100]
-    //   },
-    //   width: 400,
-    //   height: 250,
-    //   margin: plotMargin,
-    //   autosize: false,
-    //   font: { color: "dimgray", family: "Arial", size: 10}
-    // };
+    var layout = {
+      xaxis: {
+        title: '℃',
+        zeroline: false,
+        showline: true
+      },
+      yaxis: {
+        title: 'hardness',
+        range: [0, 100],
+        zeroline: false,
+        showline: true
+      },
+      width: 400,
+      height: 250,
+      margin: plotMargin,
+      autosize: true,
+      font: { color: "dimgray", family: "Arial", size: 10}
+    };
     
-    // Plotly.newPlot('hardness_graph', data, layout, config);
+    Plotly.newPlot('hardness_graph', data, layout, config);
   }
 
   
 function repositionChart(){
-  // var update = {
-  //   autosize: true,
-  // };
-  // if (!$('#hardness_graph').html()===''){
-  //   // check if chart has data, if no data, the following function will throw error
-  //   Plotly.relayout('hardness_graph', update);
-  //   Plotly.relayout('event_graph', update);
-  // }
+  var update = {
+    autosize: true,
+  };
+  if (!$('#hardness_graph').html()===''){
+    // check if chart has data, if no data, the following function will throw error
+    Plotly.relayout('hardness_graph', update);
+    Plotly.relayout('event_graph', update);
+  }
 
-  // Plotly.relayout('hardness_graph', update);
-  // Plotly.relayout('event_graph', update);
+  Plotly.relayout('hardness_graph', update);
+  Plotly.relayout('event_graph', update);
 
 }
 
@@ -217,93 +264,6 @@ $('#batchHistoryTable').DataTable({
     
   } );
 
-}
-
-
-
-// **************************************
-// generate gauge functions
-// **************************************
-function generateGauge(locationID, refvalue=23, min=-40, max=200, titleText='Temperature'){
-    var data = [
-      {
-        type: "indicator",
-        mode: "gauge+number+delta",
-        value: 0,
-        title: { text: titleText, font: { size: 12 } },
-        delta: { reference: refvalue, increasing: { color: "green" }, decreasing: { color: "red" } },
-        gauge: {
-          axis: { range: [min, max], tickwidth: 1, tickcolor: "darkblue" },
-          bar: { color: "darkgreen"},
-          bgcolor: "lightgreen",
-          borderwidth: 0,
-          bordercolor: "lightgreen",
-          steps: [
-            { range: [min, refvalue], color: "limegreen" },
-            { range: [refvalue, max], color: "lightgreen" }
-          ],
-          threshold: {
-            line: { color: "red", width: 5 },
-            thickness: 0.8,
-            value: refvalue+Math.random()*0.001+0.0001
-          }
-        }
-      }
-    ];
-    
-    var layout = {
-      width: 200,
-      height: 150,
-      margin: { t: 20, r: 25, l: 25, b: 0 },
-      paper_bgcolor: "transparent",
-      font: { color: "dimgray", family: "Arial", size: 10}
-    };
-  
-    Plotly.newPlot(locationID, data, layout,{
-      displaylogo: false,
-      modeBarButtonsToRemove: ['toImage','lasso','select'],
-      responsive: true
-    });
-  }
-
-function updateValue(locationID, val){
-  var data_update = 
-      {
-        value: val,
-      }
-
-      Plotly.update(locationID, data_update);
-}
-
-function updateGaugeRefValue(locationID, refvalue, selection='t'){
-  let minRange = -40;
-  let maxRange = 190;
-  if (selection=='h'){
-    minRange = 0;
-    maxRange = 100;
-  }
-  var data_update = 
-      {
-        delta: { reference: refvalue, increasing: { color: "green" }, decreasing: { color: "red" } },
-        gauge: {
-          axis: { range: [minRange, maxRange], tickwidth: 1, tickcolor: "darkblue" },
-          bar: { color: "darkgreen"},
-          bgcolor: "lightgreen",
-          borderwidth: 0,
-          bordercolor: "lightgreen",
-          steps: [
-            { range: [minRange, refvalue], color: "limegreen" },
-            { range: [refvalue, maxRange], color: "lightgreen" }
-          ],
-          threshold: {
-            line: { color: "red", width: 5 },
-            thickness: 0.8,
-            value: refvalue+Math.random()*0.001+0.0001,
-          }
-        }
-      }
-
-      Plotly.restyle(locationID, data_update);
 }
 
 // **************************************
@@ -347,6 +307,9 @@ function connect() {
             ipcRenderer.send('show-alert-alert',window.lang_data.modal_alert_title,data.res + '\n' + data.reason);
           }
           break;
+        case 'getRotationTable_N':
+          uutN = parseInt(data);
+          break;
         case 'update_sequence':
           updateSequence(data)
           break;
@@ -364,7 +327,6 @@ function connect() {
           console.log(data);
           break;
         case 'update_gauge_ref':
-          updateGaugeRefValue('actualTempGauge', data,'t');
           break;
         case 'show_move_sample_dialog':
           showMovingSampleDialog(data);
@@ -435,6 +397,9 @@ selectHistoryBatch.addEventListener('click', ()=>{
 })
 loadSeqBtn.addEventListener('click', ()=>{
   loadSeqFromServer();
+})
+batchConfirmAndStartBtn.addEventListener('click',()=>{
+  immediate_start_test()
 })
 
 $('#setupBatchModal').on('click', ()=>enableKeyDetect = false);
@@ -574,8 +539,21 @@ function immediate_start_test(){
   generateEventPlot();
   generateHardnessPlot();
   repositionChart();
+  replotSampleMonitorCircles()
   markers=[];
-  ws.send(tools.parseCmd('run_seq',''));
+  const onlyOccupySamples = batchInfoForSamples.filter(elm=>elm.status==='filled')
+  ws.send(tools.parseCmd('run_seq',{batchInfoForSamples:onlyOccupySamples}));
+  markCurrentSample(0)
+}
+
+function markCurrentSample(sampldIdx){
+  const samples = $('#sampleCircleStatus .uutfilled').removeClass('curSample')
+  console.log(samples)
+  $('#sampleCircleStatus .uutfilled').each((idx, elm)=>{
+    if (idx===sampldIdx){
+      $(elm).addClass('curSample')
+    }
+  })
 }
 
 function updateSingleStep(res){
@@ -603,6 +581,9 @@ function updateSingleStep(res){
   }else if (result == 'WAITING'){
     updateStepByCat(res);
     curstep.addClass('run-wait');
+  }else if (result == 'UPDATE_PROGRESS_ONLY'){
+    updateStepByCat(res);
+    curstep.addClass('run-wait');
   }else if (result == 'PAUSE'){
     curstep.addClass('run-pause');
   }else if (result == 'SKIP'){
@@ -618,7 +599,10 @@ function updateSingleStep(res){
   
 }
 
-function updateStepByCat(res){
+function updateStepByCat(res){  
+  console.log(`stepname: ${res.name}, status: ${res.status}, batch: ${res.batch}, sampld id: ${res.sampleIndex}`)
+  let batch = res.batch;
+  let sampleIndex = res.sampleIndex;
   let stepid = res.stepid;
   let stepname = res.name;
   let value = res.value;
@@ -633,21 +617,24 @@ function updateStepByCat(res){
 
   switch(stepname) {
     case 'ramp':
-      // updateValue('actualTempGauge', value);
-      tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp)
+      if (result !== 'UPDATE_PROGRESS_ONLY'){
+        tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp)
+      }
       curProgs.val(progs);
       break;
     case 'measure':
       // h_data_y.push(value)
       if (result == 'PASS'){
+        markCurrentSample(0)
         curProgs.val(progs);
         tools.updateNumIndicator(machine_hard_idct,value, 1)
-        tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value)
+        tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value,y2val=null,sampleId=sampleIndex)
         tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp,value)
       }else if (result == 'MEAR_NEXT'){
+        markCurrentSample(sampleIndex)
         curProgs.val(progs);
         tools.updateNumIndicator(machine_hard_idct,value, 1)
-        tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value)
+        tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value,y2val=null,sampleId=sampleIndex)
         tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp,value)
       }else if (result == 'WAITING'){
         curProgs.val(progs);
@@ -657,8 +644,10 @@ function updateStepByCat(res){
       }
       // updateValue('hardness_graph', value);
       break;
-    case 'time':      
-      tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp)
+    case 'time':
+      if (result !== 'UPDATE_PROGRESS_ONLY'){
+        tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp)
+      }     
       curProgs.val(progs);
       break;
     
@@ -756,23 +745,6 @@ ipcRenderer.on('trigger_tanslate', (event)=>{
 // **************************************
 // generate gauge functions
 // **************************************
-let circles = [];
-let batches = [];
-let batchCounter = 0
-let baseR = 200;
-let uutN = 25;
-let childR = baseR - 30;
-let childTxtR = baseR - 60;
-let radius = 15;
-const options = {
-  "font-size": "1.2rem",
-  "style": 'fill: black',
-  "text-anchor":"middle",
-  "alignment-baseline":"central"
-}
-const svgns = "http://www.w3.org/2000/svg";
-const svgContainer = document.getElementById('sampleCircle');
-
 const createCircle = (container, cx,cy,r, className='', color='white') => {
   let circle = document.createElementNS(svgns, 'circle');
   circle.setAttributeNS(null, 'class', className);
@@ -798,48 +770,48 @@ const createText = (container, cx,cy,strTxt='',options={}, className='') => {
 }
 
 function createCirclesInstance(){
-  circles = [];
+  batchInfoForSamples = [];
   batches = [];
   for(let i=0; i<uutN; i++) {
-    circles.push({id: i, status:'empty', batchInfo:{}, color:'white'});
+    batchInfoForSamples.push({id: i, status:'empty', batchInfo:{}, color:'white'});
   }
 }
 
-function plotBaseTable(){
-  createCircle(svgContainer,'50%','50%',baseR,'baseCircle','#bdc3c7')
+function plotBaseTable(targetElm,raduis){
+  createCircle(targetElm,'50%','50%',raduis,'baseCircle','#bdc3c7')
 }
 
-function plotSmallHoles( circleN = 25){
-    let bboxRect = svgContainer.getBBox()
+function plotSmallHoles(targetElm, circleN = 25, option){
+    let bboxRect = targetElm.getBBox()
     const newCenterX = bboxRect.x+bboxRect.width/2;
     const newCenterY = bboxRect.y+bboxRect.height/2;
 
-    circles.forEach((elm)=>{
+    batchInfoForSamples.forEach((elm)=>{
       let theda = elm.id*2*(Math.PI)/circleN;
-      let smcx = newCenterX+childR*Math.cos(theda-0.5*Math.PI);
-      let smcy = newCenterY+childR*Math.sin(theda+0.5*Math.PI);
-      let txtcx = newCenterX+childTxtR*Math.cos(theda-0.5*Math.PI);
-      let txtcy = newCenterY+childTxtR*Math.sin(theda+0.5*Math.PI);
-      singleCircle = {'cx':smcx, 'cy':smcy, 'radius':radius};
+      let smcx = newCenterX+option.childR*Math.cos(theda-0.5*Math.PI);
+      let smcy = newCenterY+option.childR*Math.sin(theda+0.5*Math.PI);
+      let txtcx = newCenterX+option.childTxtR*Math.cos(theda-0.5*Math.PI);
+      let txtcy = newCenterY+option.childTxtR*Math.sin(theda+0.5*Math.PI);
+      singleCircle = {'cx':smcx, 'cy':smcy, 'radius':option.radius};
       if(elm.status==='empty'){
-        createCircle(svgContainer,smcx,smcy,radius,'uut', 'white')
+        createCircle(targetElm,smcx,smcy,option.radius,'uut', 'white')
       }else if (elm.status==='filled'){
-        createCircle(svgContainer,smcx,smcy,radius,'uutfilled', elm.color)
+        createCircle(targetElm,smcx,smcy,option.radius,'uutfilled', elm.color)
       }
-      createText(svgContainer,txtcx,txtcy,strTxt=elm.id+1,options,className='textuut')
+      createText(targetElm,txtcx,txtcy,strTxt=elm.id+1,option.textOption,className='textuut')
     })
 }
 
 function setCircleOccupy(index=0, batchInfo={}, color='white'){
-  let spcCirlce = circles.find(elm=>elm.id===index)
+  let spcCirlce = batchInfoForSamples.find(elm=>elm.id===index)
   spcCirlce.status = 'filled'
   spcCirlce.batchInfo = batchInfo
   spcCirlce.color=color
-  circles.splice(index,1,spcCirlce)
+  batchInfoForSamples.splice(index,1,spcCirlce)
 }
 
 function refreshSeqsInAllSamples(seqPath){
-  circles.forEach(elm=>{
+  batchInfoForSamples.forEach(elm=>{
     elm.batchInfo.seq_name = seqPath;
   })
 
@@ -847,8 +819,8 @@ function refreshSeqsInAllSamples(seqPath){
 
 const initCirclePlot = () => {
   svgContainer.innerHTML=''
-  plotBaseTable();
-  plotSmallHoles(uutN);
+  plotBaseTable(svgContainer,baseR);
+  plotSmallHoles(svgContainer,uutN,smallCircleOption);
 }
 
 createCirclesInstance()
@@ -861,19 +833,18 @@ $('#sampleBatchConfigForm').on('submit', (e)=>{
   let batch = batchinfos.filter(item=>item.name=='Batch')[0].value;
   let numSample = batchinfos.filter(item=>item.name=='NumberOfSample')[0].value;
   let note = batchinfos.filter(item=>item.name=='Note')[0].value;
-  batchinfo = {'project':proj, 'batch':batch, 'notes':note, 'seq_name':seqPath,'numSample':parseInt(numSample), 'sampleId':0}
-  // const randomColor = Math.floor(Math.random()*16777215).toString(16);
+  let curBatchinfo = {'project':proj, 'batch':batch, 'notes':note, 'seq_name':seqPath,'numSample':parseInt(numSample), 'sampleId':0}
   let counter = 0;
-  circles.forEach(elm=>{
+  batchInfoForSamples.forEach(elm=>{
     if(counter<numSample){
       if(elm.status==='empty'){
-        batchinfo.sampleId = counter+1
-        setCircleOccupy(elm.id, batchinfo, tools.pick_color_hsl(batchCounter))
+        curBatchinfo.sampleId = counter
+        setCircleOccupy(elm.id, {...curBatchinfo}, tools.pick_color_hsl(batchCounter))
         counter += 1
       }
     }
   })
-  batches.push(batchinfo)
+  batches.push({...curBatchinfo})
   batchCounter += 1
   refreshSeqsInAllSamples(seqPath)
   initCirclePlot()
@@ -884,7 +855,7 @@ confirmSampleBatchConfigBtn.addEventListener('click',()=>{
 })
 
 function batch_confirmed(){
-  
+  replotSampleMonitorCircles()
 }
 
 $('#sampleBatchConfigClearAllBtn').on('click', ()=>{
@@ -893,6 +864,7 @@ $('#sampleBatchConfigClearAllBtn').on('click', ()=>{
   initCirclePlot();
 })
 
+// for move rotation table
 $(document).keydown(function(e){ 
   let code = e.which;
   if (enableKeyDetect){
@@ -911,3 +883,18 @@ $(document).keydown(function(e){
   }
   
 });
+
+function replotSampleMonitorCircles (){
+  statusCircle.innerHTML=''
+  plotBaseTable(statusCircle,baseRStatus);
+  plotSmallHoles(statusCircle, uutN, smallCircleStatusOption);
+}
+
+$(window).resize((e)=>{
+  replotSampleMonitorCircles()
+})
+
+$('#button-run').on('click',()=>{
+  replotSampleMonitorCircles()
+})
+

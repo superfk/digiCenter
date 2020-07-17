@@ -88,7 +88,7 @@ body {
   position: absolute;
   top: 0px;
   left: 0px;
-  height: 54px;
+  height: 55px;
   width: 100%;
 }
 
@@ -113,6 +113,10 @@ nav {
   background-color: var(--color-bg);
   visibility: hidden;
   opacity: 0;
+}
+
+button > span {
+  padding-left: 5px;
 }
 
 .machine-indicators {
@@ -340,6 +344,10 @@ kbd {
 .hljs:hover,
 .hljs:active {
   outline: 1px solid transparent;
+}
+
+.loginButton {
+  height: 53px;
 }
 
 .loginOK {

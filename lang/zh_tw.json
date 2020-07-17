@@ -220,5 +220,14 @@
   "seq_enable":"啟用",
   "seq_delete":"刪除",
   "open_teach_pos_pdf":"點擊我打開教學位置指南",
-  "side_posteach":"量測點教學"
+  "side_posteach":"量測點教學",
+  "run_stauts_monitor_title":"樣品即時監測",
+  "run_open_sampleSetupList_btn":"測試設定",
+  "modal_batch_setup_dialog_title":"測試設定",
+  "sampleBatchConfigAdd_btn":"新增",
+  "sampleBatchConfigClearAll_btn":"清除所有樣品",
+  "moveLastBtn":"移動至上個位置",
+  "moveHomeBtn":"回原點",
+  "moveNextBtn":"移動至下個位置",
+  "sampleSetupConfirmBtn":"確定"
 }

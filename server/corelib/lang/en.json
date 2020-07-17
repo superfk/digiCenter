@@ -220,5 +220,14 @@
   "seq_enable":"Enable",
   "seq_delete":"Delete",
   "open_teach_pos_pdf":"Click me to open guide of teaching position",
-  "side_posteach":"MearPos Guide"
+  "side_posteach":"MearPos Guide",
+  "run_stauts_monitor_title":"Sample Monitor",
+  "run_open_sampleSetupList_btn":"Test Setup",
+  "modal_batch_setup_dialog_title":"Test Setup",
+  "sampleBatchConfigAdd_btn":"Add",
+  "sampleBatchConfigClearAll_btn":"Clear All Samples",
+  "moveLastBtn":"To Last Position",
+  "moveHomeBtn":"To Home",
+  "moveNextBtn":"To Next Position",
+  "sampleSetupConfirmBtn":"Confirm"
 }

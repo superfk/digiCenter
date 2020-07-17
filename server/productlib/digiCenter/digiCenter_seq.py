@@ -27,6 +27,7 @@ class DigiCenterStep(object):
         self.initTime = None
         self.loopIter = 0
         self.batchinfo = None
+        self.batchInfoForSamples = None
 
     def initResult(self):
         self.result = {'stepid':0,
@@ -41,7 +42,12 @@ class DigiCenterStep(object):
         'actTemp':0,
         'actHum': 0,
         'prograss':0,
-        'hardness_dataset':None}
+        'hardness_dataset':None,
+        'project': None,
+        'batch': None,
+        'sampleIndex':0,
+        'sampleId':0,
+        'seq_name':None}
         
 
     def set_paras(self,step):
@@ -94,7 +100,18 @@ class DigiCenterStep(object):
         # print('single test interval: {}'.format(t))
         return t
     
-    def set_result(self, value, status, unit=None, eventName=None, hardness_dataset=None, progs=0):
+    def set_result(self, value, status, unit=None, eventName=None, hardness_dataset=None, progs=0, batchInfo=None):
+        if batchInfo:
+            self.result['project'] = batchInfo['batchInfo']['project']
+            self.result['batch'] = batchInfo['batchInfo']['batch']
+            self.result['sampleIndex'] = batchInfo['id']
+            self.result['sampleId'] = batchInfo['batchInfo']['sampleId']
+            self.result['seq_name'] = batchInfo['batchInfo']['seq_name']
+        else:
+            self.result['project'] = ''
+            self.result['batch'] = ''
+            self.result['sampleId'] = ''
+            self.result['seq_name'] = ''
         self.result['stepid'] = self.stepid
         self.result['name'] = self.itemname
         self.result['value'] = value
@@ -129,6 +146,9 @@ class DigiCenterStep(object):
     
     def set_batchinfo(self,batchinfo):
         self.batchinfo = batchinfo
+
+    def set_batchInfoForSamples(self, batchInfoForSamples):
+        self.batchInfoForSamples = batchInfoForSamples
 
 class SetupStep(DigiCenterStep):
     def __init__(self):
@@ -242,17 +262,29 @@ class TemperatureStep(DigiCenterStep):
 
         UL = self.actTarget + self.tol
         LL = self.actTarget - self.tol
+        counter = 0
+        loopInterval = 0.5 #second
+        sendInterval = 10 #second
         while curT>UL or curT<LL:
             print('target value {}'.format(self.actTarget))
             if self.stopMsgQueue.qsize()>0:
                 # stop process immediately
+                roundValue = round(curT,1)
+                self.set_result(roundValue,'FAIL',unit='&#8451', progs=100)
                 break
-            time.sleep(1)
+            time.sleep(loopInterval)
             roundValue = round(curT,1)
-            # prog = round( (1-(abs(roundValue - self.actTarget) / self.actTarget)) * 100, 0)
             prog = round( (abs(roundValue - initT) / abs(self.actTarget-initT)) * 100, 0)
-            self.set_result(roundValue,'WAITING',unit='&#8451', progs=prog)
-            self.resultCallback(self.result)
+            # prog = round( (1-(abs(roundValue - self.actTarget) / self.actTarget)) * 100, 0)
+            if counter*loopInterval >= sendInterval:
+                
+                self.set_result(roundValue,'WAITING',unit='&#8451', progs=prog)
+                self.resultCallback(self.result)
+                counter = 0
+            else:
+                self.set_result(roundValue,'UPDATE_PROGRESS_ONLY',unit='&#8451', progs=prog)
+                self.resultCallback(self.result)
+                counter += 1
             # yield self.result
             if (self.actTarget-curT)<0:
                 signSlope = -self.slope
@@ -291,7 +323,6 @@ class HardnessStep(DigiCenterStep):
          'method':self.numericMethod, 'totalCounts':self.numTests, 'sampleid':self.curSampleId}
         self.retry = False
         self.overall_result = []
-        
 
     def set_paras(self,step):
         super().set_paras(step)
@@ -324,31 +355,40 @@ class HardnessStep(DigiCenterStep):
         while True:
             # check if all data mearsured
             if self.singleResult['done']:
-                print('cursampleid/total: {} / {}'.format(self.curSampleId, self.batchinfo.numSamples))                                     
+                print('cursampleid/total: {} / {}'.format(self.curSampleId, len(self.batchInfoForSamples)))                                     
                 self.curSampleId += 1
-                if self.curSampleId >= self.batchinfo.numSamples:
+                if self.curSampleId >= len(self.batchInfoForSamples):
                     # all sample are tested
-                    self.set_result(self.singleResult['result'],'PASS', eventName=r'{}'.format(self.curSampleId), hardness_dataset=self.singleResult, progs=100)
+                    self.set_result(self.singleResult['result'],'PASS', 
+                                    eventName=r'{}'.format(self.curSampleId), 
+                                    hardness_dataset=self.singleResult, 
+                                    progs=100,
+                                    batchInfo=self.batchInfoForSamples[self.curSampleId-1]
+                                    )
                     self.curSampleId = 0
                     self.reset_result()
                     break
                 else:
                     # measure next sample
-                    self.set_result(self.singleResult['result'],'MEAR_NEXT', None, eventName=r'{}'.format(self.curSampleId, progs=100)
-                    ,hardness_dataset=self.singleResult) 
+                    self.set_result(self.singleResult['result'],'MEAR_NEXT', None, 
+                                    eventName=r'{}'.format(self.curSampleId), 
+                                    hardness_dataset=self.singleResult,
+                                    progs=100,
+                                    batchInfo=self.batchInfoForSamples[self.curSampleId-1]) 
                     self.resultCallback(self.result)
                     self.reset_result()
                     break
 
             # start mear
             self.hwDigitest.config(debug=True, wait_cmd = False)
-            self.hwDigitest.start_mear()
+            self.hwDigitest.start_mear_direct()
                         
             # get value
             h_data = None
             startTime = time.time()
             while True:
                 if self.stopMsgQueue.qsize()>0:
+                    self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
                     break
                 curT = 0.0
                 try:
@@ -368,7 +408,11 @@ class HardnessStep(DigiCenterStep):
                 else:
                     self.set_result(h_data,'WAITING',hardness_dataset=self.singleResult, progs=prog)
                     self.resultCallback(self.result)
-                    time.sleep(0.5)
+                    time.sleep(0.1)
+            # if interrupt, skip process
+            if self.stopMsgQueue.qsize()>0:
+                self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
+                break
             self.hwDigitest.config(debug=False, wait_cmd = True)
             # add new data
             if h_data is not None:
@@ -390,12 +434,13 @@ class HardnessStep(DigiCenterStep):
             else:
                 # rotate on one sample
                 print('rotate on one sample with position {}'.format(len(self.singleResult['dataset'])))
-                move_completed, response = self.hwDigitest.set_rotation_pos(sample_N=self.curSampleId, mear_pos_n=self.get_mear_counts())
+                move_completed, response = self.hwDigitest.set_rotation_pos(sample_N=self.curSampleId+1, mear_pos_n=self.get_mear_counts()+1)
                 if move_completed:
                     pass
                 else:
                     self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
                     self.resultCallback(self.result)
+                    break
         return self.result
 
     def add_data(self, value):
@@ -414,7 +459,7 @@ class HardnessStep(DigiCenterStep):
         self.singleResult['std'] = round(stdev,1)
         self.singleResult['method'] = self.numericMethod
         self.singleResult['totalCounts'] = self.numTests
-        self.singleResult['sampleid'] = self.curSampleId+1
+        self.singleResult['sampleid'] = self.batchInfoForSamples[self.curSampleId]['batchInfo']['sampleId']
     
     def get_mear_counts(self):
         return len(self.singleResult['dataset'])
@@ -447,6 +492,9 @@ class WaitingStep(DigiCenterStep):
         targetTime = self.condTime*60.0
         countdownTime = 0
         startTime = time.time()
+        counter = 0
+        loopInterval = 0.5 #second
+        sendInterval = 10 #second
         # do time control
         while countdownTime<targetTime:
             if self.stopMsgQueue.qsize()>0:
@@ -456,8 +504,14 @@ class WaitingStep(DigiCenterStep):
             endTime = time.time()
             countdownTime = endTime - startTime
             prog = round( countdownTime / targetTime * 100, 0)
-            self.set_result(round(countdownTime,1),'WAITING',unit='s', progs=prog)
-            self.resultCallback(self.result)
+            if counter*loopInterval >= sendInterval:
+                self.set_result(round(countdownTime,1),'WAITING',unit='s', progs=prog)
+                self.resultCallback(self.result)
+                counter = 0
+            else:
+                self.set_result(round(countdownTime,1),'UPDATE_PROGRESS_ONLY',unit='s', progs=prog)
+                self.resultCallback(self.result)
+                counter += 1
         self.set_result(round(countdownTime,1),'PASS',unit='s', progs=100)
         return self.result
 

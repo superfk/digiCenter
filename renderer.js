@@ -309,9 +309,9 @@ function confirm_first_login() {
 }
 
 
-$( function() {
-  $( document ).tooltip();
-});
+// $( function() {
+//   $( document ).tooltip();
+// });
 
 // =========================
 // language functions

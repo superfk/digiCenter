@@ -220,5 +220,14 @@
   "seq_enable":"Aktivieren",
   "seq_delete":"Löschen",
   "open_teach_pos_pdf":"Klicken Sie auf mich, um den Leitfaden für die Lehrposition zu öffnen",
-  "side_posteach":"MearPos Führer"
+  "side_posteach":"MearPos Führer",
+  "run_stauts_monitor_title":"Probe-Monitor",
+  "run_open_sampleSetupList_btn":"Versuchsaufbau",
+  "modal_batch_setup_dialog_title":"Versuchsaufbau",
+  "sampleBatchConfigAdd_btn":"Hinzufügen",
+  "sampleBatchConfigClearAll_btn":"Alle Proben",
+  "moveLastBtn":"Letzte Position",
+  "moveHomeBtn":"Nach Hause",
+  "moveNextBtn":"Zum nächsten Position",
+  "sampleSetupConfirmBtn":"Bestätigen"
 }

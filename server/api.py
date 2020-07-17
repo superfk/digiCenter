@@ -81,7 +81,7 @@ class PyServerAPI(object):
         try:
             async for message in websocket:
                 # print(message)
-                self.lg.debug(message)
+                # self.lg.debug(message)
                 msg = json.loads(message)
                 cmd = msg["cmd"]
                 data = msg["data"]
@@ -106,6 +106,8 @@ class PyServerAPI(object):
                     await self.getExportFolder(websocket)
                 elif cmd == 'getDBServer':
                     await self.getDBServer(websocket)
+                elif cmd == 'getRotationTable_N':
+                    await self.getRotationTable_N(websocket)
                 elif cmd == 'update_machine_remote':
                     await self.update_machine_remote(websocket,data)
                 elif cmd =='update_digitest_remote':
@@ -181,13 +183,14 @@ class PyServerAPI(object):
                 elif cmd == 'init_hw':
                     await self.init_hw(websocket)
                 elif cmd == 'run_seq':
+                    batchInfoForSamples = data['batchInfoForSamples']
                     loop = asyncio.new_event_loop()
                     def f(loop):
                         asyncio.set_event_loop(loop)
                         loop.run_forever()
                     t = threading.Thread(target=f, args=(loop,))
                     t.start()
-                    future = asyncio.run_coroutine_threadsafe(self.run_seq(websocket), loop)
+                    future = asyncio.run_coroutine_threadsafe(self.run_seq(websocket,batchInfoForSamples), loop)
                 elif cmd == 'continue_seq':
                     isRetry = data
                     self.productProcess.continuous_mear(isRetry)
@@ -299,6 +302,9 @@ class PyServerAPI(object):
     
     async def getDBServer(self, websocket):
         await self.sendMsg(websocket,'get_db_server',self.config['system']['database']["server"])
+
+    async def getRotationTable_N(self, websocket):
+        await self.sendMsg(websocket,'getRotationTable_N',self.config['system']['rotationTable_N'])
 
     async def update_machine_remote(self, websocket, ip):
         self.config['system']['machine_ip'] = ip
@@ -477,9 +483,10 @@ class PyServerAPI(object):
             await self.sendMsg(websocket,'reply_init_hw',{'resp_code':0, 'res':self.lang_data['server_hw_init_NG'], 'reason':'{}'.format(err_msg)})
             await self.sendMsg(websocket,'reply_init_hw_status',{'digitest':isConn_digitest, 'digichamber': isConn_chamber})
 
-    async def run_seq(self, websocket):
+    async def run_seq(self, websocket, batchInfoForSamples=[]):
         self.productProcess.create_seq()
-        await self.productProcess.run_seq(websocket)      
+        self.lg.debug('batchInfoForSamples',batchInfoForSamples)
+        await self.productProcess.run_seq(websocket, batchInfoForSamples)      
 
     def stop_seq(self):
         self.lg.debug('execute stop seq')
@@ -534,9 +541,9 @@ class PyServerAPI(object):
         now = datetime.datetime.now().strftime(r"%Y/%m/%d %H:%M:%S.%f")
         recTime = now
         # BatchInfo(project, batch, curtime, notes, seq_name)
-        proj = self.batch.project
-        batch = self.batch.batch
-        seq = self.batch.seq
+        proj = testResult['project']
+        batch = testResult['batch']
+        seq = testResult['seq_name']
         op = self.userMang.user.username
         seq_id = testResult['stepid']
         sampleCounter = testResult['hardness_dataset']['sampleid']

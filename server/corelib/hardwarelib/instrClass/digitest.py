@@ -34,6 +34,10 @@ class Digitest(BaInstr):
         self.write_and_read('MS_PRO', 'START')
         return True
     
+    def start_mear_direct(self):
+        self.write_and_read('MS_PRO', 'SINGLE')
+        return True
+    
     def stop_mear(self):
         self.write_and_read('MS_PRO', 'STOP')
     
@@ -60,9 +64,10 @@ class Digitest(BaInstr):
     
     def get_single_value(self, dummyTemp=0):
         ret = self.write_and_read('GET','MS_VALUE')
-        if ret is not None:
+        if ret == 'FINISHED':
             try:
-                return float(ret)
+                data = self.readline_only()
+                return float(data)
             except:
                 return ret
         else:
@@ -132,14 +137,15 @@ class Digitest(BaInstr):
                 return False, ret
             else:
                 return True, 'ok'
-
+        else:
+            return True, 'ok'
 
 class DummyDigitest(Digitest):
     def __init__(self):
         super(DummyDigitest, self).__init__()
         self.dummyCounter = 0
         # self.dummyType = '"ROTATION DC"'
-        self.dummyType = '"FIX DC"'
+        self.dummyType = '"ROTATION DC"'
         self.sampleCounts = 4
         self.mearCounts = 3
     
@@ -207,6 +213,9 @@ class DummyDigitest(Digitest):
     def start_mear(self):
         print('MS_PRO', 'START')
     
+    def start_mear_direct(self):
+        print('MS_PRO', 'SINGLE')
+    
     def stop_mear(self):
         print('MS_PRO', 'STOP')
     
@@ -241,8 +250,8 @@ class DummyDigitest(Digitest):
             return None
         elif ret == 'FINISHED':
             time.sleep(0.1)
-            noise = random.random()*0.5
-            ret = 0.1608 * dummyTemp * dummyTemp - 4.0753 * dummyTemp + 73.43 + noise
+            noise = random.random()*3
+            ret = 0.0016 * dummyTemp * dummyTemp - 0.2468 * dummyTemp + 57.073 + noise
             return ret
         else:
             return None
@@ -312,16 +321,9 @@ class DummyDigitest(Digitest):
             return True, 'ok'
     
     def set_rotation_pos(self,sample_N, mear_pos_n):
-        if self.isConnectRotation():
-            self.sampleCounts = sample_N
-            self.mearCounts = mear_pos_n
-            ret = True
-            if ret == '"OUT OF RANGE"':
-                return False, ret
-            else:
-                return True, 'ok'
-        else:
-            return True, 'ok'
+        self.sampleCounts = sample_N
+        self.mearCounts = mear_pos_n
+        return True, 'ok'
             
 def main():
     ba = DummyDigitest()
