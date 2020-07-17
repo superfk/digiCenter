@@ -29,24 +29,21 @@
 
             <!-- test main panel -->
             <div class="testMainPanel">
-
-                <!-- seq section -->
-                <div class='w3-card seqSection'>
-                    <div class="w3-container cardHeader" data-lang='run_test_seq_title' data-lang_type='innertext'>
-                        Test Sequence
+                <div class='leftSection'>
+                     <!-- seq section -->
+                    <div class='w3-card seqSection'>
+                        <div class="w3-container cardHeader" data-lang='run_test_seq_title' data-lang_type='innertext'>
+                            Test Sequence
+                        </div>
+                        <div class="w3-container cardContent">
+                            <ul id='testSeqContainer'>
+                            </ul>
+                        </div>
+                    <!-- end of seq section -->
                     </div>
-                    <div class="w3-container cardContent">
-                        <ul id='testSeqContainer'>
-                        </ul>
-                    </div>
-                <!-- end of seq section -->
-                </div>
-
-                <!-- graph section -->
-                <div class='graphSection'>
 
                     <!-- realtime temp and humidity gauge section -->
-                    <div class='w3-card' style='position: relative;flex: 1 1 auto;' >
+                    <div class='w3-card sampleMonitorSection' >
                         <div class="w3-container cardHeader" data-lang='run_stauts_monitor_title' data-lang_type='innertext'>
                             Sample Monitor
                         </div>
@@ -58,8 +55,17 @@
                     <!-- end of realtime temp and humidity gauge section -->
                     </div>
 
+                    
+
+                    
+                
+                </div>
+
+                <!-- graph section -->
+                <div class='graphSection'>
+                    
                     <!-- hardness graph section -->
-                    <div class='w3-card' style='position: relative;flex: 1 1 auto'>
+                    <div class='w3-card hardnessGraphSection'>
                         <div class="w3-container cardHeader" data-lang='run_h_chart_title' data-lang_type='innertext'>
                             Hardness graph
                         </div>
@@ -68,22 +74,15 @@
                     </div>
     
                     <!-- hardness verse temperature graph section -->
-                    <div class='w3-card' style='position: relative; flex: 1 1 auto;'>
+                    <div class='w3-card historyGraphSection'>
                         <div class="w3-container cardHeader" data-lang='run_event_chart_title' data-lang_type='innertext'>
                             Event graph
                         </div>
                         <div id="event_graph" class="w3-container cardContent"></div>
                     <!-- end of hardness verse temperature graph section -->
                     </div>
-    
-                    
-                    
-
                 <!-- end of graph section -->
                 </div>
-
-                
-
             <!-- end of test main panel -->
             </div>
      

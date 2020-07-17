@@ -61,11 +61,11 @@ let test_flow = {
     teardown: teardown_seq
 };
 let loadSeqPathObj = {path:'', name:''};
-const plotMargin = { t: 40, r: 80, l: 40, b: 50};
+const plotMargin = { t: 40, r: 100, l:50, b: 60};
 const config = {
   displaylogo: false,
   modeBarButtonsToRemove: ['toImage','lasso2d','select2d', 'pan2d','zoom2d','hoverClosestCartesian','hoverCompareCartesian','toggleSpikelines'],
-  responsive: false
+  responsive: true
 };
 let enableKeyDetect = false;
 
@@ -185,7 +185,7 @@ function generateEventPlot(){
       showlegend: true,
       legend: {"orientation": "h",x:0, xanchor: 'left',y:1.2,yanchor: 'top'},
       width: 400,
-      height: 250,
+      height: 300,
       margin: plotMargin,
       autosize: true,
       font: { color: "dimgray", family: "Arial", size: 10}
@@ -212,7 +212,7 @@ function generateHardnessPlot(){
         showline: true
       },
       width: 400,
-      height: 250,
+      height: 300,
       margin: plotMargin,
       autosize: true,
       font: { color: "dimgray", family: "Arial", size: 10}

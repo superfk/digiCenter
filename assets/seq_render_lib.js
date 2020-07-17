@@ -248,7 +248,7 @@ module.exports = {
             let loopColor = seq[start-1].subitem['paras'].filter(item=>item.name=='loop color')[0].value;
             if(index==start){
                 $(item).addClass('loop loopStart');
-                $(item).find('.lopCount').addClass('lopCount-start-enabled').html(loopCount).css("cssText","border-color:"+loopColor + ' !important');
+                $(item).find('.lopCount').addClass('lopCount-start-enabled').html(loopCount).css("cssText","border-color:"+loopColor);
                 $(item).css("cssText","box-shadow: 2px 0px 0px 0px "+ loopColor + ' !important');
             }else if (index > start && index < end){
                 $(item).addClass('loop');

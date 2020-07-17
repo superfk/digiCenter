@@ -39,8 +39,7 @@
     width: 100%;
     margin: 0px;
     padding: 5px;
-    height: 300px;
-    max-height: 350px;
+    height: 100%;
 }
 
 .sampleSetupButtonContainer {
@@ -74,72 +73,97 @@ textarea { resize: vertical; max-height: 100px; min-height: 50px; max-width: 100
     bottom: 0px;
     background-color: white;
     color:  var(--color-c5);
-    overflow: auto;
-}
-
-.testMainPanel > .seqSection{
-    position: absolute;
-    left: 0;
-    top:0;
-    bottom: 10px;
-    background-color: white;
-    color:  var(--color-c5);
-    width: 750px;
-    margin: 10px;
-}
-
-
-
-.testMainPanel > .graphSection{
     display: flex;
-    flex-flow: column;
-    position: absolute;
-    left: 770px;
-    top:0;
-    right: 10px;
-    bottom: 0px;
-    background-color: white;
-    color:  var(--color-c5);
-    height: 100%;
-    margin: 0px;
-    padding: 10px 10px 10px 10px;
-    overflow: auto;
-}
-
-.cardHeader{
-    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
     align-items: center;
-    justify-content: left;
+    font-size: 0.9rem;
+    padding: 0 10px;
 }
 
-.testMainPanel .cardHeader{
+.w3-card {
+    width: 100%;
+    height: 100%;
+    margin: 0px 10px;
+}
+
+.w3-card .cardHeader{
     background: linear-gradient(45deg, var(--color-c3),var(--color-c4));
     color: white;
-    height: 24px;
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    flex-wrap: wrap;
 }
 
-.testMainPanel .cardContent{
+.w3-card .cardContent{
     width: 100%;
     height: 90%;
-    overflow: auto;
-}
-
-
-.testMainPanel > .graphSection .w3-card{
-    margin-bottom: 10px;
-}
-
-.testMainPanel > .graphSection .w3-card .cardContent{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin:0;
+    padding: 5px;
     overflow: hidden;
 }
 
+.testMainPanel > .leftSection{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    background-color: white;
+    color:  var(--color-c5);
+    width: 100%;
+    height: 60%;
+    padding: 10px 20px;
+}
 
-.seqSection > .cardContent{
-    height: 95%;
-    position: absolute;
-    top:24px;
-    bottom: 10px;
-    
+.seqSection{
+    background-color: white;
+    color:  var(--color-c5);
+    width: 70%;
+    height: 100%;
+}
+
+.seqSection .cardContent{
+    display: flex;
+    justify-content: flex-start;
+    align-items: flex-start;
+    overflow-y: auto;
+}
+
+.sampleMonitorSection{
+    background-color: white;
+    color:  var(--color-c5);
+    width: 30%;
+    height: 100%;
+}
+
+.testMainPanel > .graphSection{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    background-color: white;
+    color:  var(--color-c5);
+    width: 100%;
+    height: 40%;
+    padding: 10px 20px;
+}
+
+.hardnessGraphSection{
+    background-color: white;
+    color:  var(--color-c5);
+    width: 50%;
+    max-width: 50%;
+}
+
+.historyGraphSection{
+    background-color: white;
+    color:  var(--color-c5);
+    width: 50%;
+    height: 100%;
 }
 
 #testSeqContainer{
@@ -181,7 +205,6 @@ textarea { resize: vertical; max-height: 100px; min-height: 50px; max-width: 100
 .seqSection > .cardContent > ul > li {
     /* You need to turn on relative positioning so the line is placed relative to the item rather than absolutely on the page */
     position: relative;
-
     /* Use padding to space things out rather than margins as the line would get broken up otherwise */
     margin: 0;
     padding: 0px !important;
@@ -212,8 +235,9 @@ textarea { resize: vertical; max-height: 100px; min-height: 50px; max-width: 100
 }
 
 #testSeqContainer .stepParas{
-    font-size:14px;
+    font-size:0.9rem;
     justify-content: left;
+    overflow-x: auto;
 }
 
 #testSeqContainer  .stepResult{
@@ -461,3 +485,20 @@ progress[value]::-webkit-progress-bar {
     50% { opacity: 1; stroke-width: 6px;}
     100% { opacity: 0.2; stroke-width: 4px;}
   } 
+
+  @media (max-width:1600px){
+    #testSeqContainer li .w3-bar-item{
+        width: 100% !important;
+        height: auto !important;
+    }
+    #testSeqContainer .lopCount {
+        width: 26px !important;
+    }
+    #testSeqContainer .lopCount-enabled {
+        width: 26px !important;
+    }
+    #testSeqContainer .lopCount-start-enabled {
+        border-right: 2px solid !important;
+    }
+    
+}
