@@ -4,89 +4,82 @@
     <script src="ext_modules/d3/d3.min.js"></script>
     
         <section id="run-section" class="section js-section u-category-windows" draggable="true">
-            
-            <!-- batch info -->
-            <div class="w3-container" id="batchInfoPanel">
-                <div class="w3-container w3-display-container w3-padding-16">
-                    <h3 data-lang='run_batchinfo_title' data-lang_type='innertext'>Batch Info</h3>
-                    <div class='sampleSetupButtonContainer'>
-                        <button id='openSampleSetupList' data-auth='open_sampleSetupList' class="w3-button w3-block w3-orange "
-                        ><i class="fas fa-spinner w3-medium w3-margin-right"></i><span data-lang='run_open_sampleSetupList_btn' data-lang_type='innertext'>Test Setup</span> </button>
+            <div class="flexWrapper">
+                <!-- batch info -->
+                <div class="w3-container" id="batchInfoPanel">
+                    <div class="w3-container w3-display-container w3-padding-16">
+                        <h3 data-lang='run_batchinfo_title' data-lang_type='innertext'>Batch Info</h3>
+                        <div class='sampleSetupButtonContainer'>
+                            <button id='openSampleSetupList' data-auth='open_sampleSetupList' class="w3-button w3-block w3-orange "
+                            ><i class="fas fa-spinner w3-medium w3-margin-right"></i><span data-lang='run_open_sampleSetupList_btn' data-lang_type='innertext'>Test Setup</span> </button>
 
-                        <button id='batchConfirmAndStart' data-auth='start_test' class="w3-button w3-block w3-green "
-                        ><i class="fas fa-play w3-medium w3-margin-right"></i> <span data-lang='run_start_btn' data-lang_type='innertext'>Start</span></button>
+                            <button id='batchConfirmAndStart' data-auth='start_test' class="w3-button w3-block w3-green "
+                            ><i class="fas fa-play w3-medium w3-margin-right"></i> <span data-lang='run_start_btn' data-lang_type='innertext'>Start</span></button>
 
-                        <button id='stop_test' data-auth='stop_test' class="w3-button w3-block  w3-red" 
-                        ><i class="fas fa-stop-circle w3-medium w3-margin-right"></i><span data-lang='run_stop_btn' data-lang_type='innertext'></span></button>
+                            <button id='stop_test' data-auth='stop_test' class="w3-button w3-block  w3-red" 
+                            ><i class="fas fa-stop-circle w3-medium w3-margin-right"></i><span data-lang='run_stop_btn' data-lang_type='innertext'></span></button>
+                        </div>
+                        <!-- <div id='sampleSetupList' class='sampleSetupListContainer'>
+                            <svg id="sampleCircleStatus" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
+                        </div>   -->
+                        
                     </div>
-                    <!-- <div id='sampleSetupList' class='sampleSetupListContainer'>
-                        <svg id="sampleCircleStatus" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
-                    </div>   -->
-                    
+                <!-- end of batch info -->
                 </div>
-            <!-- end of batch info -->
+
+                <!-- test main panel -->
+                <div class="testMainPanel">
+                    <div class="seqGrid">
+                        <!-- seq section -->
+                        <div class='w3-card gridCard seqSection'>
+                            <div class="w3-container cardHeader" data-lang='run_test_seq_title' data-lang_type='innertext'>
+                                Test Sequence
+                            </div>
+                            <div class="w3-container cardContent">
+                                <ul id='testSeqContainer'>
+                                </ul>
+                            </div>
+                        <!-- end of seq section -->
+                        </div>
+                    </div>
+                    <div class="monitorGrid">
+                        <!-- realtime temp and humidity gauge section -->
+                        <div class='w3-card gridCard sampleMonitorSection' >
+                            <div class="w3-container cardHeader" data-lang='run_stauts_monitor_title' data-lang_type='innertext'>
+                                Sample Monitor
+                            </div>
+                            <div class="w3-container cardContent" style="overflow: hidden;vertical-align: middle;">
+                                <div id='sampleSetupList' class='sampleSetupListContainer'>
+                                    <svg id="sampleCircleStatus" width="100%" viewBox="0 0 300 300"></svg>
+                                </div> 
+                            </div>
+                        <!-- end of realtime temp and humidity gauge section -->
+                        </div>
+                    </div>
+                    <div class="hardVsTempGraph">
+                        <!-- hardness graph section -->
+                        <div class='w3-card gridCard hardnessGraphSection'>
+                            <div class="w3-container cardHeader" data-lang='run_h_chart_title' data-lang_type='innertext'>
+                                Hardness graph
+                            </div>
+                            <div id="hardness_graph" class="w3-container cardContent"></div>
+                        <!-- end of hardness graph section -->
+                        </div>
+                    </div>
+                    <div class="historyGraph">
+                        <!-- hardness verse temperature graph section -->
+                        <div class='w3-card gridCard historyGraphSection'>
+                            <div class="w3-container cardHeader" data-lang='run_event_chart_title' data-lang_type='innertext'>
+                                Event graph
+                            </div>
+                            <div id="event_graph" class="w3-container cardContent"></div>
+                        <!-- end of hardness verse temperature graph section -->
+                        </div>
+                    </div>
+                <!-- end of test main panel -->
+                </div>
+
             </div>
-
-            <!-- test main panel -->
-            <div class="testMainPanel">
-                <div class='leftSection'>
-                     <!-- seq section -->
-                    <div class='w3-card seqSection'>
-                        <div class="w3-container cardHeader" data-lang='run_test_seq_title' data-lang_type='innertext'>
-                            Test Sequence
-                        </div>
-                        <div class="w3-container cardContent">
-                            <ul id='testSeqContainer'>
-                            </ul>
-                        </div>
-                    <!-- end of seq section -->
-                    </div>
-
-                    <!-- realtime temp and humidity gauge section -->
-                    <div class='w3-card sampleMonitorSection' >
-                        <div class="w3-container cardHeader" data-lang='run_stauts_monitor_title' data-lang_type='innertext'>
-                            Sample Monitor
-                        </div>
-                        <div class="w3-container cardContent" style="overflow: hidden;vertical-align: middle;">
-                            <div id='sampleSetupList' class='sampleSetupListContainer'>
-                                <svg id="sampleCircleStatus" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
-                            </div> 
-                        </div>
-                    <!-- end of realtime temp and humidity gauge section -->
-                    </div>
-
-                    
-
-                    
-                
-                </div>
-
-                <!-- graph section -->
-                <div class='graphSection'>
-                    
-                    <!-- hardness graph section -->
-                    <div class='w3-card hardnessGraphSection'>
-                        <div class="w3-container cardHeader" data-lang='run_h_chart_title' data-lang_type='innertext'>
-                            Hardness graph
-                        </div>
-                        <div id="hardness_graph" class="w3-container cardContent"></div>
-                    <!-- end of hardness graph section -->
-                    </div>
-    
-                    <!-- hardness verse temperature graph section -->
-                    <div class='w3-card historyGraphSection'>
-                        <div class="w3-container cardHeader" data-lang='run_event_chart_title' data-lang_type='innertext'>
-                            Event graph
-                        </div>
-                        <div id="event_graph" class="w3-container cardContent"></div>
-                    <!-- end of hardness verse temperature graph section -->
-                    </div>
-                <!-- end of graph section -->
-                </div>
-            <!-- end of test main panel -->
-            </div>
-     
-      
         </section>
 
         <!-- Showing Moving Sample Dialog Modal -->
@@ -211,14 +204,16 @@
                                 <textarea cols="5" rows="5" name="Note"></textarea>
                             </div>
                             <p><button data-auth='sampleBatchConfigAddBtn' class="w3-button w3-block w3-blue w3-center" type="submit" 
-                                ><i class="fas fa-plus"></i> <span data-lang='sampleBatchConfigAdd_btn' data-lang_type='innertext'>Add</span></button></p>
+                                ><i class="fas fa-plus"></i> <span data-lang='sampleBatchConfigAddBtn' data-lang_type='innertext'>Add</span></button></p>
                             <button id='sampleBatchConfigClearAllBtn' data-auth='sampleBatchConfigClearAllBtn' class="w3-button w3-block w3-red w3-center" type="button" 
-                                ><i class="fas fa-eraser"></i><span data-lang='sampleBatchConfigClearAll_btn' data-lang_type='innertext'>Clear All</span></button>
+                                ><i class="fas fa-eraser"></i><span data-lang='sampleBatchConfigClearAllBtn' data-lang_type='innertext'>Clear All</span></button>
                           </form>
                           
                     </div>
                     <div class="sampleBatchCircleContainer">
-                        <div class="circlecontainer"><svg id="sampleCircle" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg></div>                        
+                        <div class="circlecontainer">
+                            <svg id="sampleCircle" width="100%" viewBox="0 0 600 600"></svg>
+                        </div>                        
                         <div class="sampleBatchCircleToolbar">
                             <button id='moveLastBtn' data-auth='moveLastBtn' class="w3-button w3-border w3-center moveBtn" type="button" 
                                 ><i class="fas fa-chevron-left"></i> <span data-lang='moveLastBtn' data-lang_type='innertext'>To Last Sample</span></button>
@@ -230,7 +225,7 @@
                     </div>
                 </div>
                 <div style="padding:20px;width: 100%;">
-                    <button id='confirmSampleBatchConfigBtn' class="w3-btn w3-block w3-green" data-lang='sampleSetupConfirmBtn' data-lang_type='innertext' >Confirm</button>
+                    <button id='confirmSampleBatchConfigBtn' class="w3-btn w3-block w3-green" data-auth='sampleSetupConfirmBtn' data-lang='sampleSetupConfirmBtn' data-lang_type='innertext' >Confirm</button>
                 </div>
             </div>
         </div>

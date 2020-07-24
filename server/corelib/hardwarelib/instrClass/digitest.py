@@ -16,9 +16,83 @@ print(sys.path)
 from baInstr import BaInstr
 import random
 
+class RotationState:
+    def __init__(self):
+        self.N = 0
+        self.n = 0
+        self.index = 0
+        self.pathList = []
+        self.atHome = False
+        self.foundHome = False
+    
+    def setPathList(self, N, n):
+        self.N = N
+        self.n = n
+        self.pathList = [(sample_N+1, location_n+1) for sample_N in range(self.N) for location_n in range(self.n)]
+    
+    def getCurrentPos(self):
+        if self.foundHome:
+            if len(self.pathList) == 0:
+                return (0,0)
+            else:
+                if self.atHome:
+                    return (0,0)
+                else:
+                    return self.pathList[self.index]
+        else:
+            return (0,0)
+
+    def getNextPos(self):
+        curIndex = self.index
+        if self.foundHome:
+            if len(self.pathList) == 0:
+                return (0,0)
+            else:
+                if self.atHome:
+                    curIndex = 0
+                else:
+                    curIndex += 1
+                curIndex = curIndex % len(self.pathList)
+                return self.pathList[curIndex]
+        else:
+            return (0,0)
+        
+    def getLastPos(self):
+        curIndex = self.index
+        if self.foundHome:
+            if len(self.pathList) == 0:
+                return (0,0)
+            else:
+                if self.atHome:
+                    curIndex = -1
+                else:
+                    curIndex -= 1
+                curIndex = curIndex % len(self.pathList)
+                return self.pathList[curIndex]
+        else:
+            return (0,0)
+
+    def setHomePos(self, findHomeOk):
+        self.foundHome = findHomeOk
+        if self.foundHome:
+            self.atHome = True
+            self.index = 0
+        else:
+            self.atHome = False
+    
+    def setPosition(self, N, n):
+        newIdx = N*n - 1
+        self.index = newIdx % len(self.pathList)
+
 class Digitest(BaInstr):
     def __init__(self):
         super(Digitest, self).__init__()
+        self.rotStatus = RotationState()
+
+    def setRotation(self):
+        N,n = self.get_rotation_info()
+        if N:
+            self.rotStatus.setPathList(N, n)
 
     def set_remote(self, enabled=True):
         if enabled:
@@ -108,10 +182,13 @@ class Digitest(BaInstr):
             return ['STANDARD_M','STANDARD_GRAPH_M', 'HYSTERESE_M']
 
     def isConnectRotation(self):
-        ret = self.write_and_read('GET','DEV_OPTION')
-        if ret == '"ROTATION DC"':
-            return True
-        else:
+        try:
+            ret = self.write_and_read('GET','DEV_OPTION')
+            if ret == '"ROTATION DC"':
+                return True
+            else:
+                return False
+        except:
             return False
 
     def get_rotation_info(self):
@@ -126,8 +203,10 @@ class Digitest(BaInstr):
         if self.isConnectRotation():
             ret = self.write_and_read('ROT_Nn','{},{}'.format(0,0))
             if ret == '"OUT OF RANGE"':
+                self.rotStatus.setHomePos(False)
                 return False, ret
             else:
+                self.rotStatus.setHomePos(True)
                 return True, 'ok'
     
     def set_rotation_pos(self,sample_N, mear_pos_n):
@@ -136,18 +215,35 @@ class Digitest(BaInstr):
             if ret == '"OUT OF RANGE"':
                 return False, ret
             else:
+                self.rotStatus.setPosition(sample_N, mear_pos_n)
                 return True, 'ok'
         else:
             return True, 'ok'
+    
+    def goNext(self):
+        if self.isConnectRotation():
+            (N, n) = self.rotStatus.getNextPos()
+            success, res = self.set_rotation_pos(N,n)
+            return success, res
+        else:
+            return True, 'ok'
 
-class DummyDigitest(Digitest):
+    def goLast(self):
+        if self.isConnectRotation():
+            (N, n) = self.rotStatus.getLastPos()
+            success, res = self.set_rotation_pos(N,n)
+            return success, res
+        else:
+            return True, 'ok'      
+
+class DummyDigitest(BaInstr):
     def __init__(self):
         super(DummyDigitest, self).__init__()
         self.dummyCounter = 0
-        # self.dummyType = '"ROTATION DC"'
         self.dummyType = '"ROTATION DC"'
         self.sampleCounts = 4
         self.mearCounts = 3
+        self.rotStatus = RotationState()
     
     def readline_only(self):
         resp = 'dummyResp'
@@ -173,6 +269,11 @@ class DummyDigitest(Digitest):
     
     def close_rs232(self):
         self.connected = False
+
+    def setRotation(self):
+        N,n = self.get_rotation_info()
+        if N:
+            self.rotStatus.setPathList(N, n)
 
     def get_dev_name(self):
         return 'DummyDigitest'
@@ -314,8 +415,10 @@ class DummyDigitest(Digitest):
         if self.isConnectRotation():
             ret = True
             if ret == '"OUT OF RANGE"':
+                self.rotStatus.setHomePos(False)
                 return False, ret
             else:
+                self.rotStatus.setHomePos(False)
                 return True, 'ok'
         else:
             return True, 'ok'
@@ -323,8 +426,25 @@ class DummyDigitest(Digitest):
     def set_rotation_pos(self,sample_N, mear_pos_n):
         self.sampleCounts = sample_N
         self.mearCounts = mear_pos_n
+        self.rotStatus.setPosition(sample_N, mear_pos_n)
         return True, 'ok'
-            
+    
+    def goNext(self):
+        if self.isConnectRotation():
+            (N, n) = self.rotStatus.getNextPos()
+            success, res = self.set_rotation_pos(N,n)
+            return success, res
+        else:
+            return True, 'ok'
+
+    def goLast(self):
+        if self.isConnectRotation():
+            (N, n) = self.rotStatus.getLastPos()
+            success, res = self.set_rotation_pos(N,n)
+            return success, res
+        else:
+            return True, 'ok'      
+
 def main():
     ba = DummyDigitest()
     # input = b'GET(MS_MODE),' # exp_crc = '05F9' 

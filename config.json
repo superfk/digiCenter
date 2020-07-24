@@ -13,7 +13,7 @@
             "test_data_fields": "Recordtime,Sample_Counter, Operator, Compound_Folder, Compound, Batch, Productiondate, Hardness_1, Hardness_2, Hardness_3, Timestamp, T_Sample, WeightDry, WeightWet, T_Liquid, Density",
             "test_data_fields_type": "time,float, str,str,str,str,str,float,float,float,time,float,float,float,float,float"
         },
-        "mode": "demo",
+        "mode": "",
         "rotationTable_N": 25
     }
 }

@@ -36,9 +36,6 @@ CREATE TABLE [dbo].[FunctionList_temp](
 	[Functions] [varchar](255) NULL,
 	[Tree_index] [tinyint] NULL,
 	[Display_order] [smallint] NULL,
-	[en] [varchar](255) NULL,
-	[zh_tw] [nvarchar](255) NULL,
-	[de] [nvarchar](255) NULL
 PRIMARY KEY CLUSTERED 
 (
 	[ID] ASC

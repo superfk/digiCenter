@@ -24,6 +24,57 @@ module.exports = {
     parseCmd: function (sriptName, data=null) {
       return JSON.stringify({'cmd':sriptName, 'data':data})
     },
+    genTraceForHardnessPlot: function(sampleSize=1){
+      const sampleArr = new Array(parseInt(sampleSize));
+      sampleArr.fill(0)
+      const traceArr = sampleArr.map((elm,idx)=>{
+        return {
+          x: [],
+          y: [],
+          mode: 'lines+markers',
+          type: 'scatter',
+          name: `sample${idx+1}`,
+          marker: { size: 4},
+          line: {
+            width: 1
+          }
+        }
+      })
+      return traceArr;
+    },    
+    generateHardnessPlot: function(domElement, sampleSize){
+      const traceArr = module.exports.genTraceForHardnessPlot(sampleSize);
+      
+      const config = {
+        displaylogo: false,
+        modeBarButtonsToRemove: ['toImage','lasso2d','select2d', 'pan2d','zoom2d','hoverClosestCartesian','hoverCompareCartesian','toggleSpikelines'],
+        responsive: true
+      };
+
+      var data = traceArr;
+      
+      var layout = {
+        xaxis: {
+          title: '℃',
+          zeroline: false,
+          showline: true
+        },
+        yaxis: {
+          title: 'hardness',
+          range: [0, 100],
+          zeroline: false,
+          showline: true
+        },
+        width: 400,
+        height: 300,
+        margin: { t: 80, r: 100, l:50, b: 60, pad: 4},
+        autosize: false,
+        font: { color: "dimgray", family: "Arial", size: 10}
+      };
+      
+      Plotly.newPlot(domElement, data, layout, config);
+    },
+
     plotly_addNewDataToPlot: function (locationID, xval,yval, y2val=null, sampleId=0){
       if(y2val == null){
         Plotly.extendTraces(locationID, {x: [[xval]],y: [[yval]]}, [sampleId])

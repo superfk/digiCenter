@@ -12,24 +12,17 @@ from corelib.hardwarelib.instrClass.digitest import Digitest, DummyDigitest
 from corelib.usermanagelib.user_login import UserManag
 from corelib.lang.lang_tool import load_json_lang_from_json
 from productlib.digiCenter.pd_digichamber import DigiChamberProduct
-import ctypes  # An included library with Python install.
-import struct
 from corelib.databaselib.db_operation import DB
 import json
 from corelib.utility import utility as util
-import datetime,time
+import datetime
 import os
-import locale
-import re
-import pandas as pd
-import string
 import threading
 import random
 import asyncio
 import websockets
 import traceback
 from loguru import logger
-
 
 
 class BatchInfo(object):
@@ -48,7 +41,7 @@ class PyServerAPI(object):
         self.digiChamber = None # DigiChamber()
         # self.lg = TimeRotateLogger('syslog', 'M', 5)
         logger.add(sys.stdout, format="{time} - {level} - {message}")
-        logger.add(r"systemlog/{time:YYYY-MM-DD}/file_{time:YYYY-MM-DD}.log", rotation="10 MB")
+        logger.add(r"systemlog/{time:YYYY-MM-DD}/file_{time:YYYY-MM-DD}.log", rotation="5 MB")
         self.lg = logger
         self.db = DB(r"SHAWNNB\SQLEXPRESS", 'BareissAdmin', 'BaAdmin')
         self.userMang = UserManag(self.db,"Guest", "Guest", 0, True)

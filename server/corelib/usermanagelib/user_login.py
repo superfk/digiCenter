@@ -330,7 +330,10 @@ class UserManag(object):
         for f in fn_list:
             d = {}
             d['Index'] = f[0]
-            translatedFuncName = self.lang[f[4]]
+            try:
+                translatedFuncName = self.lang[f[4]]
+            except KeyError:
+                translatedFuncName = f[4]
             d["Functions"] =  {'indent':f[4],'name':translatedFuncName}
             d["Enabled"] = f[1]
             d["Visibled"] = f[2]

@@ -34,6 +34,7 @@ function connect() {
       msg = tools.parseServerMessage(message);
       let cmd = msg.cmd;
       let data = msg.data;
+      console.log('[cmd] ',cmd)
       switch(cmd) {
         case 'ping':
           ws.send(tools.parseCmd('pong',data));
@@ -141,14 +142,16 @@ const createPyProc = () => {
 }
 
 const exitPyProc = () => {
-  pyProc.kill();
+  process.kill(pyProc.pid);
   pyProc = null;
   pyPort = null;
 }
 
 // init config and database
 var init_server = function(){
+  console.log('appRoot:',appRoot)
   var curPath = path.join(appRoot, 'config.json')
+  console.log('config Path:',curPath)
   ws.send(tools.parseCmd('load_sys_config',curPath));
   ws.send(tools.parseCmd('backend_init'));
   ws.send(tools.parseCmd('load_default_lang',appRoot));
@@ -156,7 +159,8 @@ var init_server = function(){
 
 
 app.on('ready', createPyProc)
-app.on('will-quit', exitPyProc)
+app.on('before-quit',exitPyProc)
+// app.on('will-quit', exitPyProc)
 
 
 /*************************************************************
@@ -226,7 +230,7 @@ const createReportViewerWindow = (data) => {
   let reportViewerWindow = new BrowserWindow({
     width: 800, 
     height: 600,
-    icon: __dirname + '/img/icon.ico',
+    icon: path.join(appRoot,'img/icon.ico'),
     parent: mainWindow,
     webPreferences: {
       nodeIntegration: true
@@ -254,7 +258,7 @@ const createReportDesignerWindow = (data) => {
   let reportDesignerWindow = new BrowserWindow({
     width: 800, 
     height: 600,
-    icon: __dirname + '/img/icon.ico',
+    icon: path.join(appRoot,'img/icon.ico'),
     parent: mainWindow,
     modal: true,
     webPreferences: {
@@ -381,32 +385,17 @@ ipcMain.on('save_log', (event, msg, type='info', audit=0) => {
 
 // show info dialog
 ipcMain.on('show-info-alert', (event, title, msg) => {
-  let code = `document.getElementById("modal_info_message_title").innerHTML="${title}";`;
-  code = code + `document.getElementById("modal_info_message_text").innerHTML="${msg}";`;
-  code = code + `document.getElementById("modal_info_message").style.display="block";`;
-  console.log(code);
-  mainWindow.webContents.executeJavaScript(code);
-
+  mainWindow.webContents.send('show-info-alert',title, msg);
 })
 
 // show warning dialog
 ipcMain.on('show-warning-alert', (event, title, msg) => {
-  let code = `document.getElementById("modal_warning_message_title").innerHTML="${title}";`;
-  code = code + `document.getElementById("modal_warning_message_text").innerHTML="${msg}";`;
-  code = code + `document.getElementById("modal_warning_message").style.display="block";`;
-  mainWindow.webContents.executeJavaScript(code);
-  updatefoot(msg, 'w3-yellow');
-
+  mainWindow.webContents.send('show-warning-alert',title, msg);
 })
 
 // show alert dialog
 ipcMain.on('show-alert-alert', (event, title, msg) => {
-  let code = `document.getElementById("modal_alert_message_title").innerHTML="${title}";`;
-  code = code + `document.getElementById("modal_alert_message_text").innerHTML="${msg}";`;
-  code = code + `document.getElementById("modal_alert_message").style.display="block";`;
-  mainWindow.webContents.executeJavaScript(code);
-  updatefoot(msg, 'w3-red');
-
+  mainWindow.webContents.send('show-alert-alert',title, msg);
 })
 
 // show login dialog
@@ -462,9 +451,9 @@ ipcMain.on('openTeachPosPdf', (event, langID) => {
     height: 600
   })
 
-  let pdfPath = __dirname + `/doc/${langID}/Teach_digitest.pdf`;
+  let pdfPath = path.join(appRoot, `doc/${langID}/Teach_digitest.pdf`);
   if(langID===undefined){
-    pdfPath = __dirname + `/doc/en/Teach_digitest.pdf`;
+    pdfPath =path.join(appRoot, 'doc/en/Teach_digitest.pdf');
   }
 
   teachPdfWin.loadURL(pdfPath)

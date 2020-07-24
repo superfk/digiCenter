@@ -54,7 +54,12 @@
     <div class='w3-row w3-small'>
         <div class='w3-bar w3-container w3-flat-wet-asphalt'>
           <button id='table-tab' data-lang="report_table_tab" data-lang_type="innertext" class="w3-bar-item w3-button tablink w3-red" onclick="openReportTab(event,'Table')">Table</button>
-          <button id='chart-tab' data-lang="report_table_chart" data-lang_type="innertext" class="w3-bar-item w3-button tablink" onclick="openReportTab(event,'Chart')">Chart</button>
+          <button id='groupTable-tab' data-lang="report_groupTable_tab" data-lang_type="innertext" class="w3-bar-item w3-button tablink" onclick="openReportTab(event,'GroupTable')">GroupTable</button>
+          <!-- <button id='hvtchart-tab' data-lang="report_table_hvtchart" data-lang_type="innertext" class="w3-bar-item w3-button tablink" onclick="openReportTab(event,'HardVsTempChart')">HvsT Chart</button> -->
+          <button id='chart-tab' data-lang="report_table_chart" data-lang_type="innertext" class="w3-bar-item w3-button tablink" onclick="openReportTab(event,'HistoryChart')">History Chart</button>
+          <!-- <button id="print-test-data" data-auth='print-test-data' class="w3-button w3-bar-item w3-blue w3-right" >
+            <i class="fas fa-file-export"></i><span data-lang="report_print_btn" data-lang_type="innertext" style='margin-left: 5px;'>Print</span>
+          </button> -->
           <button id="export-test-data-to-file" data-auth='export-test-data-to-file' class="w3-button w3-bar-item w3-flat-nephritis w3-right" >
             <i class="fas fa-file-export"></i><span data-lang="report_export_btn" data-lang_type="innertext" style='margin-left: 5px;'>Export..</span>
           </button>
@@ -88,9 +93,19 @@
             </table>
       </div>
       
-      <div id="Chart" class="w3-container w3-border tabpage w3-small" style="display:none">
+      <!-- <div id="HardVsTempChart" class="w3-container w3-border tabpage w3-small" style="display:none">
         <div class="w3-container chart-container">
           <div id="hardnessVStemp_plot" class='w3-margin w3-display-center'></div>
+        </div>
+      </div> -->
+      <div id="HistoryChart" class="w3-container w3-border tabpage w3-small" style="display:none">
+        <div class="w3-container chart-container">
+          <div id="historyChart_plot" class='w3-margin w3-display-center'></div>
+        </div>
+      </div>
+      <div id="GroupTable" class="w3-container w3-border tabpage w3-small" style="display:none">
+        <div class="w3-container chart-container">
+          <div id="groupTableContainer" class='w3-margin w3-display-center'></div>
         </div>
       </div>
 

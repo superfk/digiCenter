@@ -1,10 +1,10 @@
 {
-  "ReportGuid": "015e504303b71e4c90e74116f58a71a3",
+  "ReportGuid": "7cd5759fa4612815b4e95770dbd6a23d",
   "ReportName": "Report",
   "ReportAlias": "Report",
   "ReportFile": "Report.mrt",
-  "ReportCreated": "/Date(1586447190000+0800)/",
-  "ReportChanged": "/Date(1586447190000+0800)/",
+  "ReportCreated": "/Date(1586677590000+0800)/",
+  "ReportChanged": "/Date(1586677590000+0800)/",
   "EngineVersion": "EngineV2",
   "CalculationMode": "Interpretation",
   "ReportUnit": "Centimeters",
@@ -782,49 +782,121 @@
           }
         },
         "2": {
-          "Ident": "StiReportTitleBand",
-          "Name": "ReportTitle",
-          "ClientRectangle": "0,2.6,19,1.2",
-          "ComponentStyle": "Title",
+          "Ident": "StiGroupHeaderBand",
+          "Name": "GroupHeaderBand1",
+          "ClientRectangle": "0,2.6,19,1.56",
           "Interaction": {
-            "Ident": "StiInteraction"
+            "Ident": "StiBandInteraction"
           },
-          "Border": ";;;;;;;solid:0,0,0",
-          "Brush": "empty",
+          "Border": ";;;;;;;solid:Black",
+          "Brush": "solid:216,216,216",
           "Components": {
             "0": {
               "Ident": "StiText",
-              "Name": "Text12",
-              "Guid": "dfb04ddfe5f8c587b0c13247f56fc1b3",
-              "ClientRectangle": "0.08,0.19,18.92,0.81",
-              "ComponentStyle": "no border",
+              "Name": "Text13",
+              "Guid": "99749c5b6e029481973e332260932a59",
+              "CanGrow": true,
+              "ClientRectangle": "6.61,0,6.41,0.73",
               "Interaction": {
                 "Ident": "StiInteraction"
               },
               "Text": {
-                "Value": "Data Table"
+                "Value": "<font size=\"10\"><b style=\"\">Batch: {Test_data.Batch_name}</b></font>"
               },
               "VertAlignment": "Center",
-              "Font": ";12;Bold;",
-              "Border": "Left;30,78,121;10;;;;true;solid:0,0,0",
-              "Brush": "solid:222,235,246",
-              "TextBrush": "solid:127,127,127",
-              "Margins": {
-                "Left": 5,
-                "Right": 0,
-                "Top": 0,
-                "Bottom": 0
+              "Font": ";10;;",
+              "Border": ";;;;;;;solid:Black",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextQuality": "Wysiwyg",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "1": {
+              "Ident": "StiText",
+              "Name": "Text12",
+              "Guid": "1e11120f3d457ce8d6b5dca36f6367c8",
+              "CanGrow": true,
+              "ClientRectangle": "0.4,0,6.21,0.73",
+              "Interaction": {
+                "Ident": "StiInteraction"
               },
-              "ShrinkFontToFit": true,
+              "Text": {
+                "Value": "<font size=\"10\"><b>Project: {Test_data.Project_name}</b></font>"
+              },
+              "VertAlignment": "Center",
+              "Border": ";;;;;;;solid:Black",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextQuality": "Wysiwyg",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            },
+            "2": {
+              "Ident": "StiText",
+              "Name": "Text14",
+              "Guid": "682fb0d98e632e3a2260da1ef370f3f8",
+              "CanGrow": true,
+              "GrowToHeight": true,
+              "ClientRectangle": "0.4,0.8,6.01,0.73",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<div style=\"\"><font size=\"8\">OP: {Test_Data.Operator}</font></div>"
+              },
+              "VertAlignment": "Center",
+              "Font": ";10;;",
+              "Border": ";;;;;;;solid:Black",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextQuality": "Wysiwyg",
+              "AllowHtmlTags": true,
               "Type": "Expression"
             }
           },
-          "MinHeight": 0.8
+          "Condition": {
+            "Value": "{Test_Data.Batch_name}"
+          }
         },
         "3": {
+          "Ident": "StiGroupHeaderBand",
+          "Name": "GroupHeaderBand2",
+          "ClientRectangle": "0,4.96,19,0.56",
+          "Interaction": {
+            "Ident": "StiBandInteraction"
+          },
+          "Border": ";;;;;;;solid:Black",
+          "Brush": "solid:",
+          "Components": {
+            "0": {
+              "Ident": "StiText",
+              "Name": "Text16",
+              "Guid": "53eab2f4b1e452e24bfbaf334ac9ded8",
+              "ClientRectangle": "0.38,0.17,5.16,0.31",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "<font size=\"8\">Sample ID: {Test_data.Sample_counter}</font>"
+              },
+              "AutoWidth": true,
+              "Border": ";;;;;;;solid:Black",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "TextQuality": "Wysiwyg",
+              "AllowHtmlTags": true,
+              "Type": "Expression"
+            }
+          },
+          "Condition": {
+            "Value": "{Test_Data.Sample_counter}"
+          }
+        },
+        "4": {
           "Ident": "StiHeaderBand",
           "Name": "Header",
-          "ClientRectangle": "0,4.6,19,1",
+          "ClientRectangle": "0,6.32,19,1",
           "Interaction": {
             "Ident": "StiInteraction"
           },
@@ -930,10 +1002,10 @@
             }
           }
         },
-        "4": {
+        "5": {
           "Ident": "StiDataBand",
           "Name": "Data",
-          "ClientRectangle": "0,6.4,19,0.6",
+          "ClientRectangle": "0,8.12,19,0.6",
           "Interaction": {
             "Ident": "StiBandInteraction"
           },
@@ -1034,7 +1106,50 @@
           },
           "DataSourceName": "Test_Data",
           "EvenStyle": "Gray 50%_Data1_Even Style",
-          "OddStyle": "Gray 50%_Data1_Odd Style"
+          "OddStyle": "Gray 50%_Data1_Odd Style",
+          "Sort": {
+            "0": "ASC",
+            "1": "Sample_counter"
+          }
+        },
+        "6": {
+          "Ident": "StiGroupFooterBand",
+          "Name": "GroupFooterBand2",
+          "ClientRectangle": "0,9.52,19,0.56",
+          "Interaction": {
+            "Ident": "StiInteraction"
+          },
+          "Border": ";;;;;;;solid:Black",
+          "Brush": "solid:",
+          "Components": {
+            "0": {
+              "Ident": "StiText",
+              "Name": "Text15",
+              "Guid": "742e263dfadbc05c9cca51060a9efb6b",
+              "ClientRectangle": "14.26,0.18,4.58,0.28",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "Number of measurement: {Count()}"
+              },
+              "AutoWidth": true,
+              "Border": ";;;;;;;solid:Black",
+              "Brush": "solid:",
+              "TextBrush": "solid:Black",
+              "Type": "Expression"
+            }
+          }
+        },
+        "7": {
+          "Ident": "StiGroupFooterBand",
+          "Name": "GroupFooterBand1",
+          "ClientRectangle": "0,10.88,19,0.16",
+          "Interaction": {
+            "Ident": "StiInteraction"
+          },
+          "Border": ";;;;;;;solid:Black",
+          "Brush": "solid:"
         }
       },
       "PaperSize": "A4",
@@ -1177,8 +1292,7 @@
         "2": {
           "Ident": "StiChart",
           "Name": "Chart1",
-          "PrintOn": "OnlyLastPage",
-          "ClientRectangle": "0.2,4.2,27.2,13.2",
+          "ClientRectangle": "0.33,4.27,27.2,13.28",
           "Interaction": {
             "Ident": "StiInteraction"
           },
@@ -1186,7 +1300,7 @@
           "Brush": "solid:255,255,255",
           "Series": {
             "0": {
-              "Ident": "StiLineSeries",
+              "Ident": "StiScatterLineSeries",
               "ShowShadow": false,
               "SeriesLabels": {
                 "Ident": "StiOutsideEndAxisLabels",
@@ -1195,75 +1309,48 @@
                   "Height": 6
                 },
                 "ValueTypeSeparator": "-",
-                "LabelColor": "88,86,75",
-                "BorderColor": "88,86,75",
-                "Brush": "solid:238,238,236,225"
+                "LabelColor": "50,58,69",
+                "BorderColor": "Transparent",
+                "Brush": "solid:",
+                "Font": ";10;;"
               },
               "TrendLine": {
                 "Ident": "StiTrendLineNone"
               },
               "ValueDataColumn": "Test_Data.Hardness_result",
+              "ArgumentDataColumn": "Test_Data.Temperature",
+              "AutoSeriesKeyDataColumn": "Test_Data.Sample_counter",
+              "AutoSeriesColorDataColumn": "Test_Data.Sample_counter",
               "Title": {
-                "Value": "Hardness"
+                "Value": "Hardness vs Temperature"
               },
               "Marker": {
-                "Brush": "solid:179,229,255",
-                "BorderColor": "0,29,89"
+                "Brush": "solid:152,252,255",
+                "BorderColor": "0,52,119"
               },
               "LineMarker": {
-                "Brush": "solid:129,179,239",
-                "BorderColor": "0,0,39"
+                "Brush": "solid:102,202,255",
+                "BorderColor": "0,2,69"
               },
-              "LineColor": "79,129,189"
-            },
-            "1": {
-              "Ident": "StiLineSeries",
-              "ShowShadow": false,
-              "YAxis": "RightYAxis",
-              "SeriesLabels": {
-                "Ident": "StiOutsideEndAxisLabels",
-                "MarkerSize": {
-                  "Width": 8,
-                  "Height": 6
-                },
-                "ValueTypeSeparator": "-",
-                "LabelColor": "88,86,75",
-                "BorderColor": "88,86,75",
-                "Brush": "solid:238,238,236,225"
-              },
-              "TrendLine": {
-                "Ident": "StiTrendLineNone"
-              },
-              "ValueDataColumn": "Test_Data.Temperature",
-              "Title": {
-                "Value": "Temperature"
-              },
-              "Marker": {
-                "Brush": "solid:255,180,177",
-                "BorderColor": "92,0,0"
-              },
-              "LineMarker": {
-                "Brush": "solid:242,130,127",
-                "BorderColor": "42,0,0"
-              },
-              "LineColor": "192,80,77"
+              "LineColor": "52,152,219",
+              "Lighting": false
             }
           },
           "Area": {
-            "Ident": "StiClusteredColumnArea",
-            "BorderColor": "88,86,75",
-            "Brush": "gradient:255,255,255::90",
+            "Ident": "StiScatterArea",
+            "BorderColor": "171,172,173",
+            "Brush": "solid:255,255,255",
             "InterlacingHor": {
-              "InterlacedBrush": "solid:10,138,136,125",
+              "InterlacedBrush": "solid:10,155,155,155",
               "Area": true
             },
             "InterlacingVert": {
-              "InterlacedBrush": "solid:10,138,136,125",
+              "InterlacedBrush": "solid:10,155,155,155",
               "Area": true
             },
             "GridLinesHor": {
-              "Color": "100,88,86,75",
-              "MinorColor": "100,88,86,75",
+              "Color": "100,105,105,105",
+              "MinorColor": "100,105,105,105",
               "Area": true
             },
             "GridLinesHorRight": {
@@ -1271,66 +1358,66 @@
               "Area": true
             },
             "GridLinesVert": {
-              "Color": "100,88,86,75",
-              "MinorColor": "100,88,86,75",
-              "Visible": false,
+              "Color": "100,105,105,105",
+              "MinorColor": "100,105,105,105",
               "Area": true
             },
             "YAxis": {
               "Ident": "StiYLeftAxis",
+              "StartFromZero": false,
               "Labels": {
-                "Color": "88,86,75"
+                "Color": "140,140,140"
               },
-              "LineColor": "88,86,75",
+              "LineColor": "140,140,140",
               "Title": {
                 "Text": "Hardness",
-                "Color": "88,86,75",
+                "Color": "140,140,140",
                 "Direction": "BottomToTop"
               }
             },
             "YRightAxis": {
               "Ident": "StiYRightAxis",
-              "StartFromZero": false,
               "Labels": {
-                "Color": "88,86,75",
+                "Color": "140,140,140",
                 "TextAlignment": "Left"
               },
-              "LineColor": "88,86,75",
+              "LineColor": "140,140,140",
               "Title": {
-                "Text": "Temperature",
-                "Color": "88,86,75",
+                "Color": "140,140,140",
                 "Direction": "TopToBottom"
-              },
-              "Visible": true
+              }
             },
             "XAxis": {
               "Ident": "StiXBottomAxis",
+              "StartFromZero": false,
               "Labels": {
-                "Color": "88,86,75"
+                "Color": "140,140,140"
               },
-              "LineColor": "88,86,75",
+              "LineColor": "140,140,140",
               "Title": {
-                "Color": "88,86,75"
-              }
+                "Text": "Temperature",
+                "Color": "140,140,140"
+              },
+              "ShowEdgeValues": true
             },
             "XTopAxis": {
               "Ident": "StiXTopAxis",
               "Labels": {
-                "Color": "88,86,75"
+                "Color": "140,140,140"
               },
-              "LineColor": "88,86,75",
+              "LineColor": "140,140,140",
               "Title": {
-                "Color": "88,86,75"
+                "Color": "140,140,140"
               }
             }
           },
           "Table": {
-            "GridLineColor": "88,86,75",
+            "GridLineColor": "225,225,225",
             "Header": {
               "Brush": "solid:White"
             },
             "DataCells": {
-              "TextColor": "88,86,75"
+              "TextColor": "140,140,140"
             }
           },
           "SeriesLabels": {
@@ -1343,10 +1430,10 @@
           },
           "Legend": {
             "ShowShadow": false,
-            "BorderColor": "88,86,75",
-            "Brush": "gradient:255,255,255:255,255,245:90",
-            "TitleColor": "88,86,75",
-            "LabelsColor": "88,86,75",
+            "BorderColor": "225,225,225",
+            "Brush": "solid:255,255,255",
+            "TitleColor": "105,105,105",
+            "LabelsColor": "140,140,140",
             "MarkerSize": {
               "Width": 10,
               "Height": 10
@@ -1354,10 +1441,10 @@
             "Size": "0,0"
           },
           "Title": {
-            "Brush": "solid:88,86,75"
+            "Brush": "solid:140,140,140"
           },
           "Style": {
-            "Ident": "StiStyle09"
+            "Ident": "StiStyle29"
           }
         },
         "3": {

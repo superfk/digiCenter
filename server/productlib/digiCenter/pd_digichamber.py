@@ -58,6 +58,12 @@ class DigiChamberProduct(pd_product.Product):
             await self.socketCallback(websocket, 'update_sys_default_config', self.default_seq_folder)
         elif scriptName=='get_cur_temp_and_humi':
             await self.get_cur_temp_and_humi(websocket)
+        elif scriptName=='moveTableLast':
+            await self.moveTableLast()
+        elif scriptName=='moveTableHome':
+            await self.moveTableLast()
+        elif scriptName=='moveTableNext':
+            await self.moveTableLast()
         else:
             self.log_to_db_func('No this case: {}'.format(scriptName), 'error', False)
 
@@ -95,8 +101,6 @@ class DigiChamberProduct(pd_product.Product):
             self.script = seq_json
             return self.script
                 
-        
-
     async def load_seq(self,websocket, path):
         try:
             self.script = None
@@ -122,7 +126,7 @@ class DigiChamberProduct(pd_product.Product):
             self.stepsClass = []
             self.mainClass = []
             for s in main:
-                foundCat = True
+                stepObj = None
                 if s['cat']=='temperature':
                     stepObj = seqClass.TemperatureStep()
                 elif s['cat']=='hardness':
@@ -137,9 +141,7 @@ class DigiChamberProduct(pd_product.Product):
                         stepObj = seqClass.ForLoopEndStep()           
                 elif s['cat']=='subprog':
                     stepObj = seqClass.SubProgramStep()
-                else:
-                    foundCat=False
-                if foundCat:
+                if stepObj:
                     stepObj.set_paras(step=s)
                     stepObj.set_digiChamber_hw_control(self.dChamb)
                     stepObj.set_digitest_hw_control(self.digiTest)              
@@ -182,18 +184,16 @@ class DigiChamberProduct(pd_product.Product):
             # preinit process
             self.in_test_mode = True
             self.stopMsgQueue = queue.Queue()
+            self.pauseQueue = queue.Queue()
             self.testStop=False
             self.interruptStop=False
             self.create_result_callback_loop()
             self.ws = websocket
             self.errorMsg = None
-            self.pause = False
-            self.retry = False
             startTime = time.time()
             totalStepsCounts = len(self.stepsClass)
             cursor = 0
-
-            print('batchInfoForSamples',batchInfoForSamples)
+            self.lg.debug('totalStepsCounts: {}'.format(totalStepsCounts))
 
             # check script existed
             if self.script:
@@ -203,8 +203,10 @@ class DigiChamberProduct(pd_product.Product):
                     s.set_result_callback(self.sendResultCallback)
                     s.set_communicate_callback(self.sendCommunicateCallback)
                     s.stopMsgQueue = self.stopMsgQueue
+                    s.pauseQueue = self.pauseQueue
                     s.set_batchinfo(self.batchInfo)
                     s.set_batchInfoForSamples(batchInfoForSamples)
+                    s.lg = self.lg
 
                 # main process 
                 while True:
@@ -219,10 +221,6 @@ class DigiChamberProduct(pd_product.Product):
                     # check whether stop this loop
                     if cursor >= totalStepsCounts or self.testStop:
                         break
-                    if self.pause:
-                        # if this process pause, ignore remain procedure and go back to beginning of while loop
-                        time.sleep(0.2)
-                        continue
                     # continuous process
                     self.lg.debug('current cursor: {}'.format(cursor))
                     # get payload step
@@ -231,17 +229,6 @@ class DigiChamberProduct(pd_product.Product):
                     curStepName = step.__class__.__name__
                     self.lg.debug('current step name: {}'.format(curStepName))
 
-                    if curStepName == 'HardnessStep':
-                        step.retry = self.retry
-                        self.retry = False
-                        # only for demo, MUST remove later
-                        try:
-                            dmyT = self.dChamb.get_real_temperature()
-                            noise = random.random()*0.5
-                            step.dummyHardBase = 0.0016 * dmyT * dmyT - 0.2468 * dmyT + 57.073 + noise
-                        except:
-                            pass
-
                     # do step
                     testResult = step.do()
                     self.lg.debug('output of testResult: {}'.format(testResult))
@@ -249,13 +236,7 @@ class DigiChamberProduct(pd_product.Product):
                     # handle result
                     if testResult['status'] in ['PASS','FAIL','SKIP','MEAR_NEXT']:
                         if curStepName != 'ForLoopEndStep':
-                            if curStepName == 'HardnessStep' and testResult['status'] == 'PASS':
-                                self.saveResult2DatabaseCallback(testResult)
-                                cursor += 1
-                            elif curStepName == 'HardnessStep' and testResult['status'] == 'MEAR_NEXT':
-                                self.saveResult2DatabaseCallback(testResult)
-                            else:
-                                cursor += 1  
+                            cursor += 1 
                         else:
                             if not step.loopDone:
                                 # starting from loop start
@@ -269,12 +250,11 @@ class DigiChamberProduct(pd_product.Product):
                                     self.stepsClass[s].reset_loopiter()
                                 step.resetLoop()
                                 cursor += 1
-                    elif testResult['status'] in ['PAUSE']:
-                        self.pause = True
 
                     # check if finish final step
                     if cursor >= totalStepsCounts:
                         self.testStop=True
+                        self.set_normal_test_stop()
             else:
                 # script not exsisted
                 self.set_test_stop()
@@ -287,8 +267,13 @@ class DigiChamberProduct(pd_product.Product):
             self.set_test_stop()
 
         finally:
+            try:
+                self.pauseQueue.get()
+                self.pauseQueue.task_done()
+            except:
+                pass
             if self.interruptStop:
-                item = self.stopMsgQueue.get()
+                self.stopMsgQueue.get()
                 self.stopMsgQueue.task_done()
                 self.lg.debug('reached end_of_test, interrupted')
                 if self.errorMsg:
@@ -376,6 +361,12 @@ class DigiChamberProduct(pd_product.Product):
         t.start()
 
     def sendResultCallback(self,result):
+        if result['category'] == 'hardness' and result['status'] == 'PASS':
+            self.saveResult2DatabaseCallback(result)
+        elif result['category'] == 'hardness' and result['status'] == 'MEAR_NEXT':
+            self.saveResult2DatabaseCallback(result)
+        else:
+            pass
         future = asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,'update_step_result',result), self.loop)
     
     def sendCommunicateCallback(self,cmd, data):
@@ -385,13 +376,20 @@ class DigiChamberProduct(pd_product.Product):
         future = asyncio.run_coroutine_threadsafe(self.saveTestResult2DbCallback(testResult), self.loop)
         
     def continuous_mear(self,retry=False):
-        self.pause = False
-        self.retry = retry
+        if retry:
+            self.pauseQueue.put('retry')
+        else:
+            self.pauseQueue.put('continue')
     
+    def set_normal_test_stop(self):
+        self.testStop=True
+        self.pauseQueue.put('stop')
+
     def set_test_stop(self):
         self.testStop=True
         self.interruptStop=True
         self.stopMsgQueue.put(True)
+        self.pauseQueue.put('stop')
     
     def init_digiChamber_controller(self,obj_digiChmaber):
         try:
@@ -409,6 +407,7 @@ class DigiChamberProduct(pd_product.Product):
         try:
             self.digiTest = obj_digitest
             conn = self.digiTest.open_rs232(COM, timeout=5)
+            self.digiTest.setRotation()
             return conn
         except Exception as e:
             self.lg.debug('digitest init error: {}'.format(e))
@@ -417,4 +416,16 @@ class DigiChamberProduct(pd_product.Product):
     def close_digitest_controller(self):
         self.digiTest.set_remote(False)
         self.digiTest.close_rs232()
+    
+    async def moveTableLast(self):
+        success, res = self.digiTest.goLast()
+        return success, res
+
+    async def moveTableHome(self):
+        success, res = self.digiTest.set_rotation_home()
+        return success, res
+            
+    async def moveTableNext(self):
+        success, res = self.digiTest.goNext()
+        return success, res
 

@@ -61,7 +61,7 @@ let test_flow = {
     teardown: teardown_seq
 };
 let loadSeqPathObj = {path:'', name:''};
-const plotMargin = { t: 40, r: 100, l:50, b: 60};
+const plotMargin = { t: 80, r: 100, l:50, b: 60, pad: 4};
 const config = {
   displaylogo: false,
   modeBarButtonsToRemove: ['toImage','lasso2d','select2d', 'pan2d','zoom2d','hoverClosestCartesian','hoverCompareCartesian','toggleSpikelines'],
@@ -79,8 +79,7 @@ let machine_humi_idct = document.querySelectorAll('#machine_hum_idct  .idct-numb
 // init functions
 // **************************************
 generateEventPlot()
-generateHardnessPlot()
-repositionChart()
+tools.generateHardnessPlot('hardness_graph',0)
 
 
 
@@ -187,41 +186,13 @@ function generateEventPlot(){
       width: 400,
       height: 300,
       margin: plotMargin,
-      autosize: true,
+      autosize: false,
       font: { color: "dimgray", family: "Arial", size: 10}
     };
     
     Plotly.newPlot('event_graph', data, layout,config);
 }
 
-function generateHardnessPlot(){
-    const traceArr = genTraceForHardnessPlot(batchInfoForSamples.length);
-  
-    var data = traceArr;
-    
-    var layout = {
-      xaxis: {
-        title: '℃',
-        zeroline: false,
-        showline: true
-      },
-      yaxis: {
-        title: 'hardness',
-        range: [0, 100],
-        zeroline: false,
-        showline: true
-      },
-      width: 400,
-      height: 300,
-      margin: plotMargin,
-      autosize: true,
-      font: { color: "dimgray", family: "Arial", size: 10}
-    };
-    
-    Plotly.newPlot('hardness_graph', data, layout, config);
-  }
-
-  
 function repositionChart(){
   var update = {
     autosize: true,
@@ -317,8 +288,6 @@ function connect() {
           updateServerSeqFolder(data);
           break;
         case 'update_cur_status':
-          // updateValue('actualTempGauge', data.temp);
-          // updateValue('actualHumGauge', data.hum);
           break;
         case 'update_step_result':
           updateSingleStep(data);
@@ -496,11 +465,14 @@ function loadSeqFromServer(){
 };
 
 function updateSequence(res){
-  test_flow.setup = res.setup;
-  test_flow.main = res.main;
-  test_flow.loop = res.loop;
-  test_flow.teardown = res.teardown;
-  seqRend.sortSeq('testSeqContainer', test_flow.setup, test_flow.main, test_flow.teardown);
+  console.log('[res]', res)
+  if (res !== undefined){
+    test_flow.setup = res.setup;
+    test_flow.main = res.main;
+    test_flow.loop = res.loop;
+    test_flow.teardown = res.teardown;
+    seqRend.sortSeq('testSeqContainer', test_flow.setup, test_flow.main, test_flow.teardown, false);
+  }
 }
 
 function getBatchInfo(){
@@ -536,19 +508,18 @@ function immediate_start_test(){
   stopBtn_enable();
   $('#testSeqContainer li').removeClass(run_status_classes).addClass('run-init');
   getBatchInfo();
-  generateEventPlot();
-  generateHardnessPlot();
-  repositionChart();
   replotSampleMonitorCircles()
   markers=[];
   const onlyOccupySamples = batchInfoForSamples.filter(elm=>elm.status==='filled')
   ws.send(tools.parseCmd('run_seq',{batchInfoForSamples:onlyOccupySamples}));
+  tools.generateHardnessPlot('hardness_graph',onlyOccupySamples.length);
+  generateEventPlot();
+  repositionChart();
   markCurrentSample(0)
 }
 
 function markCurrentSample(sampldIdx){
-  const samples = $('#sampleCircleStatus .uutfilled').removeClass('curSample')
-  console.log(samples)
+  $('#sampleCircleStatus .uutfilled').removeClass('curSample');
   $('#sampleCircleStatus .uutfilled').each((idx, elm)=>{
     if (idx===sampldIdx){
       $(elm).addClass('curSample')
@@ -600,7 +571,6 @@ function updateSingleStep(res){
 }
 
 function updateStepByCat(res){  
-  console.log(`stepname: ${res.name}, status: ${res.status}, batch: ${res.batch}, sampld id: ${res.sampleIndex}`)
   let batch = res.batch;
   let sampleIndex = res.sampleIndex;
   let stepid = res.stepid;
@@ -623,6 +593,7 @@ function updateStepByCat(res){
       curProgs.val(progs);
       break;
     case 'measure':
+      console.log('[result]',result, '[sampleIndex]',sampleIndex)
       // h_data_y.push(value)
       if (result == 'PASS'){
         markCurrentSample(0)
@@ -631,7 +602,7 @@ function updateStepByCat(res){
         tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value,y2val=null,sampleId=sampleIndex)
         tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp,value)
       }else if (result == 'MEAR_NEXT'){
-        markCurrentSample(sampleIndex)
+        markCurrentSample(sampleIndex+1)
         curProgs.val(progs);
         tools.updateNumIndicator(machine_hard_idct,value, 1)
         tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value,y2val=null,sampleId=sampleIndex)
@@ -734,12 +705,6 @@ const updateLoadedPathObj = (abspath) => {
   return loadSeqPathObj
 }
 
-// detect select language
-ipcRenderer.on('trigger_tanslate', (event)=>{
-  if(test_flow.setup.para !== undefined){
-    $('#testSeqContainer').html(seqRend.refreshSeq(test_flow,false))
-  }
-})
 
 
 // **************************************
@@ -865,18 +830,33 @@ $('#sampleBatchConfigClearAllBtn').on('click', ()=>{
 })
 
 // for move rotation table
+$('#moveLastBtn').on('click',()=>{
+  ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableLast')));
+})
+
+$('#moveHomeBtn').on('click',()=>{
+  ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableHome')));
+})
+
+$('#moveNextBtn').on('click',()=>{
+  ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableNext')));
+})
+
 $(document).keydown(function(e){ 
   let code = e.which;
   if (enableKeyDetect){
     if (code == 37){
       // move last
       $('#moveLastBtn').focus();
+      ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableLast')));
     }else if (code == 39){
       // move next
       $('#moveNextBtn').focus();
+      ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableNext')));
     }else if (code == 38 || code == 40){
       // move home
       $('#moveHomeBtn').focus();
+      ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableHome')));
     }else{
   
     }
@@ -895,6 +875,16 @@ $(window).resize((e)=>{
 })
 
 $('#button-run').on('click',()=>{
-  replotSampleMonitorCircles()
+  replotSampleMonitorCircles();
+  repositionChart()
 })
 
+
+
+// detect select language
+ipcRenderer.on('trigger_tanslate', (event)=>{
+  console.log('[test_flow.setup.para]',test_flow.setup.subitem)
+  if(test_flow.setup.subitem !== undefined){
+    $('#testSeqContainer').html(seqRend.refreshSeq(test_flow,false))
+  }
+})

@@ -168,24 +168,27 @@ module.exports = {
       },
 
     generateStartSeq: function (setup_seq, editable=false) {
-    let stepParaText = "";
-    let curstr = `
-    <li class='w3-flat-nephritis' data-stepid=-1>
-        <div class='w3-bar'>
-        <a href="#" class='w3-bar-item'>
-            ${module.exports.genIconByCat(setup_seq.cat, setup_seq.subitem['paras'])}${window.lang_data['seq_sequence_setup']}${stepParaText}
-        </a>
-        <div class="w3-bar-item w3-right lopCount">00</div>
-        ${editable?
-            `<div class='w3-bar-item w3-right w3-small' style='width:50px' >${window.lang_data['seq_delete']}</div>
-            <div class='w3-bar-item w3-right w3-small' style='width:50px' >${window.lang_data['seq_enable']}</div>`
-            :
-            ``
-            }
-        </div> 
-    </li>
-    `;
-    return curstr;
+        let stepParaText = "";
+        if(setup_seq.subitem!==undefined){
+            let curstr = `
+            <li class='w3-flat-nephritis' data-stepid=-1>
+                <div class='w3-bar'>
+                <a href="#" class='w3-bar-item'>
+                    ${module.exports.genIconByCat(setup_seq.cat, setup_seq.subitem['paras'])}${window.lang_data['seq_sequence_setup']}${stepParaText}
+                </a>
+                <div class="w3-bar-item w3-right lopCount">00</div>
+                ${editable?
+                    `<div class='w3-bar-item w3-right w3-small' style='width:50px' >${window.lang_data['seq_delete']}</div>
+                    <div class='w3-bar-item w3-right w3-small' style='width:50px' >${window.lang_data['seq_enable']}</div>`
+                    :
+                    ``
+                    }
+                </div> 
+            </li>
+            `;
+            return curstr;
+        }
+    
     },
 
     genTeardownTest: function (paras=null){
@@ -199,22 +202,23 @@ module.exports = {
     },
     
     generateEndSeq: function (teardown_seq, editable=false) {
-    let stepParaText = module.exports.genShortParaText(teardown_seq.cat, teardown_seq.subitem);
-    let curstr = `
-    <li class='w3-flat-alizarin' data-stepid=9999>
-        <div class='w3-bar'>
-            <a href="#" class='w3-bar-item'>
-                ${module.exports.genIconByCat(teardown_seq.cat, teardown_seq.subitem['paras'])}${window.lang_data['seq_sequence_teardown']}${stepParaText}
-            </a>
-        </div>
-        ${editable?'':module.exports.genProgBarByCat(teardown_seq.cat)}  
-        
-    </li>
-    `;
-    return curstr;
+        if(teardown_seq.subitem!==undefined){
+            let stepParaText = module.exports.genShortParaText(teardown_seq.cat, teardown_seq.subitem);
+            let curstr = `
+            <li class='w3-flat-alizarin' data-stepid=9999>
+                <div class='w3-bar'>
+                    <a href="#" class='w3-bar-item'>
+                        ${module.exports.genIconByCat(teardown_seq.cat, teardown_seq.subitem['paras'])}${window.lang_data['seq_sequence_teardown']}${stepParaText}
+                    </a>
+                </div>
+                ${editable?'':module.exports.genProgBarByCat(teardown_seq.cat)}  
+                
+            </li>
+            `;
+            return curstr;
+        }
     },
     refreshSeq: function (test_flow,editable=false){
-        console.log(test_flow)
         let refreshedHTML = '';
         refreshedHTML += module.exports.generateStartSeq(test_flow.setup, editable)
         refreshedHTML += module.exports.generateSeq(test_flow.main, editable)

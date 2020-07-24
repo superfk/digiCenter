@@ -1,7 +1,5 @@
 const { ipcRenderer } = require('electron');
-const app = require('electron').remote.app;
-const path = require('path');
-const appRoot = app.getAppPath();
+const appRoot = require('electron-root-path').rootPath;
 var moment = require('moment');
 var systime_hook = document.getElementById('systime');
 let tools = require('./assets/shared_tools');
@@ -192,6 +190,30 @@ function refresh_systemtime(intv) {
 
 refresh_systemtime(1000);
 
+function updatefoot(msg, color='w3-red'){
+  document.getElementById("footStatus").innerHTML=msg;
+}
+
+// show modal event
+ipcRenderer.on('show-info-alert',(event,title,msg)=>{
+  document.getElementById("modal_info_message_title").innerHTML = title;
+  document.getElementById("modal_info_message_text").innerHTML = msg;
+  document.getElementById("modal_info_message").style.display="block";
+})
+ipcRenderer.on('show-warning-alert',(event,title,msg)=>{
+  document.getElementById("modal_warning_message_title").innerHTML = title;
+  document.getElementById("modal_warning_message_text").innerHTML = msg;
+  document.getElementById("modal_warning_message").style.display="block";
+  updatefoot(msg,'w3-yellow')
+})
+ipcRenderer.on('show-alert-alert',(event,title,msg)=>{
+  document.getElementById("modal_alert_message_title").innerHTML = title;
+  document.getElementById("modal_alert_message_text").innerHTML = msg;
+  document.getElementById("modal_alert_message").style.display="block";
+  updatefoot(msg,'w3-red')
+})
+
+
 // change section event
 list = document.getElementsByClassName("nav-button");
 for (var i = 0; i < list.length; i++) {
@@ -371,7 +393,6 @@ function autoUpdateLang(){
   });
   ipcRenderer.send('trigger_tanslate')
 }
-
 
 function init_hw(){
   ws.send(tools.parseCmd('init_hw'));

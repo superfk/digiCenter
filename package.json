@@ -24,7 +24,7 @@
       "output": "builds"
     },
     "win": {
-      "icon": "img/icon.ico",
+      "icon": "img/appIcon.png",
       "files": [
         "**/*",
         "ext_modules/stimulsoft-Reports.JS-2020.2.2/Css/*",
@@ -39,13 +39,15 @@
         "!**/db_autoupdate/*",
         "!**/forTesting/*",
         "!**/.git/*",
-        "!**/__pycache__/*"
+        "!**/__pycache__/*",
+        "!**/doc/*"
       ],
       "extraFiles": [
         "config.json",
         "pyserver_dist",
         "lang",
-        "Report.mrt"
+        "Report.mrt",
+        "doc"
       ],
       "target": [
         {
@@ -85,6 +87,7 @@
     "popper.js": "^1.15.0",
     "stimulsoft-reports-js": "^2020.2.2",
     "tabulator": "^0.2.40",
+    "tabulator-tables": "^4.7.2",
     "uikit": "^3.2.3",
     "ws": "^7.2.1"
   },

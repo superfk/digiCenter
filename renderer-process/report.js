@@ -1,5 +1,6 @@
 const {ipcRenderer} = require("electron");
 var moment = require('moment');
+var Tabulator = require('tabulator-tables');
 let tools = require('../assets/shared_tools');
 let ws
 
@@ -29,6 +30,8 @@ const operatorField = document.getElementById('operator-field');
 var startDateField = document.getElementById('date-start');
 var endDateField = document.getElementById('date-end');
 const queryData = document.getElementById('query-data');
+const historyChart = document.getElementById('historyChart_plot')
+const hardnessVStempChart = document.getElementById('hardnessVStemp_plot')
 
 const exportStart = document.getElementById('export-start');
 
@@ -39,6 +42,76 @@ const config = {
   responsive: true
 };
 
+// Batch_name: "ersgherg"
+// Hardness_result: 53.4
+// Humidity: 50.086
+// Math_method: "mean"
+// Operator: "BareissAdmin"
+// Project_name: "reheasrh"
+// Raw_data: "[53.2, 53.7]"
+// Recordtime: "2020/07/20 10:09:37.156020"
+// Sample_counter: 0
+// Seq_name: "C:\data_exports\seq_files\demoSeq.seq"
+// Seq_step_id: 3
+// Temperature: 28.246
+
+var groupTable = new Tabulator("#groupTableContainer", {
+  height:500,
+  layout:"fitColumns",
+  printAsHtml:true,
+  printStyled:true,
+  printHeader:"<h1>Measurement Report<h1>",
+  printFooter: historyChart,
+  movableRows:true,
+  pagination:"local", //enable local pagination.
+  paginationSize:50, // this option can take any positive integer value (default = 50)
+  groupStartOpen:[true,true],
+  groupBy:["Project_name", "Batch_name"],
+  initialSort:[
+    {column:"Project_name", dir:"asc"}, //sort by this first
+    {column:"Batch_name", dir:"asc"},
+    {column:"Sample_counter", dir:"asc"},
+  ],
+  columns:[
+      {title: 'Project', field:"Project_name",sorter:"string",dir:"asc",print:false},
+      {title: 'Batch', field:"Batch_name",sorter:"string",dir:"asc",print:false},
+      {title: 'Sample No.', field:"Sample_counter",sorter:"number",dir:"asc"},
+      {title: 'Temperature', field:"Temperature",sorter:"number"},
+      {title: 'Hardness', field:"Hardness_result",sorter:"number"},
+      
+  ],
+  groupHeader: function(value, count, data, group){
+    console.log(data)
+    // tools.generateHardnessPlot('historyChart',0)
+    // tools.plotly_addNewDataToPlot('historyChart',actTemp,value,y2val=null,sampleId=sampleIndex)
+    const groupField = group._group.field
+    if (groupField === 'Project_name'){
+      return "<span margin-left:10px;'>Project: " + value + "</span>";
+    }else{
+      return "<span margin-left:10px;'>Batch: " + value + "</span>" 
+      + "<span style='color:#d00; margin-left:10px;'>(" 
+      + count + " item)</span>";
+    }
+  },
+  groupHeaderPrint: function(value, count, data, group){
+    const groupField = group._group.field
+    if (groupField === 'Project_name'){
+      return "<span margin-left:10px;'>Project: " + value + "</span>";
+    }else{
+      return "<span margin-left:20px;'>Batch: " + value + "</span>" 
+      + "<span style='color:#d00; margin-left:10px;'>(" 
+      + count + " item)</span>";
+    }
+  },
+});
+
+const translateCol = ()=> [
+  {title: window.lang_data.run_project_title, field:"Project_name",sorter:"string",dir:"asc",print:false},
+  {title: window.lang_data.run_batch_title, field:"Batch_name",sorter:"string",dir:"asc",print:false},
+  {title: window.lang_data.modal_moving_sample_sampleID, field:"Sample_counter",sorter:"number",dir:"asc"},
+  {title: window.lang_data.main_indicator_temperature, field:"Temperature",sorter:"number"},
+  {title: window.lang_data.main_indicator_hard, field:"Hardness_result",sorter:"number"},
+  ]
 
 // **************************************
 // websocket functions
@@ -143,7 +216,10 @@ var savelog = function(msg, type='info', audit=0){
 }
 
 function showData(res){
+  // tools.generateHardnessPlot('hardnessVStemp_plot',onlyOccupySamples.length);
+  
   if (typeof res !== 'undefined' && res.length > 0){
+    setGroupTableData(res);
     createTable(res);
     let x_val = res.map(a=>{
       let dateB = moment(new Date(a.Recordtime)).format('YYYY/MM/DD hh:mm:ss');
@@ -157,10 +233,11 @@ function showData(res){
     setTimeout(function(){
       ipcRenderer.send('abort-indet-progressbar');
     },500);
-    // chartRelayout('hardnessVStemp_plot');
+    // chartRelayout('historyChart_plot');
   }else{
+    setGroupTableData([]);
     emptyTable();
-    cleraChart('hardnessVStemp_plot');
+    cleraChart('historyChart_plot');
     ipcRenderer.send('completed-indet-progressbar','done!');
     setTimeout(function(){
       ipcRenderer.send('abort-indet-progressbar');
@@ -201,7 +278,6 @@ var getExportOptions = function(){
     // it is checked
     opt.push('excel');
   }
-  console.log(opt);
   return opt;
 }
 
@@ -209,9 +285,10 @@ exportStart.addEventListener('click', (event) => {
   savelog('Click export to file button', 'info', 1);
   let t = $('#test-data-table-in-report').DataTable();
   let tableData = t.data().toArray();
-  let fpath = document.getElementById('export-filename');
+  let fpath = document.getElementById('export-filename').value;
+  exportGroupTable(fpath)
   let expOpt = getExportOptions()
-  ws.send(tools.parseCmd('export_test_data_from_client',{'tabledata':tableData, 'path':fpath.value, 'option':expOpt}));
+  ws.send(tools.parseCmd('export_test_data_from_client',{'tabledata':tableData, 'path':fpath, 'option':expOpt}));
 })
 
 function createTable(tableData) {
@@ -323,7 +400,7 @@ function generateEventPlot(xtime,hardnessdata,tempdata){
       font: { color: "dimgray", family: "Arial", size: 10}
     };
     
-    Plotly.newPlot('hardnessVStemp_plot', data, layout,config);
+    Plotly.newPlot('historyChart_plot', data, layout,config);
 }
 
 function cleraChart(plot_id){
@@ -339,11 +416,11 @@ function repositionChart(){
   var update = {
     autosize: true
   };
-  if (!$('#hardnessVStemp_plot').html()===''){
+  if (!$('#historyChart_plot').html()===''){
     // check if chart has data, if no data, the following function will throw error
-    Plotly.relayout('hardnessVStemp_plot', update);
+    Plotly.relayout('historyChart_plot', update);
   }
-  Plotly.relayout('hardnessVStemp_plot', update);
+  Plotly.relayout('historyChart_plot', update);
 }
 
 generateEventPlot();
@@ -373,3 +450,30 @@ $('#call-designer').on('click', ()=>{
 function createDesigner(data) {
   ipcRenderer.send('call-report-designer-window', data);
 }
+
+function setGroupTableData(res){
+  let gpTableData = res.map((elm, idx)=>{
+    let newElm = {...elm}
+    newElm.id = idx
+    return newElm
+  })
+  groupTable.setColumns(translateCol()) 
+  groupTable.setData(gpTableData);
+}
+
+function exportGroupTable(dest){
+  groupTable.download("csv", dest+'.csv');
+}
+
+function printTable(){
+  groupTable.print(false, true);
+}
+
+// $('#print-test-data').on('click',()=>{
+//   printTable()
+// })
+
+// detect select language
+ipcRenderer.on('trigger_tanslate', (event)=>{
+  groupTable.setColumns(translateCol()) 
+})

@@ -1,2 +1,2 @@
-pyinstaller api.py --distpath ..\pyserver_dist
+pyinstaller --onefile api.spec --distpath ..\pyserver_dist\api
 pause

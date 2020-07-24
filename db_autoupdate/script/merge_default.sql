@@ -12,14 +12,13 @@ WHEN NOT MATCHED BY TARGET THEN
 OUTPUT $action;
 
 MERGE dbo.[FunctionList] AS Target
-USING (SELECT [Functions], [Tree_index], [Display_order], [en],[zh_tw],[de] FROM dbo.[FunctionList_temp]) AS Source
+USING (SELECT [Functions], [Tree_index], [Display_order] FROM dbo.[FunctionList_temp]) AS Source
 ON (Target.[Functions] = Source.[Functions])
 WHEN MATCHED THEN
-    UPDATE SET Target.[Tree_index] = Source.[Tree_index], Target.[Display_order] = Source.[Display_order], 
-    Target.[en] = Source.[en], Target.[zh_tw] = Source.[zh_tw], Target.[de] = Source.[de]
+    UPDATE SET Target.[Tree_index] = Source.[Tree_index], Target.[Display_order] = Source.[Display_order]
 WHEN NOT MATCHED BY TARGET THEN
-    INSERT ([Functions], [Tree_index], [Display_order], [en], [zh_tw], [de])
-    VALUES (Source.[Functions], Source.[Tree_index], Source.[Display_order], Source.[en], Source.[zh_tw], Source.[de])
+    INSERT ([Functions], [Tree_index], [Display_order])
+    VALUES (Source.[Functions], Source.[Tree_index], Source.[Display_order])
 OUTPUT $action;
 
 MERGE dbo.[UserList] AS Target
