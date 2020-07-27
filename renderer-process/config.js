@@ -13,7 +13,7 @@ const btn_to_choose_expFolder = document.getElementById("choose_export_folder_bt
 const export_path = document.getElementById("export_path");
 const db_server = document.getElementById("db_server");
 const apply_change_general = document.getElementById("apply_change_general");
-const btn_getHostName = document.getElementById("auto_getHostname_btn");
+// const btn_getHostName = document.getElementById("auto_getHostname_btn");
 const computerName = document.getElementById("computerName");
 const openTeachPosPdf = document.getElementById('open_teach_pos_pdf');
 let wsReady = false
@@ -62,10 +62,11 @@ function connect() {
               digitest_com.value = data;
               break;
             case 'get_export_folder':
+              console.log('export_path.value', data)
               export_path.value = data;
               break;
             case 'get_db_server':
-              db_server.value = data;
+              // db_server.value = data;
               break;
             case 'reply_checking_config':
               if (data){
@@ -277,10 +278,11 @@ function updatesChecker(configs){
 }
 
 btn_to_choose_expFolder.addEventListener('click', (event) => {
-  ipcRenderer.send('open-folder-dialog', 'update-export-folder');
+  ipcRenderer.send('open-folder-dialog', export_path.value , 'update-export-folder');
 });
 
 ipcRenderer.on('update-export-folder', (event, folder) => {
+  console.log(folder)
   export_path.value = folder;
 })
 
@@ -289,22 +291,22 @@ apply_change_general.addEventListener('click', (event) => {
   let ip = machine_ip.value;
   let COM = digitest_com.value;
   let exp_path = export_path.value;
-  let db_ser = db_server.value;
+  // let db_ser = db_server.value;
   let result = {};
   result['machine_ip'] = ip;
   result['digitest_COM'] = COM;
   result['export_folder'] = exp_path;
-  result['db_server'] = db_ser;
+  // result['db_server'] = db_ser;
   update_machine_remote(ip);
   update_digitest_remote(COM);
   update_default_export_folder(exp_path);
-  update_database_server(db_ser);
+  // update_database_server(db_ser);
   updatesChecker(result);
 });
 
-btn_getHostName.addEventListener('click', (event) => {
-  ws.send(tools.parseCmd('getHostName'));
-});
+// btn_getHostName.addEventListener('click', (event) => {
+//   ws.send(tools.parseCmd('getHostName'));
+// });
 
 // ===============================================================
 // Teach Pos Panel                                            |

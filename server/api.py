@@ -320,7 +320,7 @@ class PyServerAPI(object):
         results.append(configs['machine_ip'] == self.config['system']['machine_ip'])
         results.append(configs['digitest_COM'] == self.config['system']['digitest_COM'])
         results.append(configs['export_folder'] == self.config['system']['default_export_folder'])
-        results.append(configs['db_server'] == self.config['system']['database']["server"]) 
+        # results.append(configs['db_server'] == self.config['system']['database']["server"]) 
         await self.sendMsg(websocket,'reply_checking_config',all(results))
     
     async def getHostName(self, websocket):

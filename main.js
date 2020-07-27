@@ -9,6 +9,8 @@ const isDev = require('electron-is-dev');
 const PDFWindow = require('electron-pdf-window')
 let tools = require('./assets/shared_tools');
 let ws;
+const taskkill = require('taskkill');
+const find = require('find-process');
 
 
 function connect() {
@@ -136,15 +138,28 @@ const createPyProc = () => {
   if (pyProc != null) {
     //console.log(pyProc)
     console.log('child process success on port ' + port);
-    
-
   }
 }
 
-const exitPyProc = () => {
-  process.kill(pyProc.pid);
-  pyProc = null;
-  pyPort = null;
+const exitPyProc = (e) => {
+  e.preventDefault()
+  find('name', 'api.exe', true)
+  .then(function (list) {
+    console.log('there are %s api.exe process(es)', list.length);
+    const apiPids = list.map(elm=>elm.pid)
+    console.log('api.exe pid:', apiPids);
+    try{
+      (async () => {
+        await taskkill(apiPids,{force: true, tree: true});
+        await ws.close()
+        ws = null;
+        app.exit(0)
+      })();
+      
+    }catch (err) {
+  
+    }
+  });
 }
 
 // init config and database
@@ -342,12 +357,12 @@ ipcMain.on('open-folder-dialog', (event, default_Path, calback) => {
   dialog.showOpenDialog({
     properties: ['openDirectory'],
     defaultPath: default_Path,
-  }, (files) => {
-    if (files) {
-      console.log(files)
-      event.sender.send(calback, files[0])
+  }).then(result => {
+    if (!result.canceled) {
+      console.log(result.filePaths)
+      event.reply(calback, result.filePaths[0])
     }
-  })
+  }).catch(err=>{console.log(err)})
 })
 
 app.on('window-all-closed', (e) => {
