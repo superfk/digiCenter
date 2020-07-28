@@ -329,7 +329,8 @@ def add_months(sourcedate, months):
     return datetime.datetime(year, month, day, hour,minutes, seconds)
 
 if __name__=="__main__":
-    db = DB(r"SHAWNNB\SQLEXPRESS", r"BareissAdmin", r"BaAdmin")
+    # db = DB(r"SHAWNNB\SQLEXPRESS", r"BareissAdmin", r"BaAdmin")
+    db = DB(r"(localDB)\BareissLocalDB", r"BareissAdmin", r"BaAdmin")
     db.connect("DigiChamber")
     # db.drop_table("UserPermission")
     # db.close()

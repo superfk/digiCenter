@@ -24,7 +24,7 @@
       "output": "builds"
     },
     "win": {
-      "icon": "img/appIcon.png",
+      "icon": "img/icon.ico",
       "files": [
         "**/*",
         "ext_modules/stimulsoft-Reports.JS-2020.2.2/Css/*",

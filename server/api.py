@@ -43,7 +43,8 @@ class PyServerAPI(object):
         logger.add(sys.stdout, format="{time} - {level} - {message}")
         logger.add(r"systemlog/{time:YYYY-MM-DD}/file_{time:YYYY-MM-DD}.log", rotation="5 MB")
         self.lg = logger
-        self.db = DB(r"SHAWNNB\SQLEXPRESS", 'BareissAdmin', 'BaAdmin')
+        # self.db = DB(r"SHAWNNB\SQLEXPRESS", 'BareissAdmin', 'BaAdmin')        
+        self.db = DB(r"(localDB)\BareissLocalDB", r"BareissAdmin", r"BaAdmin")
         self.userMang = UserManag(self.db,"Guest", "Guest", 0, True)
         self.config = None
         self.productProcess = DigiChamberProduct('digiCenter',r"C:\\data_exports",self.sendMsg,self.saveTestData)
@@ -53,6 +54,7 @@ class PyServerAPI(object):
         self.langFolder = ''
         self.batch = None
         self.lang_data = None
+        self.db.connect('DigiChamger')
 
     async def register(self,websocket):
         self.users.add(websocket)
@@ -328,7 +330,8 @@ class PyServerAPI(object):
     
     async def backend_init(self, websocket):
         # self.db = DB(self.config['system']['database']['server'], 'BareissAdmin', 'BaAdmin')
-        self.db = DB(r'' + os.environ['COMPUTERNAME'] + r'\SQLEXPRESS', 'BareissAdmin', 'BaAdmin')
+        # self.db = DB(r'' + os.environ['COMPUTERNAME'] + r'\SQLEXPRESS', 'BareissAdmin', 'BaAdmin')
+        self.db = DB(r'(localDB)\BareissLocalDB', 'BareissAdmin', 'BaAdmin')
         res = {}
         if not self.db.connect('DigiChamber'):
             res['result']=0
