@@ -230,5 +230,6 @@
   "moveLastBtn":"To Last Position",
   "moveHomeBtn":"To Home",
   "moveNextBtn":"To Next Position",
-  "sampleSetupConfirmBtn":"Confirm"
+  "sampleSetupConfirmBtn":"Confirm",
+  "goToIndexBtn":"Go To Index"
 }

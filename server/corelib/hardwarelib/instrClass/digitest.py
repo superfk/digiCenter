@@ -90,6 +90,7 @@ class RotationState:
         print('N {}, n {}'.format(N,n))
         newIdx = N*n - 1
         self.index = newIdx % len(self.pathList)
+        self.atHome = False
 
 class Digitest(BaInstr):
     def __init__(self):
@@ -210,10 +211,10 @@ class Digitest(BaInstr):
         if self.isConnectRotation():
             ret = self.write_and_read('ROT_Nn','{},{}'.format(0,0))
             if ret == '"OUT OF RANGE"':
-                self.rotStatus.setHomePos(False)
+                # self.rotStatus.setHomePos(False)
                 return False, ret
             else:
-                self.rotStatus.setHomePos(True)
+                # self.rotStatus.setHomePos(True)
                 return True, 'ok'
     
     def set_rotation_pos(self,sample_N, mear_pos_n):
@@ -222,7 +223,7 @@ class Digitest(BaInstr):
             if ret == '"OUT OF RANGE"':
                 return False, ret
             else:
-                self.rotStatus.setPosition(sample_N, mear_pos_n)
+                # self.rotStatus.setPosition(sample_N, mear_pos_n)
                 return True, 'ok'
         else:
             return True, 'ok'
@@ -230,6 +231,9 @@ class Digitest(BaInstr):
     def goNext(self):
         if self.isConnectRotation():
             (N, n) = self.rotStatus.getNextPos()
+            print('')
+            print('############ Next Position N{} n{}'.format(N,n))
+            print('')
             success, res = self.set_rotation_pos(N,n)
             return success, res
         else:
@@ -446,22 +450,24 @@ class DummyDigitest(BaInstr):
         if self.isConnectRotation():
             ret = True
             if ret == '"OUT OF RANGE"':
-                self.rotStatus.setHomePos(False)
+                # self.rotStatus.setHomePos(False)
                 return False, ret
             else:
-                self.rotStatus.setHomePos(True)
+                # self.rotStatus.setHomePos(True)
                 return True, 'ok'
         else:
             return True, 'ok'
     
     def set_rotation_pos(self,sample_N, mear_pos_n):
-        self.rotStatus.setPosition(sample_N, mear_pos_n)
+        print('')
+        print('############ Next Position N {}, n {} ##########'.format(sample_N,mear_pos_n))
+        print('')
+        # self.rotStatus.setPosition(sample_N, mear_pos_n)
         return True, 'ok'
     
     def goNext(self):
         if self.isConnectRotation():
             (N, n) = self.rotStatus.getNextPos()
-            print("N {}, n {}".format(N,n))
             success, res = self.set_rotation_pos(N,n)
             return success, res
         else:

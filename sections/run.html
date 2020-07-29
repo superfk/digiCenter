@@ -215,12 +215,22 @@
                             <svg id="sampleCircle" width="100%" viewBox="0 0 600 600"></svg>
                         </div>                        
                         <div class="sampleBatchCircleToolbar">
-                            <button id='moveLastBtn' data-auth='moveLastBtn' class="w3-button w3-border w3-center moveBtn" type="button" 
-                                ><i class="fas fa-chevron-left"></i> <span data-lang='moveLastBtn' data-lang_type='innertext'>To Last Sample</span></button>
-                            <button id='moveHomeBtn' data-auth='moveHomeBtn' class="w3-button w3-border w3-center moveBtn" type="button" 
+                            <div class="goToIndexRow">
+                                <button id='moveHomeBtn' data-auth='moveHomeBtn' class="w3-button w3-border w3-center moveBtn" type="button"
                                 ><i class="fas fa-home"></i> <span data-lang='moveHomeBtn' data-lang_type='innertext'>Go Home</span></button>
-                            <button id='moveNextBtn' data-auth='moveNextBtn' class="w3-button w3-border w3-center moveBtn" type="button" 
-                                ><i class="fas fa-chevron-right"></i> <span data-lang='moveNextBtn' data-lang_type='innertext'>To Next Sample</span></button>
+                            </div>
+                            <!-- <button id='moveLastBtn' data-auth='moveLastBtn' class="w3-button w3-border w3-center moveBtn" type="button" style='display: none;'
+                                ><i class="fas fa-chevron-left"></i> <span data-lang='moveLastBtn' data-lang_type='innertext'>To Last Sample</span></button>
+                            <button id='moveHomeBtn' data-auth='moveHomeBtn' class="w3-button w3-border w3-center moveBtn" type="button"
+                                ><i class="fas fa-home"></i> <span data-lang='moveHomeBtn' data-lang_type='innertext'>Go Home</span></button>
+                            <button id='moveNextBtn' data-auth='moveNextBtn' class="w3-button w3-border w3-center moveBtn" type="button" style='display: none;'
+                                ><i class="fas fa-chevron-right"></i> <span data-lang='moveNextBtn' data-lang_type='innertext'>To Next Sample</span></button> -->
+                            <div class="goToIndexRow">
+                                <button id='goToIndexBtn' data-auth='goToIndexBtn' class="w3-button w3-border w3-center moveBtn" type="button" 
+                                ><i class="fas fa-chevron-right"></i> <span data-lang='goToIndexBtn' data-lang_type='innertext'>Go To Index</span></button>
+                                <input id='goToIndexValue' class="w3-input w3-border" type="number" name="goToIndex" value='1' min='1'>
+                            </div>
+                            
                         </div>
                     </div>
                 </div>

@@ -64,6 +64,8 @@ class DigiChamberProduct(pd_product.Product):
             await self.moveTableHome()
         elif scriptName=='moveTableNext':
             await self.moveTableNext()
+        elif scriptName=='goToIndex':
+            await self.moveTableToIndex(data)
         else:
             self.log_to_db_func('No this case: {}'.format(scriptName), 'error', False)
 
@@ -427,5 +429,13 @@ class DigiChamberProduct(pd_product.Product):
             
     async def moveTableNext(self):
         success, res = self.digiTest.goNextSample()
+        return success, res
+    
+    async def moveTableToIndex(self, index):
+        N = int(index)
+        n = 1
+        if N == 0:
+            n = 0
+        success, res = self.digiTest.set_rotation_pos(N, n)
         return success, res
 

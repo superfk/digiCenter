@@ -230,5 +230,6 @@
   "moveLastBtn":"移动至上个位置",
   "moveHomeBtn":"回原点",
   "moveNextBtn":"移动至下个位置",
-  "sampleSetupConfirmBtn":"确定"
+  "sampleSetupConfirmBtn":"确定",
+  "goToIndexBtn":"转至索引位置"
 }

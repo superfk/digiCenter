@@ -390,7 +390,7 @@ class HardnessStep(DigiCenterStep):
                 self.resultCallback(self.result)
                 time.sleep(0.1)
 
-    def go_next_measurment_process(self):
+    def go_next_measurment_process(self,currentSampleIndex,currentPosition):
         # handle process between different model of digiChamber
         if not self.isRotation_model:
             # self.set_result(self.singleResult['result'],'PAUSE',hardness_dataset=self.singleResult, progs=100) 
@@ -405,8 +405,10 @@ class HardnessStep(DigiCenterStep):
             return None
         else:
             # rotate on next position sample
-            self.lg.debug('rotate to next position of {}'.format(len(self.singleResult['dataset'])))
-            move_completed, response = self.hwDigitest.goNext()
+            N = currentSampleIndex + 1
+            n = currentPosition 
+            self.lg.debug('rotate to next position of {}'.format(n))
+            move_completed, response = self.hwDigitest.set_rotation_pos(N,n)
             if move_completed:
                 return None
             else:
@@ -417,8 +419,8 @@ class HardnessStep(DigiCenterStep):
         # config
         self.config_digitest()
         # rotate on next position sample
-        self.lg.debug('rotate to first sample with position')
-        move_completed, response = self.hwDigitest.set_rotation_pos(1,1)
+        # self.lg.debug('rotate to first sample with position')
+        # move_completed, response = self.hwDigitest.set_rotation_pos(1,1)
         # mear
         for smp in self.batchInfoForSamples:
             self.lg.debug('####### current sample ######')
@@ -428,6 +430,7 @@ class HardnessStep(DigiCenterStep):
             # {'id': 3, 'status': 'filled', 'batchInfo': {'project': '0729', 'batch': '2', 'notes': '', 'seq_name': 'C:\\data_exports\\seq_files\\singletest.seq', 'numSample': 4, 'sampleId': 3}, 'color': 'red'}
             self.lg.debug('{}'.format(smp))
             self.lg.debug('####### current sample ######')
+            n = 1
             while True:
                 if self.isInterrupted():
                     self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
@@ -436,13 +439,25 @@ class HardnessStep(DigiCenterStep):
                 sampleIndex = smp['id']
                 sampleIndexInBatch = smp['batchInfo']['sampleId']
                 self.lg.debug('[sampleIndex] {}'.format(sampleIndex))
+                self.lg.debug('[sampleIndexInBatch] {}'.format(sampleIndexInBatch))
+                
+                # move
+                status = self.go_next_measurment_process(sampleIndex,n)
+                if status == 'move_fail':
+                    self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
+                    return self.result
+
+                # mearsure
                 output_data = self.mear_process()
                 self.lg.debug('[output_data] {}'.format(output_data))
 
+                # record data
                 if output_data:
                     self.add_data(output_data,sampleIndexInBatch)
                     self.lg.debug('[self.singleResult] {}'.format(self.singleResult))
-
+                    n += 1
+                
+                # check mearsure done or not
                 if self.singleResult['done']:
                     # all points in current sample done
                     if sampleIndex >= len(self.batchInfoForSamples)-1:
@@ -463,20 +478,7 @@ class HardnessStep(DigiCenterStep):
                                     batchInfo=smp) 
                     self.resultCallback(self.result)
                     self.reset_result()
-                    status = self.go_next_measurment_process()
-                    if status == 'move_fail':
-                        self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
-                        return self.result
                     break
-                
-                if self.isInterrupted():
-                    self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
-                    return self.result
-
-                status = self.go_next_measurment_process()
-                if status == 'move_fail':
-                    self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
-                    return self.result
 
         return self.result
 

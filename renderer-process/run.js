@@ -12,7 +12,7 @@ let batchForm = document.getElementById('batchInfoForm');
 let sampleBatchConfigForm  = document.getElementById('sampleBatchConfigForm');
 let batchNew = document.getElementById('new_a_batch');
 let batchLoad  = document.getElementById('load_a_batch');
-let seqNameInFormInput = document.querySelectorAll("#sampleBatchConfigForm > input[name='SeqName']")[0]
+let seqNameInFormInput = document.querySelectorAll("#sampleBatchConfigForm  input[name='SeqName']")[0]
 let noteInForm = document.querySelectorAll("#sampleBatchConfigForm > textarea[name='Note']")[0]
 let selectHistoryBatch = document.getElementById('SelectBatch');
 let openSampleSetupListBtn = document.getElementById('openSampleSetupList');
@@ -36,6 +36,7 @@ let batchCounter = 0
 let baseR = 250;
 let baseRStatus = 140;
 let uutN = 25;
+let curSampleIndex = 1;
 let smallCircleOption = {childR: baseR - 30, childTxtR:  baseR - 60, radius: 15, textOption:{
   "font-size": "1.2rem",
   "style": 'fill: black',
@@ -209,7 +210,6 @@ function repositionChart(){
 }
 
 function genrateBatchHistory(batchRecords){
-
   $('#batchHistoryTable').DataTable().destroy();
   
   var my_columns = [
@@ -358,7 +358,7 @@ batchNew.addEventListener('click', ()=>{
 })
 batchLoad.addEventListener('click', ()=>{
   showBatchSelectDialog();
-  batchContent_disable();
+  // batchContent_disable();
   batchConfirmAndStartBtn_enable();
 })
 selectHistoryBatch.addEventListener('click', ()=>{
@@ -465,7 +465,6 @@ function loadSeqFromServer(){
 };
 
 function updateSequence(res){
-  console.log('[res]', res)
   if (res !== undefined){
     test_flow.setup = res.setup;
     test_flow.main = res.main;
@@ -483,13 +482,13 @@ function getBatchInfo(){
 function selectedHistoryBatch(){
   let table = $('#batchHistoryTable').DataTable();
   let isSelected = table.rows( '.selected' ).any();
+  const seqjInput = $("#sampleBatchConfigForm input[name='SeqName']")[0];
   const projInput = $("#sampleBatchConfigForm input[name='Project']")[0];
   const batchjInput = $("#sampleBatchConfigForm input[name='Batch']")[0];
   if (isSelected){
     let selectedData = table.row( '.selected' ).data();
-    console.log(selectedData)
-    updateLoadedPathObj(selectedData.Last_seq_name)
-    $(seqNameInFormInput).val(loadSeqPathObj.name)
+    ret = updateLoadedPathObj(selectedData.Last_seq_name)
+    $(seqjInput).val(ret.name)
     $(projInput).val(selectedData.Project_Name)
     $(batchjInput).val(selectedData.Batch_Name)
     $(noteInForm).val(selectedData.Note);
@@ -593,7 +592,6 @@ function updateStepByCat(res){
       curProgs.val(progs);
       break;
     case 'measure':
-      console.log('[result]',result, '[sampleIndex]',sampleIndex)
       // h_data_y.push(value)
       if (result == 'PASS'){
         markCurrentSample(0)
@@ -830,39 +828,41 @@ $('#sampleBatchConfigClearAllBtn').on('click', ()=>{
 })
 
 // for move rotation table
-$('#moveLastBtn').on('click',()=>{
-  ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableLast')));
+$('#goToIndexBtn').on('click',()=>{
+  const nextIndex = $("#goToIndexValue").val()
+  console.log('nextIndex',nextIndex)
+  ws.send(tools.parseCmd('run_cmd',tools.parseCmd('goToIndex',nextIndex)));
 })
 
 $('#moveHomeBtn').on('click',()=>{
   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableHome')));
 })
 
-$('#moveNextBtn').on('click',()=>{
-  ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableNext')));
-})
+// $('#moveNextBtn').on('click',()=>{
+//   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableNext',curSampleIndex)));
+// })
 
-$(document).keydown(function(e){ 
-  let code = e.which;
-  if (enableKeyDetect){
-    if (code == 37){
-      // move last
-      $('#moveLastBtn').focus();
-      ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableLast')));
-    }else if (code == 39){
-      // move next
-      $('#moveNextBtn').focus();
-      ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableNext')));
-    }else if (code == 38 || code == 40){
-      // move home
-      $('#moveHomeBtn').focus();
-      ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableHome')));
-    }else{
+// $(document).keydown(function(e){ 
+//   let code = e.which;
+//   if (enableKeyDetect){
+//     if (code == 37){
+//       // move last
+//       $('#moveLastBtn').focus();
+//       ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableLast')));
+//     }else if (code == 39){
+//       // move next
+//       $('#moveNextBtn').focus();
+//       ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableNext')));
+//     }else if (code == 38 || code == 40){
+//       // move home
+//       $('#moveHomeBtn').focus();
+//       ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableHome')));
+//     }else{
   
-    }
-  }
+//     }
+//   }
   
-});
+// });
 
 function replotSampleMonitorCircles (){
   statusCircle.innerHTML=''
@@ -878,8 +878,6 @@ $('#button-run').on('click',()=>{
   replotSampleMonitorCircles();
   repositionChart()
 })
-
-
 
 // detect select language
 ipcRenderer.on('trigger_tanslate', (event)=>{
