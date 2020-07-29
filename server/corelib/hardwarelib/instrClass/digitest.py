@@ -29,6 +29,7 @@ class RotationState:
         self.N = N
         self.n = n
         self.pathList = [(sample_N+1, location_n+1) for sample_N in range(self.N) for location_n in range(self.n)]
+        print('pathlist: {}'.format(self.pathList))
     
     def getCurrentPos(self):
         if self.foundHome:
@@ -52,7 +53,12 @@ class RotationState:
                     curIndex = 0
                 else:
                     curIndex += 1
-                curIndex = curIndex % len(self.pathList)
+                # nxtIndex = self.index % len(self.pathList)
+                print('length of self.pathList: {}'.format(len(self.pathList)))
+                print('self.index: {}'.format(curIndex))
+                # print('nxtIndex: {}'.format(nxtIndex))
+                print('')
+                self.atHome = False
                 return self.pathList[curIndex]
         else:
             return (0,0)
@@ -67,7 +73,7 @@ class RotationState:
                     curIndex = -1
                 else:
                     curIndex -= 1
-                curIndex = curIndex % len(self.pathList)
+                self.atHome = False
                 return self.pathList[curIndex]
         else:
             return (0,0)
@@ -81,6 +87,7 @@ class RotationState:
             self.atHome = False
     
     def setPosition(self, N, n):
+        print('N {}, n {}'.format(N,n))
         newIdx = N*n - 1
         self.index = newIdx % len(self.pathList)
 
@@ -137,7 +144,8 @@ class Digitest(BaInstr):
         return self.write_and_read('GET', 'MS_MODE')
     
     def get_single_value(self, dummyTemp=0):
-        ret = self.write_and_read('GET','MS_VALUE')
+        duration = self.get_ms_duration()
+        ret = self.write_and_read('GET','MS_VALUE',value=None, timeout = int(duration)+3)
         if ret == 'FINISHED':
             try:
                 data = self.readline_only()
@@ -234,14 +242,38 @@ class Digitest(BaInstr):
             success, res = self.set_rotation_pos(N,n)
             return success, res
         else:
-            return True, 'ok'      
+            return True, 'ok'
+
+    def goNextSample(self):
+        if self.isConnectRotation():
+            (N, n) = self.rotStatus.getCurrentPos()
+            nextN = N + 1
+            sampleSize, mearCounts = self.get_rotation_info()
+            if N == sampleSize:
+                nextN = 1
+            success, res = self.set_rotation_pos(nextN,n)
+            return success, res
+        else:
+            return True, 'ok'
+
+    def goLastSample(self):
+        if self.isConnectRotation():
+            (N, n) = self.rotStatus.getCurrentPos()
+            nextN = N - 1
+            sampleSize, mearCounts = self.get_rotation_info()
+            if N == 1 or N <=0 :
+                nextN = sampleSize
+            success, res = self.set_rotation_pos(nextN,n)
+            return success, res
+        else:
+            return True, 'ok' 
 
 class DummyDigitest(BaInstr):
     def __init__(self):
         super(DummyDigitest, self).__init__()
         self.dummyCounter = 0
         self.dummyType = '"ROTATION DC"'
-        self.sampleCounts = 4
+        self.sampleCounts = 25
         self.mearCounts = 3
         self.rotStatus = RotationState()
     
@@ -418,20 +450,19 @@ class DummyDigitest(BaInstr):
                 self.rotStatus.setHomePos(False)
                 return False, ret
             else:
-                self.rotStatus.setHomePos(False)
+                self.rotStatus.setHomePos(True)
                 return True, 'ok'
         else:
             return True, 'ok'
     
     def set_rotation_pos(self,sample_N, mear_pos_n):
-        self.sampleCounts = sample_N
-        self.mearCounts = mear_pos_n
         self.rotStatus.setPosition(sample_N, mear_pos_n)
         return True, 'ok'
     
     def goNext(self):
         if self.isConnectRotation():
             (N, n) = self.rotStatus.getNextPos()
+            print("N {}, n {}".format(N,n))
             success, res = self.set_rotation_pos(N,n)
             return success, res
         else:
@@ -444,7 +475,30 @@ class DummyDigitest(BaInstr):
             return success, res
         else:
             return True, 'ok'      
+            
+    def goNextSample(self):
+        if self.isConnectRotation():
+            (N, n) = self.rotStatus.getCurrentPos()
+            nextN = N + 1
+            sampleSize, mearCounts = self.get_rotation_info()
+            if N == sampleSize:
+                nextN = 1
+            success, res = self.set_rotation_pos(nextN,n)
+            return success, res
+        else:
+            return True, 'ok'
 
+    def goLastSample(self):
+        if self.isConnectRotation():
+            (N, n) = self.rotStatus.getCurrentPos()
+            nextN = N - 1
+            sampleSize, mearCounts = self.get_rotation_info()
+            if N == 1 or N <=0 :
+                nextN = sampleSize
+            success, res = self.set_rotation_pos(nextN,n)
+            return success, res
+        else:
+            return True, 'ok' 
 def main():
     ba = DummyDigitest()
     # input = b'GET(MS_MODE),' # exp_crc = '05F9' 
@@ -681,7 +735,16 @@ def mearsure():
     print('Hardness Result: {}'.format(ret))
     ba.close_rs232()
 
+def test():
+    ba = DummyDigitest()
+    ba.open_rs232("COM5")
+    ba.setRotation()
+    ba.set_rotation_home()
+    for i in range(75):
+        ret = ba.set_rotation_pos((i // 3)+1, (i % 3)+1)
+        print(ret)
+
 if __name__ == '__main__':
     # test_rotation_single_mear()
     # test_rotation_graph_mear()
-    mearsure()
+    test()

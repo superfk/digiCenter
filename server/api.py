@@ -45,6 +45,7 @@ class PyServerAPI(object):
         self.lg = logger
         # self.db = DB(r"SHAWNNB\SQLEXPRESS", 'BareissAdmin', 'BaAdmin')        
         self.db = DB(r"(localDB)\BareissLocalDB", r"BareissAdmin", r"BaAdmin")
+        self.db.connect('DigiChamger')
         self.userMang = UserManag(self.db,"Guest", "Guest", 0, True)
         self.config = None
         self.productProcess = DigiChamberProduct('digiCenter',r"C:\\data_exports",self.sendMsg,self.saveTestData)
@@ -54,7 +55,6 @@ class PyServerAPI(object):
         self.langFolder = ''
         self.batch = None
         self.lang_data = None
-        self.db.connect('DigiChamger')
 
     async def register(self,websocket):
         self.users.add(websocket)
@@ -235,7 +235,8 @@ class PyServerAPI(object):
         msg = {'cmd': cmd, 'data': data}
         filter_cmd = ['update_cur_status', 'pong']
         if cmd not in filter_cmd:
-            self.lg.debug('server sent msg: {}'.format(msg))
+            # self.lg.debug('server sent msg: {}'.format(msg))
+            pass
         try:
             await websocket.send(json.dumps(msg))
         except Exception as e:

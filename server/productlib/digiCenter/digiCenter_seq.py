@@ -333,13 +333,15 @@ class HardnessStep(DigiCenterStep):
         self.mode = None
         self.mearTime = None # sec
         self.numTests = 3
+        self.system_numTests = 3
         self.numericMethod = 'mean'
         self.curSampleId = 0
         self.curMearCounts = 0
         self.singleResult = {'dataset':[], 'result':0, 'std':0.0, 'done':False,
-         'method':self.numericMethod, 'totalCounts':self.numTests, 'sampleid':self.curSampleId}
+         'method':self.numericMethod, 'totalCounts':0, 'sampleid':self.curSampleId}
         self.retry = False
         self.overall_result = []
+        self.isRotation_model = False
 
     def set_paras(self,step):
         super().set_paras(step)
@@ -354,6 +356,12 @@ class HardnessStep(DigiCenterStep):
         self.hwDigitest.set_remote(True)
         self.hwDigitest.set_mode(self.mode)
         self.hwDigitest.set_ms_duration(self.mearTime)
+        self.hwDigitest.config(debug=False, wait_cmd = True)
+        try:
+            sampleSize, self.system_numTests = self.hwDigitest.get_rotation_info()
+            self.isRotation_model = self.hwDigitest.isConnectRotation()
+        except:
+            pass
     
     def mear_process(self):
         h_data = None
@@ -384,8 +392,7 @@ class HardnessStep(DigiCenterStep):
 
     def go_next_measurment_process(self):
         # handle process between different model of digiChamber
-        isRotation_model = self.hwDigitest.isConnectRotation()
-        if not isRotation_model:
+        if not self.isRotation_model:
             # self.set_result(self.singleResult['result'],'PAUSE',hardness_dataset=self.singleResult, progs=100) 
             # self.resultCallback(self.result)
             self.commCallback('show_move_sample_dialog',self.singleResult)
@@ -398,7 +405,7 @@ class HardnessStep(DigiCenterStep):
             return None
         else:
             # rotate on next position sample
-            self.lg.debug('rotate on one sample with position {}'.format(len(self.singleResult['dataset'])))
+            self.lg.debug('rotate to next position of {}'.format(len(self.singleResult['dataset'])))
             move_completed, response = self.hwDigitest.goNext()
             if move_completed:
                 return None
@@ -409,12 +416,23 @@ class HardnessStep(DigiCenterStep):
     def do(self):            
         # config
         self.config_digitest()
+        # rotate on next position sample
+        self.lg.debug('rotate to first sample with position')
+        move_completed, response = self.hwDigitest.set_rotation_pos(1,1)
         # mear
         for smp in self.batchInfoForSamples:
+            self.lg.debug('####### current sample ######')
+            # {'id': 0, 'status': 'filled', 'batchInfo': {'project': '0729', 'batch': '2', 'notes': '', 'seq_name': 'C:\\data_exports\\seq_files\\singletest.seq', 'numSample': 4, 'sampleId': 0}, 'color': 'red'}
+            # {'id': 1, 'status': 'filled', 'batchInfo': {'project': '0729', 'batch': '2', 'notes': '', 'seq_name': 'C:\\data_exports\\seq_files\\singletest.seq', 'numSample': 4, 'sampleId': 1}, 'color': 'red'}
+            # {'id': 2, 'status': 'filled', 'batchInfo': {'project': '0729', 'batch': '2', 'notes': '', 'seq_name': 'C:\\data_exports\\seq_files\\singletest.seq', 'numSample': 4, 'sampleId': 2}, 'color': 'red'}
+            # {'id': 3, 'status': 'filled', 'batchInfo': {'project': '0729', 'batch': '2', 'notes': '', 'seq_name': 'C:\\data_exports\\seq_files\\singletest.seq', 'numSample': 4, 'sampleId': 3}, 'color': 'red'}
+            self.lg.debug('{}'.format(smp))
+            self.lg.debug('####### current sample ######')
             while True:
                 if self.isInterrupted():
                     self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
                     return self.result
+                
                 sampleIndex = smp['id']
                 self.lg.debug('[sampleIndex] {}'.format(sampleIndex))
                 output_data = self.mear_process()
@@ -434,7 +452,6 @@ class HardnessStep(DigiCenterStep):
                                         progs=100,
                                         batchInfo=smp
                                         )
-                        self.resultCallback(self.result)
                         self.reset_result()
                         return self.result
                     # go to next sample
@@ -445,25 +462,29 @@ class HardnessStep(DigiCenterStep):
                                     batchInfo=smp) 
                     self.resultCallback(self.result)
                     self.reset_result()
-                    break
-                else:
-                    if self.isInterrupted():
-                        self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
-                        return self.result
-
                     status = self.go_next_measurment_process()
                     if status == 'move_fail':
                         self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
                         return self.result
+                    break
+                
+                if self.isInterrupted():
+                    self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
+                    return self.result
+
+                status = self.go_next_measurment_process()
+                if status == 'move_fail':
+                    self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
+                    return self.result
 
         return self.result
 
     def add_data(self, value, sampleIndex):      
         self.singleResult['dataset'].append(value)
-
-        if self.get_mear_counts() >= self.numTests:
+            
+        if self.get_mear_counts() >= self.get_max_mear_counts():
             self.singleResult['done'] = True
-
+            
         if self.numericMethod == 'median':
             result = np.median(self.singleResult['dataset'])
         else:
@@ -472,15 +493,21 @@ class HardnessStep(DigiCenterStep):
         self.singleResult['result'] = round(result,1)
         self.singleResult['std'] = round(stdev,1)
         self.singleResult['method'] = self.numericMethod
-        self.singleResult['totalCounts'] = self.numTests
+        self.singleResult['totalCounts'] = self.get_max_mear_counts()
         self.singleResult['sampleid'] = sampleIndex
     
+    def get_max_mear_counts(self):
+        if self.isRotation_model:
+            return self.system_numTests
+        else:
+            return self.numTests
+
     def get_mear_counts(self):
         return len(self.singleResult['dataset'])
     
     def reset_result(self):
         self.singleResult = {'dataset':[], 'result':0, 'std':0.0, 'done':False, 
-        'method':self.numericMethod, 'totalCounts':self.numTests, 'sampleid':0}
+        'method':self.numericMethod, 'totalCounts':self.get_max_mear_counts(), 'sampleid':0}
 
 class WaitingStep(DigiCenterStep):
     def __init__(self):

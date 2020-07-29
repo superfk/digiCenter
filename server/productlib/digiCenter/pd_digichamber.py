@@ -61,9 +61,9 @@ class DigiChamberProduct(pd_product.Product):
         elif scriptName=='moveTableLast':
             await self.moveTableLast()
         elif scriptName=='moveTableHome':
-            await self.moveTableLast()
+            await self.moveTableHome()
         elif scriptName=='moveTableNext':
-            await self.moveTableLast()
+            await self.moveTableNext()
         else:
             self.log_to_db_func('No this case: {}'.format(scriptName), 'error', False)
 
@@ -418,7 +418,7 @@ class DigiChamberProduct(pd_product.Product):
         self.digiTest.close_rs232()
     
     async def moveTableLast(self):
-        success, res = self.digiTest.goLast()
+        success, res = self.digiTest.goLastSample()
         return success, res
 
     async def moveTableHome(self):
@@ -426,6 +426,6 @@ class DigiChamberProduct(pd_product.Product):
         return success, res
             
     async def moveTableNext(self):
-        success, res = self.digiTest.goNext()
+        success, res = self.digiTest.goNextSample()
         return success, res
 
