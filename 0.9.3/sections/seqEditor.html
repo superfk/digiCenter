@@ -1,0 +1,134 @@
+ <!-- template -->
+ <template class="task-template">
+    <link rel="stylesheet" type="text/css" href="assets/css/seqEditor.css">
+        <section id="seqEditor-section" class="section js-section u-category-windows" draggable="true">
+            
+            <div class='w3-container w3-cell toolSection'>
+                <div class='secTitle' data-lang='seqEditor_toolbox_title' data-lang_type='innertext'>Toolbox</div>
+                <div class="toolContainer">
+                    <div class="w3-cell-row w3-margin-top">
+                        <div class="w3-container w3-cell w3-center">
+                            <div id='tempBox' class='seqbox'>
+                                <div data-lang='seqEditor_toolbox_temperature' data-lang_type='innertext'>Temperature</div>
+                                <div class='w3-margin-top'><i class="fas fa-thermometer-quarter fa-3x"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w3-cell-row w3-margin-top">
+                        <div class="w3-container w3-cell w3-center">
+                            <div id='hardBox' class='seqbox'>
+                                <div data-lang='seqEditor_toolbox_hard' data-lang_type='innertext'>Hardness</div>
+                                <div class='w3-margin-top'><i class="fas fa-download fa-3x"></i></div>
+                            </div>
+                        </div>    
+                    </div>
+                               
+                    <div class="w3-cell-row w3-margin-top">
+                        <div class="w3-container w3-cell w3-center">
+                            <div id='waitBox' class='seqbox'>
+                                <div data-lang='seqEditor_toolbox_wait' data-lang_type='innertext'>Waiting</div>
+                                <div class='w3-margin-top'><i class="fas fa-hourglass-start fa-3x"></i></div>
+                            </div>
+                        </div>  
+                    </div>
+
+                    <div class="w3-cell-row w3-margin-top">
+                        <div class="w3-container w3-cell w3-center">
+                            <div id='loopBox' class='seqbox'>
+                                <div data-lang='seqEditor_toolbox_loop' data-lang_type='innertext'>Loop</div>
+                                <div class='w3-margin-top'><i class="fas fa-retweet fa-3x"></i></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="w3-cell-row  w3-margin-top" style='display: none !important;'>
+
+                        <div class="w3-container w3-cell w3-center">
+                            <div id='subprogBox' class='seqbox'>
+                                <div data-lang='seqEditor_toolbox_subprog' data-lang_type='innertext'>SubProg</div>
+                                <div class='w3-margin-top'><i class="fas fa-indent fa-3x"></i></div>
+                            </div>
+                        </div>
+                        
+
+                        <div class="w3-container w3-cell w3-center">
+                            <div id='exportBox' class='seqbox'>
+                                <div data-lang='seqEditor_toolbox_export' data-lang_type='innertext'>Export</div>
+                                <div class='w3-margin-top'><i class="fas fa-file-import fa-3x"></i></div>
+                            </div>
+                        </div>
+                    </div>     
+                </div>
+            <!-- end of tool section -->
+            </div>
+
+            <!-- start of mainSeqSection -->
+            <div class='w3-container w3-cell mainSeqSection'>
+                <div class='w3-bar w3-large w3-border-bottom w3-border-lightgray'>
+                    <div class="w3-bar-item" data-lang='seqEditor_main_title' data-lang_type='innertext'>Main Sequence</div>
+                    <a href="#" id='save_seq' data-auth='save_seq' class="w3-bar-item w3-button w3-right" ><i class="far fa-save"></i></a>
+                    <a href="#" id='open_seq' data-auth='open_seq' class="w3-bar-item w3-button w3-right"><i class="far fa-folder-open"></i></a>
+                    <a href="#" id='create_seq' data-auth='create_seq' class="w3-bar-item w3-button w3-right"><i class="far fa-file"></i></a>
+                    
+                    
+                </div>
+                
+                
+                <div class='w3-container mainSeqContainer'>
+                    <ul id='seqContainer'>
+                    </ul>
+                </div>
+
+                <!-- graph section -->
+                <div class='timeHsitorySection'>
+                    <div class='w3-bar w3-large w3-border-bottom w3-border-lightgray'>
+                        <div class="w3-bar-item" data-lang='seqEditor_temp_cahrt_title' data-lang_type='innertext'>Temperature History Chart</div>
+                    </div>
+                    <div id="tempTime_graph"></div>
+
+                <!-- end of graph section -->
+                </div>
+
+            <!-- end of mainSeqSection -->
+            </div>
+
+            
+
+            <div class='w3-container w3-cell'>
+                
+                <div id='rightMenu' class='w3-sidebar w3-bar-block w3-card w3-animate-right' style='display:none;'>
+                    <div class='w3-large w3-margin w3-border-bottom w3-border-lightgray' data-lang='seqEditor_paras_title' data-lang_type='innertext'>Parameters Value</div>
+                    <div class='w3-container w3-cell-row w3-margin-bottom'>
+                        <div class="w3-container w3-cell">
+                            <button id='applyParaPanel' class="w3-bar-item w3-button w3-border w3-leftbar w3-border-green"
+                            data-lang='seqEditor_paras_apply' data-lang_type='innertext'>
+                            Apply 
+                                <i class="fas fa-check" style="color:green"></i>
+                            </button>
+                        </div>
+                        <div class="w3-container w3-cell">
+                            <button id='closeParaPanel' class="w3-bar-item w3-button w3-border w3-leftbar w3-border-red"
+                            data-lang='seqEditor_paras_close' data-lang_type='innertext'>
+                            Close 
+                                <i class="fas fa-times" style="color:red"></i>
+                            </button>
+                        </div>
+                    </div>                  
+
+                    <ul id='paraContainer' class='w3-ul'>
+                    </ul>
+                </div>
+            </div>
+            
+     
+      
+        </section>
+        
+        <script>
+            require('./renderer-process/seqEditor.js');
+            
+        </script>
+        
+      </template>
+      

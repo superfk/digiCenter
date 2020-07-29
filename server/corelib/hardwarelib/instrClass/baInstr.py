@@ -63,7 +63,7 @@ class BaInstr(object):
         pooling_time = 0.25 #second
         max_wait_count = int(timeout // pooling_time)
         counter = 0
-        while counter < max_wait_count:
+        while True:
             combined_cmd = self.make_cmd(cmd, para, value)
             if self.debug:
                 print("Original cmd: {}".format(combined_cmd))

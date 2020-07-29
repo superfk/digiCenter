@@ -1,0 +1,317 @@
+[
+	{
+		"Project_name": "",
+		"Batch_name": "",
+		"Sample_counter": 0,
+		"Temperature": 46.107,
+		"Hardness_result": 0
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 0,
+		"Temperature": 3.551,
+		"Hardness_result": 58
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 0,
+		"Temperature": 29.112,
+		"Hardness_result": 52.7
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 0,
+		"Temperature": 55.088,
+		"Hardness_result": 50.3
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 0,
+		"Temperature": 85.611,
+		"Hardness_result": 49.1
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 0,
+		"Temperature": 116.531,
+		"Hardness_result": 50.9
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 1,
+		"Temperature": 3.665,
+		"Hardness_result": 58
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 1,
+		"Temperature": 29.131,
+		"Hardness_result": 52.9
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 1,
+		"Temperature": 55.08,
+		"Hardness_result": 49.7
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 1,
+		"Temperature": 85.673,
+		"Hardness_result": 49.4
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 1,
+		"Temperature": 116.465,
+		"Hardness_result": 52.5
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 2,
+		"Temperature": 3.626,
+		"Hardness_result": 57.1
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 2,
+		"Temperature": 29.124,
+		"Hardness_result": 53.2
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 2,
+		"Temperature": 54.977,
+		"Hardness_result": 50.2
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 2,
+		"Temperature": 85.752,
+		"Hardness_result": 49.1
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 2,
+		"Temperature": 116.437,
+		"Hardness_result": 51.6
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 3,
+		"Temperature": 3.546,
+		"Hardness_result": 57.9
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 3,
+		"Temperature": 29.28,
+		"Hardness_result": 53.2
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 3,
+		"Temperature": 55.039,
+		"Hardness_result": 49.9
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 3,
+		"Temperature": 85.713,
+		"Hardness_result": 49.6
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 3,
+		"Temperature": 116.568,
+		"Hardness_result": 52
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 4,
+		"Temperature": 3.627,
+		"Hardness_result": 57.3
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 4,
+		"Temperature": 29.154,
+		"Hardness_result": 53
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 4,
+		"Temperature": 54.998,
+		"Hardness_result": 49.8
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 4,
+		"Temperature": 85.749,
+		"Hardness_result": 49.4
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch",
+		"Sample_counter": 4,
+		"Temperature": 116.439,
+		"Hardness_result": 51.3
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 5,
+		"Temperature": 3.678,
+		"Hardness_result": 57.4
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 5,
+		"Temperature": 29.185,
+		"Hardness_result": 52.5
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 5,
+		"Temperature": 55.056,
+		"Hardness_result": 49.7
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 5,
+		"Temperature": 85.771,
+		"Hardness_result": 49
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 5,
+		"Temperature": 116.496,
+		"Hardness_result": 52.7
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 6,
+		"Temperature": 3.641,
+		"Hardness_result": 57.9
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 6,
+		"Temperature": 29.107,
+		"Hardness_result": 52.8
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 6,
+		"Temperature": 54.901,
+		"Hardness_result": 49.8
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 6,
+		"Temperature": 85.781,
+		"Hardness_result": 49.5
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 6,
+		"Temperature": 116.414,
+		"Hardness_result": 52
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 7,
+		"Temperature": 3.589,
+		"Hardness_result": 58.2
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 7,
+		"Temperature": 29.115,
+		"Hardness_result": 52.3
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 7,
+		"Temperature": 55.044,
+		"Hardness_result": 49.5
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 7,
+		"Temperature": 85.757,
+		"Hardness_result": 48.6
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 7,
+		"Temperature": 116.429,
+		"Hardness_result": 52.2
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 8,
+		"Temperature": 3.598,
+		"Hardness_result": 57.5
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 8,
+		"Temperature": 3.598,
+		"Hardness_result": 57.5
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 8,
+		"Temperature": 29.24,
+		"Hardness_result": 52.5
+	},
+	{
+		"Project_name": "0723TestProject",
+		"Batch_name": "0723TestBatch-2",
+		"Sample_counter": 8,
+		"Temperature": 29.24,
+		"Hardness_result": 52.5
+	}
+]

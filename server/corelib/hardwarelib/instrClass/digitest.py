@@ -144,8 +144,7 @@ class Digitest(BaInstr):
         return self.write_and_read('GET', 'MS_MODE')
     
     def get_single_value(self, dummyTemp=0):
-        duration = self.get_ms_duration()
-        ret = self.write_and_read('GET','MS_VALUE',value=None, timeout = int(duration)+3)
+        ret = self.write_and_read('GET','MS_VALUE')
         if ret == 'FINISHED':
             try:
                 data = self.readline_only()
@@ -475,7 +474,7 @@ class DummyDigitest(BaInstr):
             return success, res
         else:
             return True, 'ok'      
-            
+
     def goNextSample(self):
         if self.isConnectRotation():
             (N, n) = self.rotStatus.getCurrentPos()

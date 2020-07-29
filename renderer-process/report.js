@@ -1,4 +1,6 @@
 const {ipcRenderer} = require("electron");
+const path = require('path');
+var fs = require('fs');
 var moment = require('moment');
 var Tabulator = require('tabulator-tables');
 let tools = require('../assets/shared_tools');
@@ -42,6 +44,8 @@ const config = {
   responsive: true
 };
 
+let groupDataExportFilename = null;
+
 // Batch_name: "ersgherg"
 // Hardness_result: 53.4
 // Humidity: 50.086
@@ -54,6 +58,8 @@ const config = {
 // Seq_name: "C:\data_exports\seq_files\demoSeq.seq"
 // Seq_step_id: 3
 // Temperature: 28.246
+
+
 
 var groupTable = new Tabulator("#groupTableContainer", {
   height:500,
@@ -103,6 +109,36 @@ var groupTable = new Tabulator("#groupTableContainer", {
       + count + " item)</span>";
     }
   },
+  downloadReady:function(fileContents, blob){
+    console.log('tabledata',fileContents, 'path',groupDataExportFilename)
+    let tableData = fileContents.split("\n");
+    console.log('tableData',tableData)
+    const header = tableData[0]
+    console.log('header',header)
+    const headerList = header.split(",");
+    console.log('headerList',headerList)
+    const contents = tableData.splice(1)
+    console.log('contents',contents)
+    const newtableData = contents.map((elm,idx)=>{
+      const valueList = elm.split(",");
+      let singleRowObj = {};
+      valueList.forEach((val,index)=>{
+        let hd = headerList[index]
+        const parseVal = extractFirstText(val)
+        let source = {[hd]:parseVal}
+        Object.assign(singleRowObj, source);
+      })
+      return singleRowObj
+    })
+    console.log('tabledata',newtableData)
+    //fileContents - the unencoded contents of the file
+    ws.send(tools.parseCmd('export_test_data_from_client',{'tabledata':newtableData, 'path':groupDataExportFilename, 'option':['csv']}));
+    //blob - the blob object for the download
+
+    //custom action to send blob to server could be included here
+
+    return false; //must return a blob to proceed with the download, return false to abort download
+    },
 });
 
 const translateCol = ()=> [
@@ -159,6 +195,10 @@ function connect() {
             ipcRenderer.send('show-info-alert',data.title, data.res);
           }
           break;
+        case 'get_export_folder':
+          console.log('export_path', data)
+          exportFolder = data;
+          break;
         case 'reply_server_error':
           ipcRenderer.send('show-alert-alert', window.lang_data.modal_alert_title, data.error);
           break;
@@ -187,6 +227,12 @@ function connect() {
 
 connect()
 
+function extractFirstText(str){
+  const matches = str.match(/"(.*?)"/);
+  return matches
+    ? matches[1]
+    : str;
+}
 
 var getNow = function(fmt){
   if(fmt){
@@ -261,6 +307,7 @@ queryData.addEventListener('click', (event) => {
 
 export2fileBtn.addEventListener('click', (event) => {
   savelog('Click export to file button', 'info', 1);
+  ws.send(tools.parseCmd('getExportFolder'));
   let fpath = document.getElementById('export-filename');
   fpath.value = getNow("YYYY-MM-DD_HHmmss");
   ipcRenderer.send('show-file-export');
@@ -286,9 +333,12 @@ exportStart.addEventListener('click', (event) => {
   let t = $('#test-data-table-in-report').DataTable();
   let tableData = t.data().toArray();
   let fpath = document.getElementById('export-filename').value;
-  exportGroupTable(fpath)
   let expOpt = getExportOptions()
+  
+  console.log('tabledata',tableData, 'path',fpath)
   ws.send(tools.parseCmd('export_test_data_from_client',{'tabledata':tableData, 'path':fpath, 'option':expOpt}));
+  groupDataExportFilename = fpath+'_groupData'
+  exportGroupTable(groupDataExportFilename)
 })
 
 function createTable(tableData) {
@@ -462,7 +512,7 @@ function setGroupTableData(res){
 }
 
 function exportGroupTable(dest){
-  groupTable.download("csv", dest+'.csv');
+  groupTable.download("csv", dest);
 }
 
 function printTable(){

@@ -178,6 +178,7 @@ class SetupStep(DigiCenterStep):
     
     @DigiCenterStep.deco
     def do(self):
+        self.hwDigitest.config(debug=False, wait_cmd = True)
         if self.hwDigitest.isConnectRotation():
             self.hwDigitest.set_rotation_home()
         self.set_result('PASS','PASS')
@@ -356,7 +357,6 @@ class HardnessStep(DigiCenterStep):
         self.hwDigitest.set_remote(True)
         self.hwDigitest.set_mode(self.mode)
         self.hwDigitest.set_ms_duration(self.mearTime)
-        self.hwDigitest.config(debug=False, wait_cmd = True)
         try:
             sampleSize, self.system_numTests = self.hwDigitest.get_rotation_info()
             self.isRotation_model = self.hwDigitest.isConnectRotation()
@@ -434,12 +434,13 @@ class HardnessStep(DigiCenterStep):
                     return self.result
                 
                 sampleIndex = smp['id']
+                sampleIndexInBatch = smp['batchInfo']['sampleId']
                 self.lg.debug('[sampleIndex] {}'.format(sampleIndex))
                 output_data = self.mear_process()
                 self.lg.debug('[output_data] {}'.format(output_data))
 
                 if output_data:
-                    self.add_data(output_data,sampleIndex)
+                    self.add_data(output_data,sampleIndexInBatch)
                     self.lg.debug('[self.singleResult] {}'.format(self.singleResult))
 
                 if self.singleResult['done']:
@@ -479,7 +480,7 @@ class HardnessStep(DigiCenterStep):
 
         return self.result
 
-    def add_data(self, value, sampleIndex):      
+    def add_data(self, value, sampleIndexInBatch):      
         self.singleResult['dataset'].append(value)
             
         if self.get_mear_counts() >= self.get_max_mear_counts():
@@ -494,7 +495,7 @@ class HardnessStep(DigiCenterStep):
         self.singleResult['std'] = round(stdev,1)
         self.singleResult['method'] = self.numericMethod
         self.singleResult['totalCounts'] = self.get_max_mear_counts()
-        self.singleResult['sampleid'] = sampleIndex
+        self.singleResult['sampleid'] = sampleIndexInBatch
     
     def get_max_mear_counts(self):
         if self.isRotation_model:
