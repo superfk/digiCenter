@@ -97,6 +97,8 @@ class PyServerAPI(object):
                     await self.getIP(websocket)
                 elif cmd == 'get_digitest_com':
                     await self.get_digitest_com(websocket)
+                elif cmd == 'get_digitest_manual_mode':
+                    await self.get_digitest_manual_mode(websocket)
                 elif cmd == 'getExportFolder':
                     await self.getExportFolder(websocket)
                 elif cmd == 'getDBServer':
@@ -107,6 +109,8 @@ class PyServerAPI(object):
                     await self.update_machine_remote(websocket,data)
                 elif cmd =='update_digitest_remote':
                     await self.update_digitest_remote(websocket,data)
+                elif cmd =='update_digitest_manual_mode':
+                    await self.update_digitest_manual_mode(websocket,data)
                 elif cmd == 'update_database_server':
                     await self.update_database_server(websocket,data)
                 elif cmd == 'check_config_updated':
@@ -218,6 +222,8 @@ class PyServerAPI(object):
                     await self.export_test_data_from_client(websocket,tabledata,path,option)
                 elif cmd == 'query_data_from_db':
                     await self.query_data_from_db(websocket,data)
+                elif cmd == 'get_digitest_is_rotaion_mode':
+                    await self.get_digitest_is_rotaion_mode(websocket)
                 elif cmd == 'close_all':
                     await self.close_all(websocket)
                 else:
@@ -260,6 +266,7 @@ class PyServerAPI(object):
         self.config = util.read_system_config(path)
         self.config_path = path
         self.productProcess.setDefaultSeqFolder(self.config['system']['default_seq_folder'])
+        self.productProcess.set_force_manual_mode(self.config['system']['digitest_manual_mode'])
         self.lg.debug('log system config: {}'.format(self.config))
 
     async def load_default_lang(self, websocket, appRoot):
@@ -285,43 +292,40 @@ class PyServerAPI(object):
     
     async def get_server_time(self, websocket):
         now = datetime.datetime.now().strftime(r"%Y/%m/%d %H:%M:%S")
-        await self.sendMsg(websocket,'get_server_time',now)
-    
+        await self.sendMsg(websocket,'get_server_time',now)    
     async def getIP(self, websocket):
-        await self.sendMsg(websocket,'get_ip',self.config['system']['machine_ip'])
-    
+        await self.sendMsg(websocket,'get_ip',self.config['system']['machine_ip'])    
     async def get_digitest_com(self, websocket):
         await self.sendMsg(websocket,'get_digitest_com',self.config['system']['digitest_COM'])
-
+    async def get_digitest_manual_mode(self, websocket):
+        await self.sendMsg(websocket,'get_digitest_manual_mode',self.config['system']['digitest_manual_mode'])
     async def getExportFolder(self, websocket):
-        await self.sendMsg(websocket,'get_export_folder',self.config['system']['default_export_folder'])
-    
+        await self.sendMsg(websocket,'get_export_folder',self.config['system']['default_export_folder'])    
     async def getDBServer(self, websocket):
         await self.sendMsg(websocket,'get_db_server',self.config['system']['database']["server"])
-
     async def getRotationTable_N(self, websocket):
         await self.sendMsg(websocket,'getRotationTable_N',self.config['system']['rotationTable_N'])
-
     async def update_machine_remote(self, websocket, ip):
         self.config['system']['machine_ip'] = ip
         util.write_system_config(path=self.config_path, data = self.config)
-
     async def update_digitest_remote(self, websocket, COM):
         self.config['system']['digitest_COM'] = COM
         util.write_system_config(path=self.config_path, data = self.config)
-
+    async def update_digitest_manual_mode(self, websocket, enableManualMode):
+        self.config['system']['digitest_manual_mode'] = enableManualMode
+        util.write_system_config(path=self.config_path, data = self.config)
+        self.productProcess.set_force_manual_mode(self.config['system']['digitest_manual_mode'])
     async def update_default_export_folder(self, websocket, folder):
         self.config['system']['default_export_folder'] = folder
-        util.write_system_config(path=self.config_path, data = self.config)
-    
+        util.write_system_config(path=self.config_path, data = self.config)    
     async def update_database_server(self, websocket, servername):
         self.config['system']['database']["server"] = servername
-        util.write_system_config(path=self.config_path, data = self.config)
-    
+        util.write_system_config(path=self.config_path, data = self.config)    
     async def check_config_updated(self, websocket, configs):
         results = []
         results.append(configs['machine_ip'] == self.config['system']['machine_ip'])
         results.append(configs['digitest_COM'] == self.config['system']['digitest_COM'])
+        results.append(configs['digitest_manual_mode'] == self.config['system']['digitest_manual_mode'])
         results.append(configs['export_folder'] == self.config['system']['default_export_folder'])
         # results.append(configs['db_server'] == self.config['system']['database']["server"]) 
         await self.sendMsg(websocket,'reply_checking_config',all(results))
@@ -471,6 +475,7 @@ class PyServerAPI(object):
             isConn_digitest = self.productProcess.init_digitest_controller(self.digiTest,COM)
             if isConn_digitest:
                 self.lg.debug('digiTest init OK')
+                self.get_digitest_is_rotaion_mode(websocket)
             await self.sendMsg(websocket,'reply_init_hw',{'resp_code':1, 'res':self.lang_data['server_hw_init_ok']})
             await self.sendMsg(websocket,'reply_init_hw_status',{'digitest':isConn_digitest, 'digichamber': isConn_chamber})
         except Exception as e:
@@ -610,6 +615,10 @@ class PyServerAPI(object):
             condition = condition + r"AND Operator LIKE '%{}%';".format(filters['operator'])
         data = self.db.select('Test_Data',fields, condition)
         await self.sendMsg(websocket,'reply_query_data_from_db',{'resp_code': 1, 'res':data})
+
+    async def get_digitest_is_rotaion_mode(self, websocket):
+        isRotationMode = self.digiTest.isConnectRotation()
+        await self.sendMsg(websocket,'get_digitest_is_rotaion_mode',isRotationMode)
 
     async def close_all(self, websocket):
         try:

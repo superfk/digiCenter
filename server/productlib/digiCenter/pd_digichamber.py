@@ -37,6 +37,7 @@ class DigiChamberProduct(pd_product.Product):
         self.lg = None
         self.log_to_db_func = None
         self.in_test_mode = False
+        self.force_manual_mode = False
 
     def set_lang(self, lang_data):
         self.lang_data = lang_data
@@ -46,6 +47,9 @@ class DigiChamberProduct(pd_product.Product):
     
     def set_log_to_db_func(self, logDBFunc):
         self.log_to_db_func = logDBFunc
+    
+    def set_force_manual_mode(self, forceManual):
+        self.force_manual_mode = forceManual
         
     async def run_script(self,websocket, scriptName, data=None):
         if scriptName=='ini_seq':
@@ -146,7 +150,8 @@ class DigiChamberProduct(pd_product.Product):
                 if stepObj:
                     stepObj.set_paras(step=s)
                     stepObj.set_digiChamber_hw_control(self.dChamb)
-                    stepObj.set_digitest_hw_control(self.digiTest)              
+                    stepObj.set_digitest_hw_control(self.digiTest)     
+                    stepObj.set_digitest_force_manual_mode(self.force_manual_mode)         
                     self.mainClass.append(stepObj)         
             
             # combine setup main teardown steps
@@ -270,7 +275,6 @@ class DigiChamberProduct(pd_product.Product):
 
         finally:
             try:
-                self.pauseQueue.get()
                 self.pauseQueue.task_done()
             except:
                 pass

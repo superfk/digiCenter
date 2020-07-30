@@ -2,7 +2,8 @@
     "system": {
         "machine_ip": "169.254.206.212",
         "machine_port": 2049,
-        "digitest_COM": "COM3",
+        "digitest_COM": "COM5",
+        "digitest_manual_mode": true,
         "locale_num_format": "fr_FR.UTF-8",
         "default_export_folder": "C:\\data_exports",
         "default_seq_folder": "C:\\data_exports",

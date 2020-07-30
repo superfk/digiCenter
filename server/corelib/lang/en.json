@@ -91,6 +91,7 @@
   "modal_moving_sample_retry_btn":"Retry",
   "modal_moving_sample_next_btn":"Next",
   "modal_moving_sample_dialog_text":"<h3>Press <strong>Retry<\/strong> if last value is not acceptable!<\/h3>\n  <h3>Press <strong>Next<\/strong> to mearsure at next position!<\/h3>",
+  "modal_moving_sample_sampleIndex":"Sample Index",
   "modal_moving_sample_sampleID":"Sample ID",
   "modal_moving_sample_mear_data":"Measured Data",
   "report_query_title":"Database Query Filters",

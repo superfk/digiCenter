@@ -34,6 +34,7 @@ class DigiCenterStep(object):
         self.stopMsgQueue = None
         self.pauseQueue = None
         self.lg = None
+        self.force_manual_mode = False
         
 
     def initResult(self):
@@ -90,6 +91,9 @@ class DigiCenterStep(object):
     def set_digitest_hw_control(self, digitest):
         self.hwDigitest = digitest
 
+    def set_digitest_force_manual_mode(self, forceManualMode):
+        self.force_manual_mode = forceManualMode
+        
     def do(self):
         return self.result
 
@@ -166,7 +170,6 @@ class DigiCenterStep(object):
 
     def wait_for_continue(self):
         retStatus = self.pauseQueue.get()
-        self.pauseQueue.task_done()
         return retStatus
 
 class SetupStep(DigiCenterStep):
@@ -390,14 +393,24 @@ class HardnessStep(DigiCenterStep):
                 self.resultCallback(self.result)
                 time.sleep(0.1)
 
-    def go_next_measurment_process(self,currentSampleIndex,currentPosition):
+    def go_next_measurment_process(self,currentSample,currentPosition):
+        sampleIndex = currentSample['id']
+        sampleIndexInBatch = currentSample['batchInfo']['sampleId']
+        self.lg.debug('[sampleIndex] {}'.format(sampleIndex))
+        self.lg.debug('[sampleIndexInBatch] {}'.format(sampleIndexInBatch))
         # handle process between different model of digiChamber
-        if not self.isRotation_model:
+        if self.force_manual_mode:
+            self.lg.debug('force manual mode enabled')
+        if not self.isRotation_model or self.force_manual_mode:
             # self.set_result(self.singleResult['result'],'PAUSE',hardness_dataset=self.singleResult, progs=100) 
             # self.resultCallback(self.result)
-            self.commCallback('show_move_sample_dialog',self.singleResult)
-            self.pause_step()
+            curResult = self.singleResult
+            curResult['curSampleIdx'] = sampleIndex + 1
+            curResult['curSampleIdInBatch'] = sampleIndexInBatch + 1 
+            self.commCallback('show_move_sample_dialog',curResult)
+            self.lg.debug('wait for user move sample')
             retStatus = self.wait_for_continue()
+            self.lg.debug('user moved sample completely')
             if retStatus == 'retry':
                 self.retry = False
                 self.singleResult['done'] = False
@@ -405,7 +418,7 @@ class HardnessStep(DigiCenterStep):
             return None
         else:
             # rotate on next position sample
-            N = currentSampleIndex + 1
+            N = sampleIndex + 1
             n = currentPosition 
             self.lg.debug('rotate to next position of {}'.format(n))
             move_completed, response = self.hwDigitest.set_rotation_pos(N,n)
@@ -435,20 +448,20 @@ class HardnessStep(DigiCenterStep):
                 if self.isInterrupted():
                     self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
                     return self.result
-                
+
                 sampleIndex = smp['id']
                 sampleIndexInBatch = smp['batchInfo']['sampleId']
-                self.lg.debug('[sampleIndex] {}'.format(sampleIndex))
-                self.lg.debug('[sampleIndexInBatch] {}'.format(sampleIndexInBatch))
                 
                 # move
-                status = self.go_next_measurment_process(sampleIndex,n)
+                status = self.go_next_measurment_process(smp, n)
                 if status == 'move_fail':
                     self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
                     return self.result
 
                 # mearsure
+                self.hwDigitest.config(debug=False, wait_cmd = False)
                 output_data = self.mear_process()
+                self.hwDigitest.config(debug=False, wait_cmd = True)
                 self.lg.debug('[output_data] {}'.format(output_data))
 
                 # record data

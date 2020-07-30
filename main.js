@@ -12,7 +12,6 @@ let ws;
 const taskkill = require('taskkill');
 const find = require('find-process');
 
-
 function connect() {
   try{
     const WebSocket = require('ws');

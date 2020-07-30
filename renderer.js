@@ -1,5 +1,20 @@
 const { ipcRenderer } = require('electron');
+const { app } = require('electron').remote;
 const appRoot = require('electron-root-path').rootPath;
+
+let appVer = '';
+let appName = 'digiCenter';
+
+if (process.env.NODE_ENV === 'development') {
+  appVer = require('../../../package.json').version;
+  appName = require('../../../package.json').name;
+} else {
+  appVer = require('electron').remote.app.getVersion();
+  appName = require('electron').remote.app.name;
+}
+
+document.title= appName + ' v' + appVer;
+
 var moment = require('moment');
 var systime_hook = document.getElementById('systime');
 let tools = require('./assets/shared_tools');

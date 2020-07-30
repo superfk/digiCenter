@@ -19,9 +19,6 @@
                             <button id='stop_test' data-auth='stop_test' class="w3-button w3-block  w3-red" 
                             ><i class="fas fa-stop-circle w3-medium w3-margin-right"></i><span data-lang='run_stop_btn' data-lang_type='innertext'></span></button>
                         </div>
-                        <!-- <div id='sampleSetupList' class='sampleSetupListContainer'>
-                            <svg id="sampleCircleStatus" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"></svg>
-                        </div>   -->
                         
                     </div>
                 <!-- end of batch info -->
@@ -50,7 +47,9 @@
                             </div>
                             <div class="w3-container cardContent" style="overflow: hidden;vertical-align: middle;">
                                 <div id='sampleSetupList' class='sampleSetupListContainer'>
-                                    <svg id="sampleCircleStatus" width="100%" viewBox="0 0 300 300"></svg>
+                                    <svg id="sampleCircleStatus" class="displayHide" width="100%" viewBox="0 0 300 300"></svg>
+                                    <div id='sampleListStatusContainer' class="displayHide">
+                                    </div>
                                 </div> 
                             </div>
                         <!-- end of realtime temp and humidity gauge section -->
@@ -94,6 +93,8 @@
                         <div class="w3-cell-row">
                             <div class='w3-container w3-cell' style="height:100%;">
                                 <div>
+                                    <div class='w3-large' data-lang='modal_moving_sample_sampleIndex' data-lang_type='innertext' style='display: inline-block !important;'>Sample Index</div>
+                                    <div id='dataset_sampleIndex' class='w3-large' style='display: inline-block !important;margin-right:15px'></div>
                                     <div class='w3-large' data-lang='modal_moving_sample_sampleID' data-lang_type='innertext' style='display: inline-block !important;'>Sample ID</div>
                                     <div id='dataset_sampleid' class='w3-large' style='display: inline-block !important;'></div>
                                 </div>
@@ -146,7 +147,7 @@
                 <div class="w3-container w3-yellow">
                     <span onclick="document.getElementById('modal_batch_select_dialog').style.display='none'" 
                         class="w3-button w3-display-topright">&times;</span>
-                    <h2 id="modal_batch_select_dialog_title" data-lang='modal_batch_select_dialog_title' data-lang_type='innertext' style="margin-top: 1rem">Load Batch</h2>
+                    <h2 id="modal_batch_select_dialog_title" data-lang='load_a_batch' data-lang_type='innertext' style="margin-top: 1rem">Load Batch</h2>
                 </div>
                 <div class="w3-container">
                     <div class="w3-panel">
@@ -163,7 +164,7 @@
                         </table>
                     </div>
                     <div class="w3-panel">
-                        <button id='SelectBatch' class="w3-btn w3-green" style="width:200px">Select</button>
+                        <button id='SelectBatch' data-lang='sampleSetupConfirmBtn' data-lang_type='innertext' class="w3-btn w3-green" style="width:200px">Select</button>
                     </div>
 
                 </div>
@@ -210,7 +211,12 @@
                           </form>
                           
                     </div>
-                    <div class="sampleBatchCircleContainer">
+                    <div id='sampleBatchListContainer' class="sampleBatchListContainer displayHide">
+                        <ul id='sampleListContainer' class="w3-ul w3-card-4">
+                            
+                        </ul>
+                    </div>
+                    <div id='sampleBatchCircleContainer' class="sampleBatchCircleContainer displayHide">
                         <div class="circlecontainer">
                             <svg id="sampleCircle" width="100%" viewBox="0 0 600 600"></svg>
                         </div>                        

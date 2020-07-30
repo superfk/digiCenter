@@ -48,6 +48,26 @@
     margin: 0px;
     padding: 5px;
     height: 100%;
+    overflow-y: auto;
+}
+#sampleListStatusContainer{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: baseline;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+#sampleListStatusContainer > div{
+    margin: 2px;
+    border: 4px solid rgb(95, 93, 93);
+    width: 40px;
+    height: 40px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 
 .sampleSetupButtonContainer {
@@ -398,6 +418,16 @@ progress[value]::-webkit-progress-bar {
     left: 0;
 }
 
+.sampleBatchListContainer {
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 300px;
+    right: 0;
+    overflow-y: auto;
+    padding: 20px;
+
+}
 .sampleBatchCircleContainer {
     height: 100%;
     position: absolute;
@@ -410,10 +440,25 @@ progress[value]::-webkit-progress-bar {
     align-items: center;
 }
 
+.sampleListItem {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+}
+
+.sampleListItem .batchInfoContent{
+    display: block;
+    font-size: 16px;    
+    margin-left: 20px;
+}
+
 .circlecontainer {
     width: 100%;
     height: 80%;
 }
+
 
 .sampleBatchCircleToolbar {
     width: 100%;
@@ -493,25 +538,25 @@ progress[value]::-webkit-progress-bar {
 }
 
 @keyframes blinking {
-    0%   { opacity: 0.2;stroke-width: 4px; }
-    50% { opacity: 1; stroke-width: 6px;}
-    100% { opacity: 0.2; stroke-width: 4px;}
-  } 
+    0%   { opacity: 0.2;stroke-width: 4px; border-width: 4px;}
+    50% { opacity: 1; stroke-width: 6px;border-width: 6px;}
+    100% { opacity: 0.2; stroke-width: 4px;border-width: 4px;}
+} 
 
-  @media (max-width:1600px){
-    #testSeqContainer li .w3-bar-item{
-        width: 100% !important;
-        height: auto !important;
-    }
-    #testSeqContainer .lopCount {
-        width: 26px !important;
-    }
-    #testSeqContainer .lopCount-enabled {
-        width: 26px !important;
-    }
-    #testSeqContainer .lopCount-start-enabled {
-        border-right: 2px solid !important;
-    }
+@media (max-width:1600px){
+#testSeqContainer li .w3-bar-item{
+    width: 100% !important;
+    height: auto !important;
+}
+#testSeqContainer .lopCount {
+    width: 26px !important;
+}
+#testSeqContainer .lopCount-enabled {
+    width: 26px !important;
+}
+#testSeqContainer .lopCount-start-enabled {
+    border-right: 2px solid !important;
+}
     
 }
 
@@ -523,4 +568,8 @@ progress[value]::-webkit-progress-bar {
 #hardnessVStemp_plot {
     width: 100%;
     height: 500px;
+}
+
+.displayHide {
+    display: none;
 }

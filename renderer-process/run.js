@@ -18,11 +18,14 @@ let selectHistoryBatch = document.getElementById('SelectBatch');
 let openSampleSetupListBtn = document.getElementById('openSampleSetupList');
 let sampleSetup = document.getElementById('sampleSetupList');
 let sampleSetupDialog = document.getElementById('modal_batch_setup_dialog');
+let sampleBatchListContainer = document.getElementById('sampleBatchListContainer')
+let sampleBatchCircleContainer = document.getElementById('sampleBatchCircleContainer')
 let batchConfirmAndStartBtn = document.getElementById('batchConfirmAndStart');
 let stopSeqBtn = document.getElementById('stop_test');
 let loadSeqBtn = document.getElementById('open_test_seq');
 let dialog = document.getElementById('modal_moving_sample_dialog');
 let dialog_dataset_list = document.getElementById('modal_moving_sample_dialog_dataset');
+let dialog_dataset_index = document.getElementById('dataset_sampleIndex');
 let dialog_dataset_id = document.getElementById('dataset_sampleid');
 let dialog_dataset_counter = document.getElementById('dataset_counter');
 let dialog_dataset_mean = document.getElementById('dataset_mean');
@@ -76,6 +79,9 @@ let machine_hard_idct = document.querySelectorAll('#machine_hard_idct .idct-numb
 let machine_temp_idct = document.querySelectorAll('#machine_tempr_idct .idct-number')[0]
 let machine_humi_idct = document.querySelectorAll('#machine_hum_idct  .idct-number')[0]
 
+let forceManualMode = false;
+let digitestIsRotationMode = false;
+
 // **************************************
 // init functions
 // **************************************
@@ -104,30 +110,6 @@ function sec2dt(v) {
 function pad(v) {
   return v < 10 ? '0' + v : String(v)
 }
-
-function xaxisToTime(dataArr){
-  return dataArr.map(sec2dt)
-}
-
-function genTraceForHardnessPlot(sampleSize=1){
-  const sampleArr = new Array(parseInt(sampleSize));
-  sampleArr.fill(0)
-  const traceArr = sampleArr.map((elm,idx)=>{
-    return {
-      x: [],
-      y: [],
-      mode: 'lines+markers',
-      type: 'scatter',
-      name: `sample${idx+1}`,
-      marker: { size: 4},
-      line: {
-        width: 1
-      }
-    }
-  })
-  return traceArr;
-}
-
 
 function generateEventPlot(){
 
@@ -281,6 +263,17 @@ function connect() {
         case 'getRotationTable_N':
           uutN = parseInt(data);
           break;
+        case 'get_digitest_manual_mode':
+          console.log('mode changed',data)
+          forceManualMode = data;
+          createInstance()
+          updateDigiTestModeCallback()
+          break;
+        case 'get_digitest_is_rotaion_mode':
+          digitestIsRotationMode = data;
+          createInstance()
+          updateDigiTestModeCallback()
+          break;
         case 'update_sequence':
           updateSequence(data)
           break;
@@ -375,7 +368,7 @@ $('#setupBatchModal').on('click', ()=>enableKeyDetect = false);
 
 openSampleSetupListBtn.addEventListener('click', ()=>{
   sampleSetupDialog.style.display='block';
-  initCirclePlot();
+  switchStatusMonitorPanel()
   enableKeyDetect = true;
 })
 ipcRenderer.on('load-seq-run', (event, path) => {
@@ -391,10 +384,6 @@ ipcRenderer.on('continue-batch', (event, resp, args)=>{
   }
 })
 
-$( window ).resize(function() {
-  repositionChart();
-});
-
 stopSeqBtn.addEventListener('click',()=>{
   ws.send(tools.parseCmd('stop_seq',''));
 })
@@ -405,6 +394,24 @@ stopSeqBtn.addEventListener('click',()=>{
 
 function init(){
   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_default_seq_path')));
+  ws.send(tools.parseCmd('get_digitest_manual_mode'));
+  ws.send(tools.parseCmd('get_digitest_is_rotaion_mode'));
+}
+
+function switchStatusMonitorPanel(){
+  $(sampleBatchCircleContainer).addClass('displayHide')
+  $(sampleBatchListContainer).addClass('displayHide')
+  $('#sampleListStatusContainer').addClass('displayHide')
+  $('#sampleCircleStatus').addClass('displayHide')
+  if (forceManualMode || !digitestIsRotationMode){
+    $(sampleBatchListContainer).removeClass('displayHide')
+    $('#sampleListStatusContainer').removeClass('displayHide')
+    initSampleList()
+  }else{
+    $(sampleBatchCircleContainer).removeClass('displayHide')
+    $('#sampleCircleStatus').removeClass('displayHide')
+    initCirclePlot();
+  }
 }
 
 function batchSelector_enable(){
@@ -507,7 +514,7 @@ function immediate_start_test(){
   stopBtn_enable();
   $('#testSeqContainer li').removeClass(run_status_classes).addClass('run-init');
   getBatchInfo();
-  replotSampleMonitorCircles()
+  initMonitorCirclePlot()
   markers=[];
   const onlyOccupySamples = batchInfoForSamples.filter(elm=>elm.status==='filled')
   ws.send(tools.parseCmd('run_seq',{batchInfoForSamples:onlyOccupySamples}));
@@ -518,12 +525,22 @@ function immediate_start_test(){
 }
 
 function markCurrentSample(sampldIdx){
-  $('#sampleCircleStatus .uutfilled').removeClass('curSample');
-  $('#sampleCircleStatus .uutfilled').each((idx, elm)=>{
-    if (idx===sampldIdx){
-      $(elm).addClass('curSample')
-    }
-  })
+  if (forceManualMode || !digitestIsRotationMode){
+    $('#sampleListStatusContainer .uutfilled').removeClass('curSample');
+    $('#sampleListStatusContainer .uutfilled').each((idx, elm)=>{
+      if (idx===sampldIdx){
+        $(elm).addClass('curSample')
+      }
+    })
+  }else{
+    $('#sampleCircleStatus .uutfilled').removeClass('curSample');
+    $('#sampleCircleStatus .uutfilled').each((idx, elm)=>{
+      if (idx===sampldIdx){
+        $(elm).addClass('curSample')
+      }
+    })
+  }
+
 }
 
 function updateSingleStep(res){
@@ -660,7 +677,8 @@ function showBatchSelectDialog(){
 
 function showMovingSampleDialog(data){
   let curData = data;
-  dialog_dataset_id.innerHTML = curData.sampleid
+  dialog_dataset_index.innerHTML = curData.curSampleIdx
+  dialog_dataset_id.innerHTML = curData.curSampleIdInBatch
   dialog_dataset_counter.innerHTML = `(${curData.dataset.length} / ${curData.totalCounts})`
   dialog_dataset_list.innerHTML = listDataset(curData.dataset);
   dialog_dataset_mean.innerHTML = `${curData.method}: ${curData.result}`;
@@ -732,6 +750,14 @@ const createText = (container, cx,cy,strTxt='',options={}, className='') => {
   container.appendChild(text);
 }
 
+function createListInstance(){
+  batchInfoForSamples = [];
+  batches = [];
+  for(let i=0; i<50; i++) {
+    batchInfoForSamples.push({id: i, status:'empty', batchInfo:{}, color:'white'});
+  }
+}
+
 function createCirclesInstance(){
   batchInfoForSamples = [];
   batches = [];
@@ -765,7 +791,36 @@ function plotSmallHoles(targetElm, circleN = 25, option){
     })
 }
 
-function setCircleOccupy(index=0, batchInfo={}, color='white'){
+function plotList(){
+  const sampleListContainer = document.getElementById('sampleListContainer');
+  const sampleMonitorContainer = document.getElementById('sampleListStatusContainer')
+  let listContents = '';
+  let blockContents = '';
+  batchInfoForSamples.forEach((elm)=>{
+    let listItem = ''
+    let blockItem = ''
+    if (elm.status !=='empty'){
+      listItem = `
+        <li class="sampleListItem">
+          <div class="w3-tag w3-large" style='color:white;background-color:${elm.color}'>${elm.id+1}</div>          
+          <div class="batchInfoContent">
+            <div><span style='font-weight: bold;' data-lang='run_batch_title' data-lang_type='innertext'>${window.lang_data.run_batch_title}: </span>${elm.batchInfo.batch}</div>
+            <div class="w3-small" data-lang='modal_moving_sample_sampleID' data-lang_type='innertext'>${window.lang_data.modal_moving_sample_sampleID}: ${elm.batchInfo.sampleId +1}</div>
+          </div>
+          
+        </li>
+      `;
+      blockItem = `<div class="w3-tag ${elm.status==='empty' ? 'uut' : 'uutfilled'}" style='color:white;background-color:${elm.color}'>${elm.id+1}</div>`
+    }
+    listContents += listItem;
+    blockContents += blockItem;
+  })
+  
+  $(sampleListContainer).html(listContents);
+  $(sampleMonitorContainer).html(blockContents);
+}
+
+function setSampleOccupy(index=0, batchInfo={}, color='white'){
   let spcCirlce = batchInfoForSamples.find(elm=>elm.id===index)
   spcCirlce.status = 'filled'
   spcCirlce.batchInfo = batchInfo
@@ -780,13 +835,17 @@ function refreshSeqsInAllSamples(seqPath){
 
 }
 
+const initSampleList = () => {
+  $('#sampleBatchListContainer ul').html='';
+  $('#sampleListStatusContainer').html='';
+  plotList();
+}
+
 const initCirclePlot = () => {
   svgContainer.innerHTML=''
   plotBaseTable(svgContainer,baseR);
   plotSmallHoles(svgContainer,uutN,smallCircleOption);
 }
-
-createCirclesInstance()
 
 $('#sampleBatchConfigForm').on('submit', (e)=>{
   e.preventDefault();
@@ -802,7 +861,7 @@ $('#sampleBatchConfigForm').on('submit', (e)=>{
     if(counter<numSample){
       if(elm.status==='empty'){
         curBatchinfo.sampleId = counter
-        setCircleOccupy(elm.id, {...curBatchinfo}, tools.pick_color_hsl(batchCounter))
+        setSampleOccupy(elm.id, {...curBatchinfo}, tools.pick_color_hsl(batchCounter))
         counter += 1
       }
     }
@@ -810,27 +869,45 @@ $('#sampleBatchConfigForm').on('submit', (e)=>{
   batches.push({...curBatchinfo})
   batchCounter += 1
   refreshSeqsInAllSamples(seqPath)
-  initCirclePlot()
+  
+  if (forceManualMode || !digitestIsRotationMode){
+    initSampleList()
+  }else{
+    initCirclePlot()
+  }
+
 })
+
+function createInstance(){
+  if (forceManualMode || !digitestIsRotationMode){
+    createListInstance()
+  }else{
+    createCirclesInstance()
+  }
+  initSampleList();
+  initCirclePlot();
+}
+
+createInstance()
 
 confirmSampleBatchConfigBtn.addEventListener('click',()=>{
   ws.send(tools.parseCmd('create_batch',batches));
 })
 
 function batch_confirmed(){
-  replotSampleMonitorCircles()
+  initMonitorCirclePlot()
 }
 
 $('#sampleBatchConfigClearAllBtn').on('click', ()=>{
   batchCounter = 0
-  createCirclesInstance();
+  createInstance();
+  initSampleList();
   initCirclePlot();
 })
 
 // for move rotation table
 $('#goToIndexBtn').on('click',()=>{
   const nextIndex = $("#goToIndexValue").val()
-  console.log('nextIndex',nextIndex)
   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('goToIndex',nextIndex)));
 })
 
@@ -838,45 +915,27 @@ $('#moveHomeBtn').on('click',()=>{
   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableHome')));
 })
 
-// $('#moveNextBtn').on('click',()=>{
-//   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableNext',curSampleIndex)));
-// })
-
-// $(document).keydown(function(e){ 
-//   let code = e.which;
-//   if (enableKeyDetect){
-//     if (code == 37){
-//       // move last
-//       $('#moveLastBtn').focus();
-//       ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableLast')));
-//     }else if (code == 39){
-//       // move next
-//       $('#moveNextBtn').focus();
-//       ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableNext')));
-//     }else if (code == 38 || code == 40){
-//       // move home
-//       $('#moveHomeBtn').focus();
-//       ws.send(tools.parseCmd('run_cmd',tools.parseCmd('moveTableHome')));
-//     }else{
-  
-//     }
-//   }
-  
-// });
-
-function replotSampleMonitorCircles (){
+function initMonitorCirclePlot (){
   statusCircle.innerHTML=''
   plotBaseTable(statusCircle,baseRStatus);
   plotSmallHoles(statusCircle, uutN, smallCircleStatusOption);
 }
 
 $(window).resize((e)=>{
-  replotSampleMonitorCircles()
+  initMonitorCirclePlot();
+  initCirclePlot();
 })
 
+function updateDigiTestModeCallback(){
+  switchStatusMonitorPanel();
+  initMonitorCirclePlot();
+  initCirclePlot();
+  repositionChart();
+}
+
 $('#button-run').on('click',()=>{
-  replotSampleMonitorCircles();
-  repositionChart()
+  ws.send(tools.parseCmd('get_digitest_manual_mode'));
+  ws.send(tools.parseCmd('get_digitest_is_rotaion_mode'));
 })
 
 // detect select language
