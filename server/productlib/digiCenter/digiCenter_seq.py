@@ -366,7 +366,7 @@ class HardnessStep(DigiCenterStep):
         except:
             pass
     
-    def mear_process(self):
+    def mear_process(self,currentSample):
         h_data = None
         curT = 0.0
         startTime = time.time()
@@ -378,18 +378,22 @@ class HardnessStep(DigiCenterStep):
                 curT = self.hwDigichamber.get_real_temperature()
             except:
                 pass
-            h_data = self.hwDigitest.get_single_value(curT)
+            statusCode, h_data = self.hwDigitest.get_single_value(curT)
+            self.lg.debug('statusCode {}, value {}'.format(statusCode,h_data))
             endTime = time.time()
             countdownTime = endTime - startTime
             prog = round( countdownTime / (self.mearTime+20) * 100, 0)
-            if h_data is not None:
+            if statusCode == 1 or statusCode < 0:
+                if statusCode < 0:
+                    self.lg.debug('Error: DISTANCE_TOO_BIG when measuring')
+                    h_data = 0.0
                 output_data = round(h_data,1)
                 self.commCallback('only_update_hardness_indicator',output_data)
-                self.set_result(output_data,'WAITING',hardness_dataset=self.singleResult, progs=100)
+                self.set_result(output_data,'WAITING',hardness_dataset=self.singleResult, progs=100, batchInfo=currentSample)
                 self.resultCallback(self.result)
                 return output_data
             else:
-                self.set_result(None,'WAITING',hardness_dataset=self.singleResult, progs=prog)
+                self.set_result(None,'WAITING',hardness_dataset=self.singleResult, progs=prog, batchInfo=currentSample)
                 self.resultCallback(self.result)
                 time.sleep(0.1)
 
@@ -457,15 +461,17 @@ class HardnessStep(DigiCenterStep):
                 if status == 'move_fail':
                     self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
                     return self.result
+                # update current sample highlight
+                self.set_result(None,'UPDATE_CURRENT_SAMPLEINDEX',hardness_dataset=self.singleResult, progs=0, batchInfo=smp)
 
                 # mearsure
                 self.hwDigitest.config(debug=False, wait_cmd = False)
-                output_data = self.mear_process()
+                output_data = self.mear_process(smp)
                 self.hwDigitest.config(debug=False, wait_cmd = True)
                 self.lg.debug('[output_data] {}'.format(output_data))
 
                 # record data
-                if output_data:
+                if output_data is not None:
                     self.add_data(output_data,sampleIndexInBatch)
                     self.lg.debug('[self.singleResult] {}'.format(self.singleResult))
                     n += 1

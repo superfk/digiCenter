@@ -410,7 +410,7 @@ class PyServerAPI(object):
             now = datetime.datetime.now().strftime(r"%Y/%m/%d %H:%M:%S.%f")
             values = [now, self.userMang.user.username, self.userMang.user.role, msg_type, msg, audit]
             self.db.insert('System_log', fields, values)
-            self.lg.debug('save system log into database with field: {}, values: {}'.format(fields,values))
+            self.lg.debug('msg:{}, type: {}, audit: {}'.format(msg,msg_type,audit))
         except Exception as e:
             err_msg = traceback.format_exc()
             self.lg.debug('error when save system log into database in local function')

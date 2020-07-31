@@ -149,11 +149,13 @@ class Digitest(BaInstr):
         if ret == 'FINISHED':
             try:
                 data = self.readline_only()
-                return float(data)
+                return 1, float(data)
             except:
-                return ret
+                return -1, None
+        elif ret == 'DISTANCE_TOO_BIG':
+            return -1, None
         else:
-            return None
+            return 0, None
     
     def get_buffered_value(self, buffer=13):
         while True:
@@ -214,8 +216,14 @@ class Digitest(BaInstr):
                 # self.rotStatus.setHomePos(False)
                 return False, ret
             else:
-                # self.rotStatus.setHomePos(True)
+                while True:
+                    sampleSize, mearCounts = self.get_rotation_info()
+                    if sampleSize:
+                        break
+                    time.sleep(0.25)
                 return True, 'ok'
+        else:
+            return True, 'ok'
     
     def set_rotation_pos(self,sample_N, mear_pos_n):
         if self.isConnectRotation():
@@ -223,7 +231,11 @@ class Digitest(BaInstr):
             if ret == '"OUT OF RANGE"':
                 return False, ret
             else:
-                # self.rotStatus.setPosition(sample_N, mear_pos_n)
+                while True:
+                    sampleSize, mearCounts = self.get_rotation_info()
+                    if sampleSize:
+                        break
+                    time.sleep(0.25)
                 return True, 'ok'
         else:
             return True, 'ok'
@@ -383,14 +395,14 @@ class DummyDigitest(BaInstr):
             self.dummyCounter = 0
 
         if ret == '"DEVICE BUSY"':
-            return None
+            return 0, None
         elif ret == 'FINISHED':
             time.sleep(0.1)
             noise = random.random()*3
             ret = 0.0016 * dummyTemp * dummyTemp - 0.2468 * dummyTemp + 57.073 + noise
-            return ret
+            return 1, ret
         else:
-            return None
+            return -1, None
     
     def get_buffered_value(self, buffer=13):
         while True:
@@ -536,9 +548,12 @@ def main():
         ba.start_mear()
         
         while True:
-            ret = ba.get_single_value()
-            print('final resp of step {}: {}'.format(i, ret))
-            if ret:
+            statusCode, value = ba.get_single_value()
+            print('final resp of step {}: {}'.format(i, value))
+            if statusCode == 1:
+                break
+            elif statusCode < 0:
+                print('distance too big when measuring')
                 break
             else:
                 time.sleep(0.1)
@@ -568,90 +583,6 @@ def main():
 
     # plt.plot(x,y)
     # plt.show()
-
-def test_rotation_single_mear():
-    ba = DummyDigitest()
-
-    def mear(ba):
-        ret = ba.start_mear()
-        while True:
-            ret = ba.get_single_value()
-            if ret:
-                return float(ret[1])
-            else:
-                time.sleep(0.1)
-
-    
-    ba.open_rs232("COM3")
-
-    ret = ba.get_ms_method()
-    print(ret)
-    ba.config(debug=True)
-    ba.set_remote(True)
-    ba.set_std_mode()
-    duration_s = 1
-    ret = ba.set_ms_duration(duration_s)
-    print(ret)
-
-    ba.config(debug=False)
-    ret = ba.isConnectRotation()
-    print(ret)
-    sample_N, mear_n = ba.get_rotation_info()
-
-    ret = ba.set_rotation_home()
-    print(ret)
-
-    for N in range(sample_N):
-        for n in range(mear_n):
-            ret = ba.set_rotation_pos(N+1,n+1)
-            if not ret[0]:
-                print(ret[1])
-                return
-            else:
-                print(ret[1])
-                ret = mear(ba)
-                print('Hardness Result: {}'.format(ret))
-                time.sleep(1)
-    ba.set_rotation_home()
-    ba.close_rs232()
-
-def test_rotation_graph_mear():
-    ba = DummyDigitest()
-    
-    ba.open_rs232("COM3")
-
-    ret = ba.get_ms_method()
-    print(ret)
-    ba.config(debug=True)
-    ba.set_remote(True)
-    ba.set_std_graph_mode()
-    duration_s = 3
-    ret = ba.set_ms_duration(duration_s)
-    print(ret)
-
-    ba.config(debug=False)
-    ret = ba.isConnectRotation()
-    print(ret)
-    sample_N, mear_n = ba.get_rotation_info()
-
-    ret = ba.set_rotation_home()
-    print(ret)
-
-    for N in range(sample_N):
-        for n in range(mear_n):
-            ret = ba.set_rotation_pos(N+1,n+1)
-            if not ret[0]:
-                print(ret[1])
-                return
-            else:
-                print(ret[1])
-                ba.start_mear()
-                ret = ba.get_buffered_value()
-                for r in ret:
-                    print('Hardness Result: {}'.format(r))
-                time.sleep(1)
-    ba.set_rotation_home()
-    ba.close_rs232()
 
 def test_rotation():
     ba = Digitest()
@@ -717,20 +648,24 @@ def mearsure():
     ba = Digitest()
 
     def mear(ba):
-        ret = ba.start_mear()
+        ba.start_mear()
         while True:
-            ret = ba.get_single_value()
-            if ret:
-                return float(ret[1])
+            statusCode, value = ba.get_single_value()
+            print('final resp of step {}: {}'.format(i, value))
+            if statusCode == 1:
+                return value
+            elif statusCode < 0:
+                print('distance too big when measuring')
+                return None
             else:
                 time.sleep(0.1)
 
     
-    ba.open_rs232("COM5")
+    ba.open_rs232("COM3")
 
     ret = ba.get_ms_method()
     print(ret)
-    ba.config(debug=True)
+    ba.config(debug=True,wait_cmd = False)
     ba.set_remote(True)
     ba.set_std_mode()
     duration_s = 1
@@ -752,4 +687,4 @@ def test():
 if __name__ == '__main__':
     # test_rotation_single_mear()
     # test_rotation_graph_mear()
-    test()
+    mearsure()

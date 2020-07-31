@@ -488,6 +488,7 @@ $('#call-viewer').on('click', ()=>{
 })
 
 function createViewer(data) {
+  console.log('report data',data)
   ipcRenderer.send('call-report-viewer-window', data);
 }
 

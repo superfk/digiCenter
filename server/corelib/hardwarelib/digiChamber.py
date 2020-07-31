@@ -72,7 +72,7 @@ class DigiChamber(object):
         info_head = ['TestSysType', 'YearManuf', 'SN', 'OrderN', 'PLCVer', 'PLCRTVer', 'S!MACVer']
         for i, h in enumerate(info_head):
             argID = str(i+1)
-            cmd = self.create_cmd('99997', ['1', argID])
+            cmd = self.create_cmd('99997', [argID])
             respid, data = self.send_and_get(cmd)
             info[h] = data.decode()
         return info

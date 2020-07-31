@@ -48,7 +48,7 @@ module.exports = {
         let paras= [
             new module.exports.NumberPara('target temperature',20,unit='&#8451',max=190,min=-40,readOnly=false),
             new module.exports.NumberPara('tolerance',1,unit='&#8451',max=10,min=0,readOnly=false),
-            new module.exports.NumberPara('slope',5,'K/min',max=100,min=-100,readOnly=false),
+            new module.exports.NumberPara('slope',4,'K/min',max=4,min=-4,readOnly=false),
             new module.exports.NumberPara('increment',0,'&#8451',max=100,min=-100,readOnly=false)
         ]
         
@@ -58,9 +58,9 @@ module.exports = {
     genHardPara: function(){
         let paras= [
             // new TextPara('port','COM3',unit='',readOnly=false),
-            new module.exports.OptionPara('mode','STANDARD_M','STANDARD_M,STANDARD_M_GRAPH',unit='',readOnly=false),
+            new module.exports.OptionPara('mode','STANDARD_M','STANDARD_M',unit='',readOnly=false),
             new module.exports.OptionPara('method','shoreA','shoreA,shore0',unit='',readOnly=false),
-            new module.exports.NumberPara('measuring time',5,unit='sec',max=99,min=1,readOnly=false),
+            new module.exports.NumberPara('measuring time',3,unit='sec',max=99,min=0.1,readOnly=false),
             new module.exports.NumberPara('number of measurement',3,unit='',max=10,min=1,readOnly=false),
             new module.exports.OptionPara('numerical method','mean','mean,median',unit='',readOnly=false)
         ]
@@ -68,7 +68,7 @@ module.exports = {
     },
     genWaitPara: function(){
         let paras= [
-            new module.exports.NumberPara('conditioning time',5,unit='minute',max=480,min=0,readOnly=false)
+            new module.exports.NumberPara('conditioning time',1,unit='minute',max=480,min=0,readOnly=false)
         ]
         return module.exports.makeSingleStep('waiting', 'time', paras);
     },

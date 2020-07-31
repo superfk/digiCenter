@@ -200,7 +200,7 @@ class DigiChamberProduct(pd_product.Product):
             startTime = time.time()
             totalStepsCounts = len(self.stepsClass)
             cursor = 0
-            self.lg.debug('totalStepsCounts: {}'.format(totalStepsCounts))
+            self.log_to_db_func('totalStepsCounts: {}'.format(totalStepsCounts), 'info', False)
 
             # check script existed
             if self.script:
@@ -222,23 +222,25 @@ class DigiChamberProduct(pd_product.Product):
                         self.set_test_stop()
                         if not self.digiTest.connected:
                             self.errorMsg = self.lang_data['digitest_disconnect_msg']
+                            self.log_to_db_func('digitest_disconnected', 'error', False)
                         else:
                             self.errorMsg = self.lang_data['digichamber_disconnect_msg']
+                            self.log_to_db_func('digichamber_disconnected', 'error', False)
                         break
                     # check whether stop this loop
                     if cursor >= totalStepsCounts or self.testStop:
                         break
                     # continuous process
-                    self.lg.debug('current cursor: {}'.format(cursor))
+                    self.log_to_db_func('current cursor: {}'.format(cursor), 'info', False)
                     # get payload step
                     step = self.stepsClass[cursor]
 
                     curStepName = step.__class__.__name__
-                    self.lg.debug('current step name: {}'.format(curStepName))
+                    self.log_to_db_func('current step name: {}'.format(curStepName), 'info', False)                    
 
                     # do step
                     testResult = step.do()
-                    self.lg.debug('output of testResult: {}'.format(testResult))
+                    self.log_to_db_func('output of testResult: {}'.format(testResult), 'info', True)
 
                     # handle result
                     if testResult['status'] in ['PASS','FAIL','SKIP','MEAR_NEXT']:
@@ -269,8 +271,6 @@ class DigiChamberProduct(pd_product.Product):
 
         except Exception as e:
             self.errorMsg = traceback.format_exc()
-            self.lg.debug('error during excetipn handling in test sequence prcess')
-            self.lg.debug(self.errorMsg)
             self.set_test_stop()
 
         finally:
@@ -283,16 +283,18 @@ class DigiChamberProduct(pd_product.Product):
                 self.stopMsgQueue.task_done()
                 self.lg.debug('reached end_of_test, interrupted')
                 if self.errorMsg:
+                    self.log_to_db_func('error during test: {}'.format(self.errorMsg), 'error', True)
                     txt = self.lang_data['server_error_end_test_reason'] + ' ' + self.errorMsg
                     title = self.lang_data['server_error_end_test_title']
                     self.sendCommunicateCallback('end_of_test',{'interrupted':True,'title':title,'reason':txt})
                     self.errorMsg = None
                 else:
+                    self.log_to_db_func('manual stop the test', 'info', False)
                     txt = self.lang_data['server_manual_end_test_reason']
                     title = self.lang_data['server_manual_end_test_title']
                     self.sendCommunicateCallback('end_of_test',{'interrupted':True,'title':title,'reason':txt})
             else:
-                self.lg.debug('reached end_of_test, all done')
+                self.log_to_db_func('reached end_of_test, all done', 'info', False)
                 txt = self.lang_data['server_final_end_test_reason']
                 title = self.lang_data['server_final_end_test_title']
                 self.sendCommunicateCallback('end_of_test',{'interrupted':False,'title':title,'reason':txt})
@@ -332,31 +334,31 @@ class DigiChamberProduct(pd_product.Product):
                     humInfo['value']=None 
             except Exception as e:
                 err_msg = traceback.format_exc()
-                self.lg.debug('digiChamber get temperature error')
-                self.lg.debug(err_msg)
+                self.log_to_db_func('digiChamber get temperature error: {}'.format(err_msg), 'info', False)
             finally:
                 try:
                     dtInfo['status']=self.digiTest.connected
                     if self.digiTest.connected:
-                        dtInfo['value']=self.digiTest.get_single_value(self.curT)
+                        statusCode, dtInfo['value'] =self.digiTest.get_single_value(self.curT)
                     else:
                         dtInfo['value']= None
                 except Exception as e:
                     err_msg = traceback.format_exc()
-                    self.lg.debug('digitest get value error')
-                    self.lg.debug(err_msg)
+                    self.log_to_db_func('digitest get value error: {}'.format(err_msg), 'info', False)
                 finally:
                     status = {'dt':dtInfo,'temp':tempInfo, 'hum':humInfo}
                     await self.socketCallback(websocket,'update_cur_status',status)
 
     def findLoopPair(self, loopid, mainClass):
+        loopStarIndex, loopEndIndex = 0, 0
         for i,s in enumerate(mainClass):
             if s.category == 'loop':
                 if s.itemname == 'loop start' and s.loopid == loopid:
                     loopStarIndex = i
                 elif s.itemname == 'loop end' and s.loopid == loopid:
                     loopEndIndex = i
-                    return (loopStarIndex,loopEndIndex)
+                    break
+        return (loopStarIndex,loopEndIndex)
     
     def create_result_callback_loop(self):
         self.loop = asyncio.new_event_loop()
@@ -401,9 +403,12 @@ class DigiChamberProduct(pd_product.Product):
         try:
             self.dChamb = obj_digiChmaber
             conn = self.dChamb.connect()
+            info = self.dChamb.get_chamber_info()
+            self.log_to_db_func('digiChamber init ok', 'info', False)
+            self.log_to_db_func('digiChamber system info: {}'.format(info), 'info', False)
             return conn
         except Exception as e:
-            self.lg.debug('digiChamber init error: {}'.format(e))
+            self.log_to_db_func('digiChamber init error: {}'.format(e), 'error', False)
             return False
 
     def close_digiChamber_controller(self):
@@ -414,9 +419,13 @@ class DigiChamberProduct(pd_product.Product):
             self.digiTest = obj_digitest
             conn = self.digiTest.open_rs232(COM, timeout=5)
             self.digiTest.setRotation()
+            dev_name = self.digiTest.get_dev_name()
+            dev_sw_version = self.digiTest.get_dev_software_version()
+            self.log_to_db_func('digitest init ok', 'info', False)
+            self.log_to_db_func('digitest device name: {}, software version: {}'.format(dev_name, dev_sw_version), 'info', False)
             return conn
         except Exception as e:
-            self.lg.debug('digitest init error: {}'.format(e))
+            self.log_to_db_func('digitest init error: {}'.format(e), 'error', False)
             return False
 
     def close_digitest_controller(self):

@@ -13,7 +13,7 @@
     "Electron",
     "Python"
   ],
-  "author": "Shawn",
+  "author": "ShawnHsiao@bareiss",
   "license": "MIT",
   "build": {
     "productName": "digiCenter",
