@@ -12,6 +12,10 @@ let ws;
 const taskkill = require('taskkill');
 const find = require('find-process');
 
+console.log('appRoot:',appRoot)
+const curPath = path.join(appRoot, 'config.json')
+console.log('config Path:',curPath)
+
 function connect() {
   try{
     const WebSocket = require('ws');
@@ -163,9 +167,6 @@ const exitPyProc = (e) => {
 
 // init config and database
 var init_server = function(){
-  console.log('appRoot:',appRoot)
-  var curPath = path.join(appRoot, 'config.json')
-  console.log('config Path:',curPath)
   ws.send(tools.parseCmd('load_sys_config',curPath));
   ws.send(tools.parseCmd('backend_init'));
   ws.send(tools.parseCmd('load_default_lang',appRoot));
@@ -457,6 +458,12 @@ ipcMain.on('login-changed', (event) => {
 })
 ipcMain.on('trigger_tanslate', (event) => {
   mainWindow.webContents.send('trigger_tanslate');
+})
+
+// detect config changed
+ipcMain.on('trigger_config_changed', (event)=>{
+  mainWindow.webContents.send('update_config');
+  ws.send(tools.parseCmd('load_sys_config',curPath));
 })
 
 ipcMain.on('openTeachPosPdf', (event, langID) => {

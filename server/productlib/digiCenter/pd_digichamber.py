@@ -38,6 +38,10 @@ class DigiChamberProduct(pd_product.Product):
         self.log_to_db_func = None
         self.in_test_mode = False
         self.force_manual_mode = False
+        self.sysConfig = None
+    
+    def set_sysConfig(self, sysConfig):
+        self.sysConfig = sysConfig
 
     def set_lang(self, lang_data):
         self.lang_data = lang_data
@@ -213,6 +217,7 @@ class DigiChamberProduct(pd_product.Product):
                     s.pauseQueue = self.pauseQueue
                     s.set_batchinfo(self.batchInfo)
                     s.set_batchInfoForSamples(batchInfoForSamples)
+                    s.set_sysConfig(self.sysConfig)
                     s.lg = self.lg
 
                 # main process 
@@ -404,6 +409,7 @@ class DigiChamberProduct(pd_product.Product):
             self.dChamb = obj_digiChmaber
             conn = self.dChamb.connect()
             info = self.dChamb.get_chamber_info()
+            info = self.dChamb.set_tempShift()
             self.log_to_db_func('digiChamber init ok', 'info', False)
             self.log_to_db_func('digiChamber system info: {}'.format(info), 'info', False)
             return conn

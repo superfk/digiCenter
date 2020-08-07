@@ -432,10 +432,10 @@ function generateEventPlot(xtime,hardnessdata,tempdata){
         type: 'datetime'
       },
       yaxis: {
-        title: '℃'
+        title: 'Temperature(℃)'
       },
       yaxis2: {
-        title: 'hardness',
+        title: 'Hardness',
         titlefont: {color: 'rgb(148, 103, 189)'},
         tickfont: {color: 'rgb(148, 103, 189)'},
         overlaying: 'y',

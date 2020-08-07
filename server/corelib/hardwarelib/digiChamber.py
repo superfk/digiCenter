@@ -291,16 +291,16 @@ class DigiChamber(object):
         value = float(value)
         return value
     
-    def get_real_temperature(self):
+    def get_real_temperature(self, roundTo=1):
         cmd = self.create_cmd('11004', ['1'])
         respid, value = self.send_and_get(cmd)
-        value = float(value)
+        value = round(float(value),roundTo)
         return value
     
-    def get_real_humidity(self):
+    def get_real_humidity(self, roundTo=1):
         cmd = self.create_cmd('11004', ['2'])
         respid, value = self.send_and_get(cmd)
-        value = float(value)
+        value = round(float(value),roundTo)
         return value
     
     def set_gradient_up(self, value_k_per_min=0):
@@ -322,7 +322,23 @@ class DigiChamber(object):
         cmd = self.create_cmd('11070', ['1'])
         respid, value = self.send_and_get(cmd)
         return value
-    
+
+    def set_tempShift(self, value=0):
+        cmd = self.create_cmd('13006', ['2', str(value)])
+        self.send_and_get(cmd)
+
+    def set_controlSupplyAir(self, on=0):
+        cmd = self.create_cmd('14001', ['9', str(on)])
+        self.send_and_get(cmd)
+
+    def set_dryer(self, on=0):
+        cmd = self.create_cmd('14001', ['10', str(on)])
+        self.send_and_get(cmd)
+
+    def set_controlSupplyAir(self, on=0):
+        cmd = self.create_cmd('14001', ['20', str(on)])
+        self.send_and_get(cmd)
+
     def set_dummy_act_temp(self,value):
         self.dummyT = value
     
@@ -470,11 +486,11 @@ class DummyChamber(DigiChamber):
         cmd = self.create_cmd('11004', ['1'])
         return self.dummySetPoint + random.random()*0.2
     
-    def get_real_temperature(self):
-        return self.dummyT + random.random()*0.2
+    def get_real_temperature(self, roundTo=1):
+        return round(self.dummyT + random.random()*0.2,roundTo)
     
-    def get_real_humidity(self):
-        return self.dummyH + random.random()*0.2
+    def get_real_humidity(self,  roundTo=1):
+        return round(self.dummyH + random.random()*0.2,roundTo)
     
     def set_gradient_up(self, value_k_per_min=0):
         cmd = self.create_cmd('11068', ['1', str(value_k_per_min)])
@@ -498,6 +514,22 @@ class DummyChamber(DigiChamber):
     
     def get_gradient_down(self):
         return self.gradientDown
+
+    def set_tempShift(self, value=0):
+        cmd = self.create_cmd('13006', ['2', str(value)])
+        self.send_and_get(cmd)
+
+    def set_controlSupplyAir(self, on=0):
+        cmd = self.create_cmd('14001', ['9', str(on)])
+        self.send_and_get(cmd)
+
+    def set_dryer(self, on=0):
+        cmd = self.create_cmd('14001', ['10', str(on)])
+        self.send_and_get(cmd)
+
+    def set_controlSupplyAir(self, on=0):
+        cmd = self.create_cmd('14001', ['20', str(on)])
+        self.send_and_get(cmd)
     
     def close(self):
         self.connected=False

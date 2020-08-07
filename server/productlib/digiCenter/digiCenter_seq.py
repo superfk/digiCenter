@@ -35,6 +35,7 @@ class DigiCenterStep(object):
         self.pauseQueue = None
         self.lg = None
         self.force_manual_mode = False
+        self.sysConfig = None
         
 
     def initResult(self):
@@ -110,6 +111,9 @@ class DigiCenterStep(object):
         t = self.endTime - self.startTime
         # print('single test interval: {}'.format(t))
         return t
+    
+    def set_sysConfig(self,config):
+        self.sysConfig = config
     
     def set_result(self, value, status, unit=None, eventName=None, hardness_dataset=None, progs=0, batchInfo=None):
         if batchInfo:
@@ -221,12 +225,11 @@ class TeardownStep(DigiCenterStep):
             else:
                 signSlope = 60
             curT = curT + signSlope/60*1 + random.random()*0.02
-            self.hwDigichamber.set_dummy_act_temp(round(curT,1))
+            self.hwDigichamber.set_dummy_act_temp(curT)
             ## END   ###################################################
             curT = self.hwDigichamber.get_real_temperature()
-            roundValue = round(curT,1)
-            prog = round( (abs(roundValue - initT) / abs(target-initT)) * 100, 0)
-            self.set_result(roundValue,'WAITING',unit='&#8451', progs=prog)
+            prog = round( (abs(curT - initT) / abs(target-initT)) * 100, 0)
+            self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
             self.resultCallback(self.result)
             if curT<=UL and curT>=LL:
                 break
@@ -268,17 +271,28 @@ class TemperatureStep(DigiCenterStep):
             self.hwDigichamber.set_gradient_up(slope)
         self.hwDigichamber.set_setPoint(target)
     
+    def set_temperature_imporve_options(self):
+        try:
+            self.hwDigichamber.set_tempShift(self.sysConfig['system']['temp_shift_K'])
+        except:
+            self.hwDigichamber.set_tempShift(2)
+        self.hwDigichamber.set_controlSupplyAir(1)
+        self.hwDigichamber.set_dryer(1)
+        self.hwDigichamber.set_controlSupplyAir(1)
+
     @DigiCenterStep.deco
     def do(self):
         # set start temperature
         curT = self.hwDigichamber.get_real_temperature()
-        roundValue = round(curT,1)
         initT = curT
         self.update_actTarget()
         self.set_gradient_process(self.actTarget,self.slope)
 
         # set manual mode on
         self.hwDigichamber.set_manual_mode(True)
+
+        # set options
+        self.set_temperature_imporve_options()
 
         # update new target ref to client
         self.commCallback('update_gauge_ref',self.actTarget)
@@ -289,23 +303,18 @@ class TemperatureStep(DigiCenterStep):
         loopInterval = 0.5 #second
         sendInterval = 10 #second
         while curT>UL or curT<LL:
-            print('target value {}'.format(self.actTarget))
             if self.stopMsgQueue.qsize()>0:
                 # stop process immediately
-                roundValue = round(curT,1)
-                self.set_result(roundValue,'FAIL',unit='&#8451', progs=100)
+                self.set_result(curT,'FAIL',unit='&#8451', progs=100)
                 break
             time.sleep(loopInterval)
-            roundValue = round(curT,1)
-            prog = round( (abs(roundValue - initT) / abs(self.actTarget-initT)) * 100, 0)
-            # prog = round( (1-(abs(roundValue - self.actTarget) / self.actTarget)) * 100, 0)
+            prog = round( (abs(curT - initT) / abs(self.actTarget-initT)) * 100, 0)
             if counter*loopInterval >= sendInterval:
-                
-                self.set_result(roundValue,'WAITING',unit='&#8451', progs=prog)
+                self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
                 self.resultCallback(self.result)
                 counter = 0
             else:
-                self.set_result(roundValue,'UPDATE_PROGRESS_ONLY',unit='&#8451', progs=prog)
+                self.set_result(curT,'UPDATE_PROGRESS_ONLY',unit='&#8451', progs=prog)
                 self.resultCallback(self.result)
                 counter += 1
             # yield self.result
@@ -315,13 +324,12 @@ class TemperatureStep(DigiCenterStep):
                 signSlope = self.slope
             ## START ##########only for simulation of chamber###########
             curT = curT + signSlope/60*1 + random.random()*0.02
-            self.hwDigichamber.set_dummy_act_temp(round(curT,1))
+            self.hwDigichamber.set_dummy_act_temp(curT)
             ## END   ###################################################
             curT = self.hwDigichamber.get_real_temperature()
-            roundValue = round(curT,1)
             if curT<=UL and curT>=LL:
                 break
-        self.set_result(roundValue,'PASS',unit='&#8451', progs=100)
+        self.set_result(curT,'PASS',unit='&#8451', progs=100)
         # self.hwDigichamber.set_manual_mode(False)
         return self.result
 
@@ -375,7 +383,7 @@ class HardnessStep(DigiCenterStep):
             # get value
             try:
                 # only for demo mode
-                curT = self.hwDigichamber.get_real_temperature()
+                curT = self.hwDigichamber.get_real_temperature()           
             except:
                 pass
             statusCode, h_data = self.hwDigitest.get_single_value(curT)
@@ -418,7 +426,8 @@ class HardnessStep(DigiCenterStep):
             if retStatus == 'retry':
                 self.retry = False
                 self.singleResult['done'] = False
-                self.singleResult['dataset'].pop()
+                if len(self.singleResult['dataset'])>0:
+                    self.singleResult['dataset'].pop()
             return None
         else:
             # rotate on next position sample

@@ -228,7 +228,6 @@ ipcRenderer.on('show-alert-alert',(event,title,msg)=>{
   updatefoot(msg,'w3-red')
 })
 
-
 // change section event
 list = document.getElementsByClassName("nav-button");
 for (var i = 0; i < list.length; i++) {
@@ -370,8 +369,6 @@ function setLang(lang){
   })
 }
 
-
-
 // detect select language
 $('.lang-flags').on('click', function(){
   var elem = $(this);
@@ -432,3 +429,4 @@ function updateIndicator(hard=null, temp=null, hum=null){
   }
   
 }
+

@@ -105,11 +105,15 @@ generateTempTimePlot();
 
 function generateTempTimePlot(xarr=[],yarr=[]){
 
+    const minToFormatedTime = xarr.map(elm=>{
+        return tools.sec2dt(elm*60);
+    })
+
     var trace1 = {
           // x: h_data_x,
           type: "scattergl",
           name: 'temperature',
-          x: xarr,
+          x: minToFormatedTime,
           y: yarr,
           mode: 'lines+markers',
           line: {
@@ -123,7 +127,11 @@ function generateTempTimePlot(xarr=[],yarr=[]){
   
       var layout = {
         xaxis: {
-          title: 'Time(min)'
+            type: 'date',
+            tickformat: '%H:%M:%S',
+            title: 'Time(H:M:S)',
+            zeroline: false,
+            showline: true,
         },
         yaxis: {
           title: 'Temperature(℃)'
@@ -171,13 +179,14 @@ saveSeq.addEventListener('click', ()=>{
 })
 
 function updateTempTimeChart(){
+    
     let iniTemp = 20;
     let curTemp = 20;
     let xTime = 0.0;
     let cursor = 0;
     let loopArr = []; // [{id:313, iter:0, counts:0}]
     let ann = {
-        x: xTime,
+        x: tools.sec2dt(xTime*60),
         y: iniTemp,
         xref: 'x',
         yref: 'y',
@@ -191,9 +200,6 @@ function updateTempTimeChart(){
     let timeArr = [0];
     let temperatureArr = [iniTemp];
     while (cursor < test_flow.main.length){
-        // console.log('loop array')
-        // console.log(loopArr)
-        // console.log('cursor: ' + cursor)
         let item = test_flow.main[cursor];
         if (item.cat==='loop' && item.subitem['item']=='loop start'){
             let loopid = item.subitem.paras.filter(item=>item.name=='loop id')[0].value;
@@ -247,7 +253,7 @@ function updateTempTimeChart(){
             cursor += 1;
         }else if (item.cat==='hardness'){
             ann = {
-                x: xTime,
+                x: tools.sec2dt(xTime*60),
                 y: curTemp,
                 xref: 'x',
                 yref: 'y',

@@ -17,6 +17,9 @@ module.exports = {
       alwayIncrLoopColorIdx+=1
       return ouputColor
     },
+    sec2dt: function (seconds) {
+      return new Date(seconds * 1000).toISOString()
+    },
     capitalize: (s) => {
       if (typeof s !== 'string') return ''
       return s.charAt(0).toUpperCase() + s.slice(1)

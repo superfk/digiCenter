@@ -75,6 +75,7 @@ function connect() {
             case 'reply_checking_config':
               if (data){
                 ipcRenderer.send('show-info-alert', window.lang_data.modal_info_title, window.lang_data.save_config_ok);
+                ipcRenderer.send('trigger_config_changed');
               }else{
                 ipcRenderer.send('show-alert-alert', window.lang_data.modal_alert_title, window.lang_data.save_config_NG);
               }

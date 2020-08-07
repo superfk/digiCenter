@@ -267,6 +267,7 @@ class PyServerAPI(object):
         self.config_path = path
         self.productProcess.setDefaultSeqFolder(self.config['system']['default_seq_folder'])
         self.productProcess.set_force_manual_mode(self.config['system']['digitest_manual_mode'])
+        self.productProcess.sysConfig = self.config
         self.lg.debug('log system config: {}'.format(self.config))
 
     async def load_default_lang(self, websocket, appRoot):
@@ -327,7 +328,6 @@ class PyServerAPI(object):
         results.append(configs['digitest_COM'] == self.config['system']['digitest_COM'])
         results.append(configs['digitest_manual_mode'] == self.config['system']['digitest_manual_mode'])
         results.append(configs['export_folder'] == self.config['system']['default_export_folder'])
-        # results.append(configs['db_server'] == self.config['system']['database']["server"]) 
         await self.sendMsg(websocket,'reply_checking_config',all(results))
     
     async def getHostName(self, websocket):
@@ -526,6 +526,7 @@ class PyServerAPI(object):
         self.db.update("Batch_data",fields,values,condition)
         txt = self.lang_data['server_reply_batch_cont_reason']
         title = self.lang_data['server_reply_batch_cont_title']
+        await self.sendMsg(websocket,'reply_continue_batch',{'resp_code': 1, 'title':title,'reason':txt,'batchName':batch})
     
     async def query_batch_history(self,websocket):
         # check project and batch name exsisted?

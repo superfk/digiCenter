@@ -68,7 +68,7 @@ let loadSeqPathObj = {path:'', name:''};
 const plotMargin = { t: 80, r: 100, l:50, b: 60, pad: 4};
 const config = {
   displaylogo: false,
-  modeBarButtonsToRemove: ['toImage','lasso2d','select2d', 'pan2d','zoom2d','hoverClosestCartesian','hoverCompareCartesian','toggleSpikelines'],
+  modeBarButtonsToRemove: ['lasso2d','select2d', 'pan2d','zoom2d','hoverClosestCartesian','hoverCompareCartesian','toggleSpikelines'],
   responsive: true
 };
 let enableKeyDetect = false;
@@ -81,6 +81,7 @@ let machine_humi_idct = document.querySelectorAll('#machine_hum_idct  .idct-numb
 
 let forceManualMode = false;
 let digitestIsRotationMode = false;
+let runningTest = false;
 
 // **************************************
 // init functions
@@ -94,22 +95,6 @@ tools.generateHardnessPlot('hardness_graph',0)
 // generate graph functions
 // **************************************
 
-function sec2dt(v) {
-  var MIN = 60
-  var HOUR = 60 * 60
-  
-  var h = Math.floor(v / HOUR)
-  var m =  Math.floor((v - (h * HOUR)) / MIN)
-  var s = Math.floor(v - (h * HOUR) - (m * MIN))
-
-  // you have to provide YYYY-MM-DD
-  // for plotly to understand it as a date
-  return `${h}:${pad(m)}:${pad(s)}`
-}
-
-function pad(v) {
-  return v < 10 ? '0' + v : String(v)
-}
 
 function generateEventPlot(){
 
@@ -147,17 +132,19 @@ function generateEventPlot(){
 
     var layout = {
       xaxis: {
-        title: 'Time(s)',
+        title: 'Time(H:M:S)',
         zeroline: false,
-        showline: true
+        showline: true,
+        type: 'date',
+        tickformat: '%H:%M:%S'
       },
       yaxis: {
-        title: '℃',
+        title: 'Temperature(℃)',
         zeroline: false,
         showline: true
       },
       yaxis2: {
-        title: 'hardness',
+        title: 'Hardness',
         titlefont: {color: 'rgb(148, 103, 189)'},
         tickfont: {color: 'rgb(148, 103, 189)'},
         overlaying: 'y',
@@ -211,6 +198,7 @@ $('#batchHistoryTable').DataTable({
     scrollY:        400,
     scrollCollapse: true,
     scroller:       true,
+    order: [[ 2, 'desc' ]]
   }).draw();
 
   $('#batchHistoryTable tbody').on( 'click', 'tr', function () {
@@ -255,6 +243,7 @@ function connect() {
           break;
         case 'reply_init_hw':
           if(data.resp_code==1){
+            runningTest = false
             batchSelector_enable();
           }else{
             ipcRenderer.send('show-alert-alert',window.lang_data.modal_alert_title,data.res + '\n' + data.reason);
@@ -305,6 +294,12 @@ function connect() {
             ipcRenderer.send('show-option-dialog', data.title, data.reason, 'continue-batch', args);            
           }
           break;
+        case 'reply_continue_batch':
+          if (data.resp_code == 1){
+            ipcRenderer.send('show-info-alert',data.title, data.reason);
+            batch_confirmed();
+          }
+          break;
         case 'only_update_hardness_indicator':
           machine_hard_idct.innerText = data;
           break;
@@ -313,6 +308,7 @@ function connect() {
           break;
         case 'reply_server_error':
           ipcRenderer.send('show-alert-alert', window.lang_data.modal_alert_title, data.error);
+          runningTest = false
           break;
         default:
           console.log('Not found this cmd' + cmd)
@@ -320,6 +316,7 @@ function connect() {
       }
     }catch(e){
       console.error(e)
+      runningTest = false
     }
     
   });
@@ -447,6 +444,14 @@ function batchContent_disable(){
   $(noteInForm).removeClass('btnEnable btnDisable').addClass('btnEnable');
 }
 
+function batchSetupBtn_enable(){
+  $(openSampleSetupListBtn).removeClass('btnEnable btnDisable').addClass('btnEnable');
+}
+
+function batchSetupBtn_disable(){
+  $(openSampleSetupListBtn).removeClass('btnEnable btnDisable').addClass('btnDisable');
+}
+
 function batchConfirmAndStartBtn_enable(){
   $(batchConfirmAndStartBtn).removeClass('btnEnable btnDisable').addClass('btnEnable');
 }
@@ -510,8 +515,11 @@ function selectedHistoryBatch(){
 
 function immediate_start_test(){
   // start test
+  runningTest = true
+  batchSetupBtn_disable()
   batchConfirmAndStartBtn_disable();
   stopBtn_enable();
+  $('main> nav .nav-item a').removeClass('btnEnable btnDisable').addClass('btnDisable');
   $('#testSeqContainer li').removeClass(run_status_classes).addClass('run-init');
   getBatchInfo();
   initMonitorCirclePlot()
@@ -604,7 +612,7 @@ function updateStepByCat(res){
   switch(stepname) {
     case 'ramp':
       if (result !== 'UPDATE_PROGRESS_ONLY'){
-        tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp)
+        tools.plotly_addNewDataToPlot('event_graph', tools.sec2dt(relTime) ,actTemp)
       }
       curProgs.val(progs);
       break;
@@ -614,12 +622,12 @@ function updateStepByCat(res){
         curProgs.val(progs);
         tools.updateNumIndicator(machine_hard_idct,value, 1)
         tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value,y2val=null,sampleId=sampleIndex)
-        tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp,value)
+        tools.plotly_addNewDataToPlot('event_graph',tools.sec2dt(relTime),actTemp,value)
       }else if (result == 'MEAR_NEXT'){
         curProgs.val(progs);
         tools.updateNumIndicator(machine_hard_idct,value, 1)
         tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value,y2val=null,sampleId=sampleIndex)
-        tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp,value)
+        tools.plotly_addNewDataToPlot('event_graph',tools.sec2dt(relTime),actTemp,value)
       }else if (result == 'WAITING'){
         curProgs.val(progs);
       }else if (result == 'UPDATE_CURRENT_SAMPLEINDEX'){
@@ -632,14 +640,14 @@ function updateStepByCat(res){
       break;
     case 'time':
       if (result !== 'UPDATE_PROGRESS_ONLY'){
-        tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp)
+        tools.plotly_addNewDataToPlot('event_graph',tools.sec2dt(relTime),actTemp)
       }     
       curProgs.val(progs);
       break;
     
     case 'teardown':
       // updateValue('actualTempGauge', actTemp);
-      tools.plotly_addNewDataToPlot('event_graph',relTime,actTemp)
+      tools.plotly_addNewDataToPlot('event_graph',tools.sec2dt(relTime),actTemp)
       curProgs.val(progs);
       break;
     default:
@@ -707,12 +715,15 @@ function endOfTest(res){
   batchSelector_enable();
   batchContent_enable()
   batchConfirmAndStartBtn_enable();
+  batchSetupBtn_enable();
   stopBtn_disable();
+  $('main> nav .nav-item a').removeClass('btnEnable btnDisable').addClass('btnEnable');
   if (!interrupted){
     ipcRenderer.send('show-info-alert',title,reason);
   }else{
     ipcRenderer.send('show-warning-alert',title,reason);
   }
+  runningTest = false
 }
 
 const updateLoadedPathObj = (abspath) => {
@@ -934,9 +945,15 @@ function updateDigiTestModeCallback(){
 }
 
 $('#button-run').on('click',()=>{
-  ws.send(tools.parseCmd('get_digitest_manual_mode'));
-  ws.send(tools.parseCmd('get_digitest_is_rotaion_mode'));
+  console.log('[button-run clicked]')
+  console.log('runningTest',runningTest)
+  if(runningTest){
+    
+  }else{
+    updateDigiTestModeCallback()
+  }
 })
+
 
 // detect select language
 ipcRenderer.on('trigger_tanslate', (event)=>{
@@ -944,4 +961,11 @@ ipcRenderer.on('trigger_tanslate', (event)=>{
   if(test_flow.setup.subitem !== undefined){
     $('#testSeqContainer').html(seqRend.refreshSeq(test_flow,false))
   }
+})
+
+// detect config changed
+ipcRenderer.on('update_config', (event)=>{
+  console.log('[config changed detected in run section]')
+  ws.send(tools.parseCmd('get_digitest_manual_mode'));
+  ws.send(tools.parseCmd('get_digitest_is_rotaion_mode'));
 })
