@@ -327,7 +327,7 @@ class DigiChamber(object):
         cmd = self.create_cmd('13006', ['2', str(value)])
         self.send_and_get(cmd)
 
-    def set_controlSupplyAir(self, on=0):
+    def set_compAir(self, on=0):
         cmd = self.create_cmd('14001', ['9', str(on)])
         self.send_and_get(cmd)
 
@@ -519,7 +519,7 @@ class DummyChamber(DigiChamber):
         cmd = self.create_cmd('13006', ['2', str(value)])
         self.send_and_get(cmd)
 
-    def set_controlSupplyAir(self, on=0):
+    def set_compAir(self, on=0):
         cmd = self.create_cmd('14001', ['9', str(on)])
         self.send_and_get(cmd)
 

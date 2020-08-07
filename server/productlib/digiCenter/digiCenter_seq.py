@@ -276,8 +276,8 @@ class TemperatureStep(DigiCenterStep):
             self.hwDigichamber.set_tempShift(self.sysConfig['system']['temp_shift_K'])
         except:
             self.hwDigichamber.set_tempShift(2)
-        self.hwDigichamber.set_controlSupplyAir(1)
         self.hwDigichamber.set_dryer(1)
+        self.hwDigichamber.set_compAir(1)
         self.hwDigichamber.set_controlSupplyAir(1)
 
     @DigiCenterStep.deco
