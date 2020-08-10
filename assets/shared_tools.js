@@ -119,25 +119,53 @@ module.exports = {
     },
 
     changeStatus: function(html_elem, status=null){
-      let preState = false
-      let curState = false
-      if (status){
-        $(html_elem).removeClass('idct-status-conn').addClass('idct-status-conn');
-      }else{
-        $(html_elem).removeClass('idct-status-conn');
+      switch (status){
+        case 0:
+          $(html_elem).removeClass('idct-status-conn idct-status-running');
+          break;
+        case 1:
+          $(html_elem).removeClass('idct-status-conn idct-status-running').addClass('idct-status-conn');
+          break;
+        case 2:
+          $(html_elem).removeClass('idct-status-conn idct-status-running').addClass('idct-status-running');
+          break;
+        default:
+          
       }
     },
     
-    updateNumIndicator: function (html_elem, value=null, pres=1){
+    updateNumIndicator: function (html_elem, value=null, precision=1){
       // update values
-      html_elem.innerText = value==null?'--':value.toFixed(pres);
+      html_elem.innerText = value==null?'--':value.toFixed(precision);
     },
 
-    updateStatusIndicator: function (html_elem, status=null, langForConn='connected', langForDisonn='disconnected'){
+    updateStatusIndicator: function (html_elem, status=null, langForConn='connected', langForDisonn='disconnected', langForRunning='running'){
+      let preStatusCode = $(html_elem).hasClass('idct-status-conn') ? 1 : 0;
+      preStatusCode = $(html_elem).hasClass('idct-status-running') ? 2 : preStatusCode ;
+
       // update status
-      html_elem.innerText = status==false?langForDisonn:langForConn;
-      // update indicator color
-      module.exports.changeStatus(html_elem, status);
+      // 0: disconnect, 1: ready, 2: running
+      let stausTxt = '';
+      switch (status){
+        case 0:
+          stausTxt = langForDisonn;
+          break;
+        case 1:
+          stausTxt = langForConn;
+          break;
+        case 2:
+          stausTxt = langForRunning;
+          break;
+        default:
+          stausTxt = '';
+      }
+
+      if (preStatusCode !== status){
+        html_elem.innerText = stausTxt
+        // update indicator color
+        module.exports.changeStatus(html_elem, status);
+      }
+      
     }
     
   };

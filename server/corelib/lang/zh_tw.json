@@ -210,6 +210,7 @@
   "main_indicator_humidity":"濕度",
   "machine_connected":"已連線",
   "machine_disconnected":"已斷線",
+  "machine_running":"運作中",
   "digitest_disconnect_msg":"DigiTest斷開",
   "digichamber_disconnect_msg":"DigiChamber斷開",
   "please_select_one_batch":"請至少選擇一個批次",
@@ -232,5 +233,8 @@
   "moveHomeBtn":"回原點",
   "moveNextBtn":"移動至下個位置",
   "sampleSetupConfirmBtn":"確定",
-  "goToIndexBtn":"轉至索引位置"
+  "goToIndexBtn":"轉至索引位置",
+  "internal_exception_title":"錯誤",
+  "internal_exception_msg":"內部錯誤",
+  "internal_exception_detail":"詳細錯誤描述"
 }

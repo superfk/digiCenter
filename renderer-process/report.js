@@ -200,7 +200,7 @@ function connect() {
           exportFolder = data;
           break;
         case 'reply_server_error':
-          ipcRenderer.send('show-alert-alert', window.lang_data.modal_alert_title, data.error);
+          ipcRenderer.send('show-server-error',  data.error);
           break;
         default:
           console.log('Not found this cmd' + cmd)

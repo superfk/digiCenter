@@ -338,6 +338,15 @@ class DigiChamber(object):
     def set_controlSupplyAir(self, on=0):
         cmd = self.create_cmd('14001', ['20', str(on)])
         self.send_and_get(cmd)
+    
+    def is_test_running(self):
+        cmd = self.create_cmd('10012', [])
+        respid, value = self.send_and_get(cmd)
+        status_code = int(value)
+        if status_code in [3, 7, 11]:
+            return True
+        else:
+            return False
 
     def set_dummy_act_temp(self,value):
         self.dummyT = value
@@ -361,9 +370,11 @@ class DummyChamber(DigiChamber):
         self.dummySetPoint = 0
         self.gradientUp = 0
         self.gradientDown = 0
+        self.status = 0
     
     def connect(self):
         self.connected=True
+        self.status = 1
         return self.connected
 
     def create_cmd(self, cmdID, arglist):
@@ -416,8 +427,10 @@ class DummyChamber(DigiChamber):
     def set_manual_mode(self, enabled=False):
         if enabled:
             setManual = '1'
+            self.status = 2
         else:
             setManual = '0'
+            self.status = 1
         cmd = self.create_cmd('14001', ['1', setManual])
         return enabled
     
@@ -530,9 +543,19 @@ class DummyChamber(DigiChamber):
     def set_controlSupplyAir(self, on=0):
         cmd = self.create_cmd('14001', ['20', str(on)])
         self.send_and_get(cmd)
-    
+
+    def is_test_running(self):
+        cmd = self.create_cmd('10012', [])
+        self.send_and_get(cmd)
+        status_code = self.status
+        if status_code in [3, 7, 11]:
+            return True
+        else:
+            return False
+            
     def close(self):
         self.connected=False
+        self.status = 0
 
         
 if __name__ == '__main__':

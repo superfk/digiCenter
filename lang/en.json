@@ -210,6 +210,7 @@
   "main_indicator_humidity":"Humidity",
   "machine_connected":"connected",
   "machine_disconnected":"disconnected",
+  "machine_running":"running",
   "digitest_disconnect_msg":"DigiTest Disconnected",
   "digichamber_disconnect_msg":"DigiChamber Disconnected",
   "please_select_one_batch":"Please select at least one batch",
@@ -232,5 +233,8 @@
   "moveHomeBtn":"To Home",
   "moveNextBtn":"To Next Position",
   "sampleSetupConfirmBtn":"Confirm",
-  "goToIndexBtn":"Go To Index"
+  "goToIndexBtn":"Go To Index",
+  "internal_exception_title":"Internal Error",
+  "internal_exception_msg":"Internal Exception",
+  "internal_exception_detail":"Error Detail"
 }

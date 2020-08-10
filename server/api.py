@@ -51,6 +51,7 @@ class PyServerAPI(object):
         self.productProcess = DigiChamberProduct('digiCenter',r"C:\\data_exports",self.sendMsg,self.saveTestData)
         self.productProcess.set_logger(self.lg)
         self.productProcess.set_log_to_db_func(self.local_log_to_db)
+        self.productProcess.start_test_thread()
         self.initialized = False
         self.langFolder = ''
         self.batch = None
@@ -186,7 +187,7 @@ class PyServerAPI(object):
                     loop = asyncio.new_event_loop()
                     def f(loop):
                         asyncio.set_event_loop(loop)
-                        loop.run_forever()
+                        loop.run_until_complete()
                     t = threading.Thread(target=f, args=(loop,))
                     t.start()
                     future = asyncio.run_coroutine_threadsafe(self.run_seq(websocket,batchInfoForSamples), loop)
@@ -226,6 +227,7 @@ class PyServerAPI(object):
                     await self.get_digitest_is_rotaion_mode(websocket)
                 elif cmd == 'close_all':
                     await self.close_all(websocket)
+                    self.productProcess.stop_test_thread()
                 else:
                     self.lg.debug('Not found this cmd: {}'.format(cmd))
         except Exception as e:
@@ -459,8 +461,8 @@ class PyServerAPI(object):
         port = self.config['system']['machine_port']
         COM = self.config['system']['digitest_COM']
         mode = self.config['system']['mode']
-        isConn_chamber = False
-        isConn_digitest= False
+        statusCode_digiChambner = 0 # 0: disconnect, 1: ready, 2: running
+        statusCode_digitest= 0 # 0: disconnect, 1: ready, 2: running
         # set instance of hw
         try:
             if mode == 'demo':
@@ -469,21 +471,21 @@ class PyServerAPI(object):
             else:
                 self.digiChamber = DigiChamber(ip,port)
                 self.digiTest = Digitest()
-            isConn_chamber = self.productProcess.init_digiChamber_controller(self.digiChamber)
-            if isConn_chamber:
+            statusCode_digiChambner = self.productProcess.init_digiChamber_controller(self.digiChamber)
+            if statusCode_digiChambner > 0:
                 self.lg.debug('digiChamber init OK')
-            isConn_digitest = self.productProcess.init_digitest_controller(self.digiTest,COM)
-            if isConn_digitest:
+            statusCode_digitest = self.productProcess.init_digitest_controller(self.digiTest,COM)
+            if statusCode_digitest > 0:
                 self.lg.debug('digiTest init OK')
                 self.get_digitest_is_rotaion_mode(websocket)
             await self.sendMsg(websocket,'reply_init_hw',{'resp_code':1, 'res':self.lang_data['server_hw_init_ok']})
-            await self.sendMsg(websocket,'reply_init_hw_status',{'digitest':isConn_digitest, 'digichamber': isConn_chamber})
+            await self.sendMsg(websocket,'reply_init_hw_status',{'digitest':statusCode_digitest, 'digichamber': statusCode_digiChambner})
         except Exception as e:
             err_msg = traceback.format_exc()
             self.lg.debug('error during excetipn handling in init_hw')
             self.lg.debug(err_msg)
             await self.sendMsg(websocket,'reply_init_hw',{'resp_code':0, 'res':self.lang_data['server_hw_init_NG'], 'reason':'{}'.format(err_msg)})
-            await self.sendMsg(websocket,'reply_init_hw_status',{'digitest':isConn_digitest, 'digichamber': isConn_chamber})
+            await self.sendMsg(websocket,'reply_init_hw_status',{'digitest':statusCode_digitest, 'digichamber': statusCode_digiChambner})
 
     async def run_seq(self, websocket, batchInfoForSamples=[]):
         self.productProcess.create_seq()
@@ -551,8 +553,8 @@ class PyServerAPI(object):
         seq_id = testResult['stepid']
         sampleCounter = testResult['hardness_dataset']['sampleid']
         h_result = testResult['value']
-        temp_result = round(testResult['actTemp'],3)
-        hum_result = round(testResult['actHum'],3)
+        temp_result = testResult['actTemp']
+        hum_result = testResult['actHum']
         raw = testResult['hardness_dataset']['dataset']
         raw = json.dumps(raw)
         math_method = testResult['hardness_dataset']['method']

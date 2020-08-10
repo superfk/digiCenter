@@ -20,7 +20,7 @@ var systime_hook = document.getElementById('systime');
 let tools = require('./assets/shared_tools');
 let ws;
 // let lang_data = {};
-let monitorValue;
+const monitorValue = setInterval(monitorFunction,1000);
 window.lang_data = {};
 
 let login_ok = false;
@@ -157,20 +157,20 @@ function connect() {
           if(data.resp_code==0){
             ipcRenderer.send('show-alert-alert','Alert',data.res + '\n' + data.reason);
           }else{
-            clearInterval(monitorValue);
-            monitorValue = setInterval(monitorFunction,1000);
+            // clearInterval(monitorValue);
+            // 
           }
           break;
         case 'reply_init_hw_status':
-          tools.updateStatusIndicator(machine_hard_idct_status,data.digitest,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'])
-          tools.updateStatusIndicator(machine_temp_idct_status,data.digichamber,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'])
-          tools.updateStatusIndicator(machine_humi_idct_status,data.digichamber,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'])
+          tools.updateStatusIndicator(machine_hard_idct_status,data.digitest,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'],window.lang_data['machine_running'] )
+          tools.updateStatusIndicator(machine_temp_idct_status,data.digichamber,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'],window.lang_data['machine_running'] )
+          tools.updateStatusIndicator(machine_humi_idct_status,data.digichamber,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'],window.lang_data['machine_running'] )
           break;
         case 'update_cur_status':
           updateIndicator(data.dt,data.temp,data.hum)
           break;
         case 'reply_server_error':
-          ipcRenderer.send('show-alert-alert', window.lang_data.modal_alert_title, data.error);
+          ipcRenderer.send('show-server-error',  data.error);
           break;
         default:
           console.log('Not found this cmd' + cmd)
@@ -219,13 +219,19 @@ ipcRenderer.on('show-warning-alert',(event,title,msg)=>{
   document.getElementById("modal_warning_message_title").innerHTML = title;
   document.getElementById("modal_warning_message_text").innerHTML = msg;
   document.getElementById("modal_warning_message").style.display="block";
-  updatefoot(msg,'w3-yellow')
 })
 ipcRenderer.on('show-alert-alert',(event,title,msg)=>{
   document.getElementById("modal_alert_message_title").innerHTML = title;
   document.getElementById("modal_alert_message_text").innerHTML = msg;
   document.getElementById("modal_alert_message").style.display="block";
-  updatefoot(msg,'w3-red')
+})
+
+ipcRenderer.on('show-server-error',(event,msg)=>{
+  document.getElementById("modal_internal_exception_title").innerHTML = window.lang_data.internal_exception_title;
+  document.getElementById("modal_internal_exception_text").innerHTML = window.lang_data.internal_exception_msg;
+  document.getElementById("modal_internal_exception_button").innerHTML = window.lang_data.internal_exception_detail;
+  document.getElementById("error_detail").innerHTML = msg;
+  document.getElementById("modal_server_alert_message").style.display="block";
 })
 
 // change section event
@@ -411,21 +417,27 @@ function init_hw(){
 }
 
 function monitorFunction(){
-  ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_cur_temp_and_humi')));
+  try{
+    ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_cur_temp_and_humi')));
+  }catch{
+    console.log('websocket disconnected')
+  }
+  
 }
 
 function updateIndicator(hard=null, temp=null, hum=null){
+  console.log(hard)
   if (hard!=null){
     tools.updateNumIndicator(machine_hard_idct,hard.value, 1)
-    tools.updateStatusIndicator(machine_hard_idct_status,hard.status,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'])
+    tools.updateStatusIndicator(machine_hard_idct_status,hard.status,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'],window.lang_data['machine_running'] )
   }
   if (temp!=null){
     tools.updateNumIndicator(machine_temp_idct,temp.value, 1)
-    tools.updateStatusIndicator(machine_temp_idct_status,temp.status,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'])
+    tools.updateStatusIndicator(machine_temp_idct_status,temp.status,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'],window.lang_data['machine_running'] )
   }
   if (hum!=null){
     tools.updateNumIndicator(machine_humi_idct,hum.value, 1)
-    tools.updateStatusIndicator(machine_humi_idct_status,hum.status,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'])
+    tools.updateStatusIndicator(machine_humi_idct_status,hum.status,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'],window.lang_data['machine_running'] )
   }
   
 }

@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title></title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <script type="text/javascript" src="ext_modules/jquery-3.4.1.min.js"></script>
+
+    <link href="ext_modules/tabulator/dist/css/tabulator_simple.min.css" rel="stylesheet">
+    <script type="text/javascript" src="ext_modules/tabulator/dist/js/tabulator.min.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="ext_modules/css/w3.css">
+    <link rel="stylesheet" type="text/css" href="ext_modules/css/w3-colors-flat.css">
+    <link rel="stylesheet" type="text/css" href="ext_modules/fontawesome-free-5.10.1/css/all.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/variables.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/nativize.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/global.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/nav.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/section.css">
+    <link rel="stylesheet" type="text/css" href="ext_modules/DataTables/datatables.css">
+    <link rel="stylesheet" type="text/css" href="ext_modules/DataTables/AutoFill-2.3.3/css/autoFill.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="ext_modules/DataTables/Select-1.3.0/css/select.dataTables.min.css">
+    <link rel="stylesheet" type="text/css" href="ext_modules/vitalets-bootstrap-datepicker/css/datepicker.css">
+    <link rel="stylesheet" type="text/css" href="ext_modules/jquery-ui/jquery-ui.css">
+    <link rel="stylesheet" type="text/css" href="ext_modules/material-design-icons/iconfont/material-icons.css">
+    <script type="text/javascript" src="ext_modules/DataTables/datatables.js"></script>
+    <script type="text/javascript" src="ext_modules/DataTables/AutoFill-2.3.3/js/dataTables.autoFill.min.js"></script>
+    <script type="text/javascript" src="ext_modules/DataTables/Select-1.3.0/js/dataTables.select.min.js"></script>
+    <script type="text/javascript" src="node_modules/moment/min/moment.min.js"></script>
+    <script type="text/javascript" src="ext_modules/vitalets-bootstrap-datepicker/js/bootstrap-datepicker.js"></script>
+    <script type="text/javascript" src="ext_modules/plotly-latest.min.js"></script> 
+    
+    
+    <style>
+      html,body,h1,h2,h3,h4,h5 {font-family: Arial, Helvetica, sans-serif, 'Noto Sans SC','Noto Sans TC','Microsoft YaHei'}
+    </style>
+  </head>
+<body class="w3-light-grey">
+  
+
+  <!-- Top container -->
+  <header class="main-header w3-bar w3-top w3-white w3-border w3-border-teal" style="z-index:4;overflow: visible !important;">
+    <div class='w3-bar-item w3-center' style="height: 100%; width: 200px; display: flex;justify-content: center;align-items: center;">
+      <img src="img/Bareiss_LOGO.png"  class='w3-center' style="width: 100%;">
+    </div>
+    <a id='login' href="#" class="w3-button w3-right loginButton loginNG"><i class="fa fa-user w3-xxlarge"></i></a>
+    <div class='w3-bar-item w3-container w3-right'>
+        <ul class="w3-ul w3-tiny" style="margin: 0rem;padding: 0rem;border: 0rem;">
+            <li id='login_username' data-lang='head_login_username' data-lang_type='innerhtml' class="w3-medium" style="margin: 0rem;padding: 0rem;font-weight:bold;">Please Login</li>
+            <li id='login_userrole' style="margin: 0rem;padding: 0rem">(Guest)</li>
+        </ul>      
+    </div>
+    <div class="w3-dropdown-hover w3-right" style="height: 100%;" >
+      <button id='lang-button' class="w3-button" style="height: 100%;">Language</button>
+      <div class="w3-dropdown-content w3-bar-block w3-border" style="border-bottom: 1px solid #ccc;">
+        <a id='en' href="#" class="w3-bar-item w3-button lang-flags">English</a>
+        <a id='de' href="#" class="w3-bar-item w3-button lang-flags">German</a>
+        <a id='zh_cn' href="#" class="w3-bar-item w3-button lang-flags">简体中文</a>
+        <a id='zh_tw' href="#" class="w3-bar-item w3-button lang-flags">繁體中文</a>
+      </div>
+    </div>   
+
+  </header>
+
+  <main>
+    <!-- Sidebar/menu -->
+    <nav class="nav js-nav w3-sidebar w3-bar-block js-nav" style="z-index:3">
+      <div class="nav-item u-category-dataEx">
+        <a href="#" id="button-config" data-section="config" data-auth='button-config' class="w3-bar-item nav-button">
+          <i class="fas fa-sliders-h w3-xlarge w3-margin-right" data-section="config" style='width:30px;justify-content: center;text-align: center;'></i>
+          <span data-section="config" data-lang='side_config' data-lang_type='innertext'>Configuration</span>
+        </a>
+        <a href="#" id="button-seqEditor" data-section="seqEditor" data-auth='button-seqEditor' class="w3-bar-item nav-button">
+          <i class="fas fa-file-upload w3-xlarge w3-margin-right" data-section="seqEditor" style='width:30px;justify-content: center;text-align: center;'></i>
+          <span data-section="seqEditor" data-lang='side_seqEditor' data-lang_type='innertext' >SeqEditor</span>
+        </a>
+        <a href="#" id="button-run" data-section="run" data-auth='button-run' class="w3-bar-item nav-button">
+          <i class="far fa-play-circle w3-xlarge w3-margin-right" data-section="run" style='width:30px;justify-content: center;text-align: center;'></i>
+          <span data-section="run" data-lang='side_run' data-lang_type='innertext' >Run</span>
+        </a>
+        <a href="#" id="button-report" data-section="report" data-auth='button-report' class="w3-bar-item nav-button">
+          <i class="fas fa-chart-line w3-xlarge w3-margin-right" data-section="report" style='width:30px;justify-content: center;text-align: center;'></i>
+          <span data-section="report" data-lang='side_report' data-lang_type='innertext'>Report</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- !PAGE CONTENT! -->
+    <div id='page-content' class="content js-content"></div>
+  </main>
+  <div id='waiting-download' class='w3-display-middle'></div>
+  <!-- !MACHINE INDICATOR! -->
+  <div class="machine-indicators w3-row w3-flat-clouds">
+
+    <div id='machine_hard_idct' class='machine-indicator-container w3-third w3-container'>
+      <div class="w3-cell-row">
+
+        <div class="w3-container w3-cell machine-indicator-container-left">
+          <div class='idct-header'>
+            <i class="fas fa-download" style='margin-right: 5px;'></i>
+            <div data-lang='main_indicator_hard' data-lang_type='innertext'>Hardness</div>
+          </div>
+          <div class='idct-status'>disconnect</div>
+        </div>
+
+        <div class="w3-container w3-cell machine-indicator-container-right">
+          <div class='idct-number'>--</div>
+          <div class='idct-unit'></div>
+        </div>
+
+      </div>
+    </div>
+
+    <div id='machine_tempr_idct' class='machine-indicator-container w3-third w3-container'>
+      <div class="w3-cell-row">
+
+        <div class="w3-container w3-cell machine-indicator-container-left">
+          <div class='idct-header'>
+            <i class="fas fa-thermometer-quarter" style='margin-right: 5px;'></i>
+            <div data-lang='main_indicator_temperature' data-lang_type='innertext'>Temperature</div>
+          </div>
+          <div class='idct-status' data-lang='main_temperature_status' data-lang_type='innertext'>disconnect</div>
+        </div>
+
+        <div class="w3-container w3-cell machine-indicator-container-right">
+          <div class='idct-number'>--</div>
+          <div class='idct-unit'>&#8451</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div id='machine_hum_idct' class='machine-indicator-container w3-rest w3-container'>
+      <div class="w3-cell-row">
+
+        <div class="w3-container w3-cell machine-indicator-container-left">
+          <div class='idct-header'>
+            <i class="fas fa-tint" style='margin-right: 5px;'></i>
+            <div data-lang='main_indicator_humidity' data-lang_type='innertext'>Humidity</div>
+          </div>
+          <div class='idct-status'>disconnect</div>
+        </div>
+
+        <div class="w3-container w3-cell machine-indicator-container-right">
+          <div class='idct-number'>--</div>
+          <div class='idct-unit'>%r.h.</div>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+  <!-- !PAGE footer! -->
+  <footer class="w3-bar w3-bottom w3-flat-asbestos w3-border-top w3-border-silver">
+    <div class='w3-container w3-display-left w3-rest'><p id='footStatus' style="overflow: auto;"></p></div>
+    <div id='systime' class='w3-container w3-display-right w3-border-left w3-col' style="width:180px">yyyy-mm-dd HH:MM:SS</div>
+  </footer>
+
+  <!-- Showing Info Modal -->
+  <div id="modal_info_message" class="w3-modal" style='z-index:20'>
+    <div class="w3-modal-content">
+      <div class="w3-container w3-blue"> 
+        <span onclick="document.getElementById('modal_info_message').style.display='none'"
+        class="w3-button w3-display-topright">&times;</span>
+        <h2 id="modal_info_message_title" data-lang='modal_info_title' data-lang_type='innertext' style="margin-top: 1rem">Info</h2>
+      </div>
+      <div class="w3-container">
+        <h4 id="modal_info_message_text"></h4>
+      </div>
+    </div>
+  </div>
+  <!-- Showing Warning Modal -->
+  <div id="modal_warning_message" class="w3-modal" style='z-index:20'>
+    <div class="w3-modal-content w3-animate-opacity w3-card-4">
+      <div class="w3-container w3-yellow"> 
+        <span onclick="document.getElementById('modal_warning_message').style.display='none'" 
+        class="w3-button w3-display-topright">&times;</span>
+        <h2 id="modal_warning_message_title" data-lang='modal_warning_title' data-lang_type='innertext' style="margin-top: 1rem">Warning</h2>
+      </div>
+      <div class="w3-container">
+        <h4 id="modal_warning_message_text"></h4>
+      </div>
+    </div>
+  </div>
+  <!-- Showing Alert Modal -->
+  <div id="modal_alert_message" class="w3-modal" style='z-index:20'>
+    <div class="w3-modal-content w3-animate-opacity w3-card-4">
+      <div class="w3-container w3-red"> 
+        <span onclick="document.getElementById('modal_alert_message').style.display='none'" 
+        class="w3-button w3-display-topright">&times;</span>
+        <h2 id="modal_alert_message_title" data-lang='modal_alert_title' data-lang_type='innertext' style="margin-top: 1rem">Alert</h2>
+      </div>
+      <div class="w3-container">
+        <h4 id="modal_alert_message_text"></h4>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Showing login Modal -->
+  <div id="modal_login" class="w3-modal" style='z-index:10'>
+      <div class="w3-modal-content w3-animate-opacity w3-card-4" style="width:400px;">
+        <div class="w3-container w3-flat-green-sea"> 
+          <span onclick="document.getElementById('modal_login').style.display='none'" 
+          class="w3-button w3-display-topright">&times;</span>
+          <h2 id="modal_login_title" data-lang='modal_login_title' data-lang_type='innertext' style="margin-top: 1rem">Please Login</h2>
+        </div>
+        <!-- for normal login -->
+        <div id='normal_login_panel' class="w3-container" style="margin-top: 1rem">
+            <div class="w3-row w3-section w3-margin-bottom">
+                <div class="w3-col" style="width:50px"><i class="w3-xxlarge fa fa-user"></i></div>
+                  <div class="w3-rest">
+                    <input id='input-userid' data-lang='modal_login_userid_plhd' data-lang_type='plhd' class="w3-input w3-border-bottom w3-light-grey w3-hover-opacity" name="username" type="text" placeholder="User Name">
+                  </div>
+            </div>
+        
+            <div class="w3-row w3-section w3-margin-bottom">
+                <div class="w3-col" style="width:50px"><i class="w3-xxlarge fas fa-key"></i></i></div>
+                  <div class="w3-rest">
+                    <input id='input-password' data-lang='modal_login_pw_plhd' data-lang_type='plhd' class="w3-input w3-border-bottom w3-light-grey w3-hover-opacity" name="password" type="password" placeholder="Password">
+                  </div>
+            </div>
+        
+            <button id='confirm-login' data-lang='modal_login_Btn' data-lang_type='innertext' class="w3-button w3-block w3-section w3-blue w3-ripple w3-padding">Log in</button>
+            <button id='confirm-logout' data-lang='modal_logout_Btn' data-lang_type='innertext' class="w3-button w3-block w3-section w3-gray w3-ripple w3-padding">Log out</button>
+            
+        </div>
+        <!-- for First Login -->
+        <div id='first_login_panel' class="w3-container w3-animate-opacity" style="margin-top: 1rem; display: none">
+          <div id='back_to_normal_login' class='w3-button' onclick="document.getElementById('first_login_panel').style.display='none'"><i class="fas fa-chevron-left w3-large"></i></div>
+
+          <div class="w3-row w3-section w3-margin-bottom">
+              <div class="w3-col" data-lang='modal_firstlogin_curPw' data-lang_type='innertext' style="width:100px">Current Password</div>
+                <div class="w3-rest">
+                  <input id='confirm_current_pw' data-lang='modal_firstlogin_curPw_plhd' data-lang_type='plhd' class="w3-input w3-border-bottom w3-light-grey w3-hover-opacity" type="password" placeholder="Current Password">
+                </div>
+          </div>
+      
+          <div class="w3-row w3-section w3-margin-bottom">
+              <div class="w3-col" data-lang='modal_firstlogin_newPw' data-lang_type='innertext' style="width:100px">New Password</div>
+                <div class="w3-rest">
+                  <input id='confirm_new_pw' data-lang='modal_firstlogin_newPw_plhd' data-lang_type='plhd' class="w3-input w3-border-bottom w3-light-grey w3-hover-opacity" type="password" placeholder="New Password">
+                </div>
+          </div>
+
+          <div class="w3-row w3-section w3-margin-bottom">
+            <div class="w3-col" data-lang='modal_firstlogin_repeatPw' data-lang_type='innertext' style="width:100px">Repeat Password</div>
+              <div class="w3-rest">
+                <input id='confirm_new_pw_again' data-lang='modal_firstlogin_repeatPw_plhd' data-lang_type='plhd' class="w3-input w3-border-bottom w3-light-grey w3-hover-opacity" type="password" placeholder="New Password Again">
+              </div>
+          </div>  
+      
+          <button id='confirm_new_pw_btn' data-lang='modal_firstlogin_loginBtn' data-lang_type='innertext' class="w3-button w3-block w3-section w3-blue w3-ripple w3-padding">Confirm</button>
+          
+        </div>
+
+      </div>
+    </div>
+  
+  <!-- Showing file save Modal -->
+  <div id="modal_file_export" class="w3-modal" style='z-index:10'>
+      <div class="w3-modal-content w3-animate-opacity w3-card-4" style="width:50%">
+        <div class="w3-container w3-flat-silver">
+          <span onclick="document.getElementById('modal_file_export').style.display='none'" 
+          class="w3-button w3-display-topright">&times;</span>
+          <h3 data-lang='modal_fileExp_title' data-lang_type='innertext' style="margin-top: 1rem">Export Setting</h3>
+        </div>
+        
+        <div class="w3-container">
+          <label data-lang='modal_fileExp_filename' data-lang_type='innertext'>Filename</label>
+          <input id='export-filename' class="w3-input w3-border w3-light-grey" type="text">
+          <hr>
+          <p>
+          <input id='export-option-csv' class="w3-check" type="checkbox" checked>
+          <label> CSV</label></p>
+          <p>
+            <input id='export-option-excel' class="w3-check" type="checkbox" checked>
+            <label> Excel</label></p>
+        </div>
+        
+        <button id='export-start' data-lang='modal_fileExp_exportBtn' data-lang_type='innertext' data-auth='export-start' class="w3-button w3-block w3-flat-asbestos" onclick="document.getElementById('modal_file_export').style.display='none'">Export</button>
+          
+      </div>
+    </div>
+
+
+  <script>
+    require('./renderer.js');
+    require('./assets/imports');
+    require('./assets/nav');
+  </script>
+  
+</body>
+</html>

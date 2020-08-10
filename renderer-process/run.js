@@ -33,6 +33,9 @@ let dialog_dataset_stdev = document.getElementById('dataset_stdev');
 let start_btn = document.getElementById('start_mear_after_move_sample');
 let retry_btn = document.getElementById('retry_mear_after_move_sample');
 const statusCircle = document.getElementById('sampleCircleStatus')
+let hard_idct_status = document.querySelectorAll('#machine_hard_idct .idct-status')[0]
+let temp_idct_status = document.querySelectorAll('#machine_tempr_idct .idct-status')[0]
+let humi_idct_status = document.querySelectorAll('#machine_hum_idct  .idct-status')[0]
 let batchInfoForSamples = [];
 let batches = [];
 let batchCounter = 0
@@ -263,13 +266,11 @@ function connect() {
           createInstance()
           updateDigiTestModeCallback()
           break;
-        case 'update_sequence':
-          updateSequence(data)
-          break;
+        case 'reply_load_seq':
+            updateSequence(data)
+            break;
         case 'update_sys_default_config':
           updateServerSeqFolder(data);
-          break;
-        case 'update_cur_status':
           break;
         case 'update_step_result':
           updateSingleStep(data);
@@ -303,11 +304,14 @@ function connect() {
         case 'only_update_hardness_indicator':
           machine_hard_idct.innerText = data;
           break;
+        case 'update_machine_status':
+          updateStatusIndicator(data.dt,data.temp,data.hum)
+          break;
         case 'end_of_test':
           endOfTest(data)
           break;
         case 'reply_server_error':
-          ipcRenderer.send('show-alert-alert', window.lang_data.modal_alert_title, data.error);
+          ipcRenderer.send('show-server-error',  data.error);
           runningTest = false
           break;
         default:
@@ -477,13 +481,18 @@ function loadSeqFromServer(){
 };
 
 function updateSequence(res){
-  if (res !== undefined){
-    test_flow.setup = res.setup;
-    test_flow.main = res.main;
-    test_flow.loop = res.loop;
-    test_flow.teardown = res.teardown;
-    seqRend.sortSeq('testSeqContainer', test_flow.setup, test_flow.main, test_flow.teardown, false);
+  const errorReason  = res.error;
+  const script = res.script;
+  if (errorReason === null){
+      test_flow.setup = script.setup;
+      test_flow.main = script.main;
+      test_flow.loop = script.loop;
+      test_flow.teardown = script.teardown;
+      seqRend.sortSeq('testSeqContainer',test_flow.setup, test_flow.main, test_flow.teardown,false);
+  }else{
+      ipcRenderer.send('show-warning-alert',window.lang_data.modal_warning_title, errorReason);
   }
+  
 }
 
 function getBatchInfo(){
@@ -520,6 +529,7 @@ function immediate_start_test(){
   batchConfirmAndStartBtn_disable();
   stopBtn_enable();
   $('main> nav .nav-item a').removeClass('btnEnable btnDisable').addClass('btnDisable');
+  $('#lang-button').removeClass('btnEnable btnDisable').addClass('btnDisable');
   $('#testSeqContainer li').removeClass(run_status_classes).addClass('run-init');
   getBatchInfo();
   initMonitorCirclePlot()
@@ -570,28 +580,23 @@ function updateSingleStep(res){
   // update value in step
   curResult.html(value + unit)
   curstep.removeClass(run_status_classes)
-  if (result == 'PASS'){
-    updateStepByCat(res);
-    curstep.addClass('run-pass');
-  }else if (result == 'WAITING'){
-    updateStepByCat(res);
-    curstep.addClass('run-wait');
-  }else if (result == 'UPDATE_PROGRESS_ONLY'){
-    updateStepByCat(res);
-    curstep.addClass('run-wait');
-  }else if (result == 'PAUSE'){
-    curstep.addClass('run-pause');
-  }else if (result == 'SKIP'){
-    updateStepByCat(res);
-    curstep.addClass('run-skip');
-  }else if (result == 'MEAR_NEXT'){
-    updateStepByCat(res);
-    curstep.addClass('run-next');
-  }else{
-    updateStepByCat(res);
-    curstep.addClass('run-fail');
-  }
+  updateStepByCat(res);
+  if (result == 'PASS'){curstep.addClass('run-pass');}
+  else if (result == 'WAITING'){curstep.addClass('run-wait');}
+  else if (result == 'UPDATE_PROGRESS_ONLY'){curstep.addClass('run-wait');}
+  else if (result == 'PAUSE'){curstep.addClass('run-pause');}
+  else if (result == 'SKIP'){curstep.addClass('run-skip');}
+  else if (result == 'MEAR_NEXT'){curstep.addClass('run-next');}
+  else if (result == 'UPDATE_CURRENT_SAMPLEINDEX'){}
+  else{curstep.addClass('run-fail');}
   
+}
+
+function logdata(res){
+  console.log('[add data: sampleIndex]',res.sampleIndex)
+  console.log('[add data: result]',res.status)
+  console.log('[add data: hardness value]',res.value)
+  console.log('[add data: temperature value]',res.actTemp)
 }
 
 function updateStepByCat(res){  
@@ -617,20 +622,23 @@ function updateStepByCat(res){
       curProgs.val(progs);
       break;
     case 'measure':
-      // h_data_y.push(value)
       if (result == 'PASS'){
+        logdata(res)
         curProgs.val(progs);
         tools.updateNumIndicator(machine_hard_idct,value, 1)
         tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value,y2val=null,sampleId=sampleIndex)
         tools.plotly_addNewDataToPlot('event_graph',tools.sec2dt(relTime),actTemp,value)
       }else if (result == 'MEAR_NEXT'){
+        logdata(res)
         curProgs.val(progs);
         tools.updateNumIndicator(machine_hard_idct,value, 1)
         tools.plotly_addNewDataToPlot('hardness_graph',actTemp,value,y2val=null,sampleId=sampleIndex)
         tools.plotly_addNewDataToPlot('event_graph',tools.sec2dt(relTime),actTemp,value)
       }else if (result == 'WAITING'){
+        markCurrentSample(sampleIndex)
         curProgs.val(progs);
       }else if (result == 'UPDATE_CURRENT_SAMPLEINDEX'){
+        logdata(res)
         markCurrentSample(sampleIndex)
       }    
       if (eventName !== null){
@@ -718,6 +726,7 @@ function endOfTest(res){
   batchSetupBtn_enable();
   stopBtn_disable();
   $('main> nav .nav-item a').removeClass('btnEnable btnDisable').addClass('btnEnable');
+  $('#lang-button').removeClass('btnEnable btnDisable').addClass('btnEnable');
   if (!interrupted){
     ipcRenderer.send('show-info-alert',title,reason);
   }else{
@@ -969,3 +978,16 @@ ipcRenderer.on('update_config', (event)=>{
   ws.send(tools.parseCmd('get_digitest_manual_mode'));
   ws.send(tools.parseCmd('get_digitest_is_rotaion_mode'));
 })
+
+function updateStatusIndicator(hard=null, temp=null, hum=null){
+  if (hard!=null){
+    tools.updateStatusIndicator(hard_idct_status,hard.status,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'],window.lang_data['machine_running'] )
+  }
+  if (temp!=null){
+    tools.updateStatusIndicator(temp_idct_status,temp.status,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'],window.lang_data['machine_running'] )
+  }
+  if (hum!=null){
+    tools.updateStatusIndicator(humi_idct_status,hum.status,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'],window.lang_data['machine_running'] )
+  }
+  
+}

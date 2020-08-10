@@ -57,6 +57,7 @@ function connect() {
           }
           break;
         case 'reply_server_error':
+          showInternalErrorModal(data.error)
           console.log(data.error);
           break;
         case 'reply_close_all':
@@ -388,6 +389,10 @@ function updatefoot(msg, color='w3-red'){
   mainWindow.webContents.executeJavaScript(code);
 }
 
+function showInternalErrorModal(msg){
+  mainWindow.webContents.send('show-server-error', msg);
+}
+
 // save_log
 ipcMain.on('save_log', (event, msg, type='info', audit=0) => {
   try{
@@ -411,6 +416,11 @@ ipcMain.on('show-warning-alert', (event, title, msg) => {
 // show alert dialog
 ipcMain.on('show-alert-alert', (event, title, msg) => {
   mainWindow.webContents.send('show-alert-alert',title, msg);
+})
+
+// show internal error dialog
+ipcMain.on('show-server-error', (event, msg) => {
+  mainWindow.webContents.send('show-server-error', msg);
 })
 
 // show login dialog

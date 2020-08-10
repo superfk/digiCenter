@@ -51,6 +51,15 @@ class DigiChamberProduct(pd_product.Product):
     
     def set_log_to_db_func(self, logDBFunc):
         self.log_to_db_func = logDBFunc
+
+    def start_test_thread(self):
+        self.create_result_callback_loop()
+    
+    def stop_test_thread(self):
+        try:
+            self.loop.stop()
+        except:
+            self.lg('close test corutine error')
     
     def set_force_manual_mode(self, forceManual):
         self.force_manual_mode = forceManual
@@ -116,9 +125,9 @@ class DigiChamberProduct(pd_product.Product):
             self.script = None
             data = util.readFromJSON(path)
             self.script = data
-            await self.socketCallback(websocket, 'update_sequence', self.script)
+            await self.socketCallback(websocket, 'reply_load_seq', {'error':None, 'script': self.script})
         except FileNotFoundError:
-            await self.socketCallback(websocket, 'reply_server_error', {'error':self.lang_data['server_reply_batch_seq_not_found']})
+            await self.socketCallback(websocket, 'reply_load_seq', {'error':self.lang_data['server_reply_batch_seq_not_found'], 'script': self.script})
     
     def setDefaultSeqFolder(self,seqPath):
         path = os.path.join(seqPath,'seq_files')
@@ -198,7 +207,6 @@ class DigiChamberProduct(pd_product.Product):
             self.pauseQueue = queue.Queue()
             self.testStop=False
             self.interruptStop=False
-            self.create_result_callback_loop()
             self.ws = websocket
             self.errorMsg = None
             startTime = time.time()
@@ -306,7 +314,9 @@ class DigiChamberProduct(pd_product.Product):
             
             try:
                 self.dChamb.set_manual_mode(False)
+                self.commCallback('update_machine_status',{'dt':None,'temp':{'status':1, 'value':None}, 'hum':{'status':1, 'value':None}})
                 self.digiTest.stop_mear()
+                self.commCallback('update_machine_status',{'dt':{'status':1, 'value':None},'temp':None, 'hum':None})
                 self.digiTest.set_remote(False)
             except:
                 self.lg.debug('set hardware failed in the finall step of sequence')
@@ -315,36 +325,42 @@ class DigiChamberProduct(pd_product.Product):
 
     async def get_cur_temp_and_humi(self, websocket):
         dtInfo = {}
-        dtInfo['status']=False
+        dtInfo['status']=0
         dtInfo['value']=None
         tempInfo = {}
-        tempInfo['status']=False
+        tempInfo['status']=0
         tempInfo['value']=None
         humInfo = {}
-        humInfo['status']=False
+        humInfo['status']=0
         humInfo['value']=None
         if not self.in_test_mode:
             try:
                 if self.dChamb.connected:
                     self.curT = self.dChamb.get_real_temperature()
                     self.curH = self.dChamb.get_real_humidity()
-                    tempInfo['status']=self.dChamb.connected
+                    isRunning = self.dChamb.is_test_running()
+                    tempInfo['status']= 2 if isRunning else 1
                     tempInfo['value']=self.curT
-                    humInfo['status']=self.dChamb.connected
+                    humInfo['status']= 2 if isRunning else 1
                     humInfo['value']=self.curH
                 else:
-                    tempInfo['status']=False
+                    tempInfo['status']=0
                     tempInfo['value']=None
-                    humInfo['status']=False
+                    humInfo['status']=0
                     humInfo['value']=None 
             except Exception as e:
                 err_msg = traceback.format_exc()
                 self.log_to_db_func('digiChamber get temperature error: {}'.format(err_msg), 'info', False)
             finally:
                 try:
-                    dtInfo['status']=self.digiTest.connected
                     if self.digiTest.connected:
                         statusCode, dtInfo['value'] =self.digiTest.get_single_value(self.curT)
+                        if statusCode == 1:
+                            dtInfo['status'] = 1 
+                        elif statusCode < 0:
+                            dtInfo['status'] = 1 
+                        else:
+                            dtInfo['status'] = 2 # running
                     else:
                         dtInfo['value']= None
                 except Exception as e:
@@ -369,7 +385,7 @@ class DigiChamberProduct(pd_product.Product):
         self.loop = asyncio.new_event_loop()
         def f(loop):
             asyncio.set_event_loop(self.loop)
-            self.loop.run_forever()
+            self.loop.run_until_complete()
         t = threading.Thread(target=f, args=(self.loop,))
         t.start()
 
@@ -380,13 +396,13 @@ class DigiChamberProduct(pd_product.Product):
             self.saveResult2DatabaseCallback(result)
         else:
             pass
-        future = asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,'update_step_result',result), self.loop)
+        asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,'update_step_result',result), self.loop)
     
     def sendCommunicateCallback(self,cmd, data):
-        future = asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,cmd,data), self.loop)
+        asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,cmd,data), self.loop)
     
     def saveResult2DatabaseCallback(self,testResult):
-        future = asyncio.run_coroutine_threadsafe(self.saveTestResult2DbCallback(testResult), self.loop)
+        asyncio.run_coroutine_threadsafe(self.saveTestResult2DbCallback(testResult), self.loop)
         
     def continuous_mear(self,retry=False):
         if retry:
@@ -409,13 +425,18 @@ class DigiChamberProduct(pd_product.Product):
             self.dChamb = obj_digiChmaber
             conn = self.dChamb.connect()
             info = self.dChamb.get_chamber_info()
-            info = self.dChamb.set_tempShift()
+            running = self.dChamb.is_test_running()
             self.log_to_db_func('digiChamber init ok', 'info', False)
             self.log_to_db_func('digiChamber system info: {}'.format(info), 'info', False)
-            return conn
+            statusCode = 0
+            if conn:
+                statusCode = 1
+            if running:
+                statusCode = 2
+            return statusCode
         except Exception as e:
             self.log_to_db_func('digiChamber init error: {}'.format(e), 'error', False)
-            return False
+            return 0
 
     def close_digiChamber_controller(self):
         self.dChamb.close()
@@ -429,10 +450,13 @@ class DigiChamberProduct(pd_product.Product):
             dev_sw_version = self.digiTest.get_dev_software_version()
             self.log_to_db_func('digitest init ok', 'info', False)
             self.log_to_db_func('digitest device name: {}, software version: {}'.format(dev_name, dev_sw_version), 'info', False)
-            return conn
+            statusCode = 0
+            if conn:
+                statusCode = 1
+            return statusCode
         except Exception as e:
             self.log_to_db_func('digitest init error: {}'.format(e), 'error', False)
-            return False
+            return 0
 
     def close_digitest_controller(self):
         self.digiTest.set_remote(False)

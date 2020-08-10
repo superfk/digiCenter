@@ -165,9 +165,7 @@
         class="w3-button w3-display-topright">&times;</span>
         <h2 id="modal_info_message_title" data-lang='modal_info_title' data-lang_type='innertext' style="margin-top: 1rem">Info</h2>
       </div>
-      <div class="w3-container">
-        <h4 id="modal_info_message_text"></h4>
-      </div>
+      <div id="modal_info_message_text" class="modalContent"></div>
     </div>
   </div>
   <!-- Showing Warning Modal -->
@@ -178,9 +176,7 @@
         class="w3-button w3-display-topright">&times;</span>
         <h2 id="modal_warning_message_title" data-lang='modal_warning_title' data-lang_type='innertext' style="margin-top: 1rem">Warning</h2>
       </div>
-      <div class="w3-container">
-        <h4 id="modal_warning_message_text"></h4>
-      </div>
+      <div id="modal_warning_message_text" class="modalContent"></div>
     </div>
   </div>
   <!-- Showing Alert Modal -->
@@ -191,8 +187,22 @@
         class="w3-button w3-display-topright">&times;</span>
         <h2 id="modal_alert_message_title" data-lang='modal_alert_title' data-lang_type='innertext' style="margin-top: 1rem">Alert</h2>
       </div>
-      <div class="w3-container">
-        <h4 id="modal_alert_message_text"></h4>
+      <div id="modal_alert_message_text" class="modalContent"></div>
+    </div>
+  </div>
+  <!-- Showing SERVER ERROR Modal -->
+  <div id="modal_server_alert_message" class="w3-modal" style='z-index:21'>
+    <div class="w3-modal-content w3-animate-opacity w3-card-4">
+      <div class="w3-container w3-red"> 
+        <span onclick="document.getElementById('modal_server_alert_message').style.display='none'" 
+        class="w3-button w3-display-topright">&times;</span>
+        <h2 id="modal_internal_exception_title" data-lang='internal_exception_title' data-lang_type='innertext' style="margin-top: 1rem">Internal Error</h2>
+      </div>
+      <div class="modalContent">
+        <h4 id="modal_internal_exception_text"  data-lang='internal_exception_msg' data-lang_type='innertext' >Internal Exception</h4>
+        <button id="modal_internal_exception_button" onclick="showDetail('error_detail')" class="w3-btn w3-block w3-black w3-left-align" 
+        data-lang='internal_exception_detail' data-lang_type='innertext'>Error Detail</button>
+        <div id="error_detail" class="errorDetail w3-hide"></div>
       </div>
     </div>
   </div>
@@ -289,6 +299,16 @@
     require('./assets/imports');
     require('./assets/nav');
   </script>
+  <script>
+    function showDetail(id) {
+      var x = document.getElementById(id);
+      if (x.className.indexOf("w3-show") == -1) {
+        x.className += " w3-show";
+      } else { 
+        x.className = x.className.replace(" w3-show", "");
+      }
+    }
+    </script>
   
 </body>
 </html>

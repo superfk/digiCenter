@@ -187,7 +187,9 @@ class SetupStep(DigiCenterStep):
     def do(self):
         self.hwDigitest.config(debug=False, wait_cmd = True)
         if self.hwDigitest.isConnectRotation():
-            self.hwDigitest.set_rotation_home()
+            if not self.force_manual_mode:
+                # self.hwDigitest.set_rotation_home()
+                pass
         self.set_result('PASS','PASS')
         return self.result
 
@@ -234,10 +236,11 @@ class TeardownStep(DigiCenterStep):
             if curT<=UL and curT>=LL:
                 break
             time.sleep(1)
-            self.lg.debug('[In teardown step] curt: {}'.format(curT))
         try:
             self.hwDigichamber.set_manual_mode(False)
+            self.commCallback('update_machine_status',{'dt':None,'temp':{'status':1, 'value':None}, 'hum':{'status':1, 'value':None}})
             self.hwDigitest.stop_mear()
+            self.commCallback('update_machine_status',{'dt':{'status':1, 'value':None},'temp':None, 'hum':None})
             self.hwDigitest.set_remote(False)
         except:
             print('teardown set hardware failed')
@@ -290,6 +293,7 @@ class TemperatureStep(DigiCenterStep):
 
         # set manual mode on
         self.hwDigichamber.set_manual_mode(True)
+        self.commCallback('update_machine_status',{'dt':None,'temp':{'status':2, 'value':None}, 'hum':{'status':2, 'value':None}})
 
         # set options
         self.set_temperature_imporve_options()
@@ -387,7 +391,6 @@ class HardnessStep(DigiCenterStep):
             except:
                 pass
             statusCode, h_data = self.hwDigitest.get_single_value(curT)
-            self.lg.debug('statusCode {}, value {}'.format(statusCode,h_data))
             endTime = time.time()
             countdownTime = endTime - startTime
             prog = round( countdownTime / (self.mearTime+20) * 100, 0)
@@ -397,13 +400,15 @@ class HardnessStep(DigiCenterStep):
                     h_data = 0.0
                 output_data = round(h_data,1)
                 self.commCallback('only_update_hardness_indicator',output_data)
-                self.set_result(output_data,'WAITING',hardness_dataset=self.singleResult, progs=100, batchInfo=currentSample)
+                self.commCallback('update_machine_status',{'dt':{'status':1, 'value':output_data},'temp':None, 'hum':None})
+                self.set_result(None,'WAITING',hardness_dataset=self.singleResult, progs=100, batchInfo=currentSample)
                 self.resultCallback(self.result)
                 return output_data
             else:
+                self.commCallback('update_machine_status',{'dt':{'status':2, 'value':None},'temp':None, 'hum':None})
                 self.set_result(None,'WAITING',hardness_dataset=self.singleResult, progs=prog, batchInfo=currentSample)
                 self.resultCallback(self.result)
-                time.sleep(0.1)
+                time.sleep(0.5)
 
     def go_next_measurment_process(self,currentSample,currentPosition):
         sampleIndex = currentSample['id']
@@ -423,6 +428,8 @@ class HardnessStep(DigiCenterStep):
             self.lg.debug('wait for user move sample')
             retStatus = self.wait_for_continue()
             self.lg.debug('user moved sample completely')
+            
+            raise Exception
             if retStatus == 'retry':
                 self.retry = False
                 self.singleResult['done'] = False
@@ -472,6 +479,8 @@ class HardnessStep(DigiCenterStep):
                     return self.result
                 # update current sample highlight
                 self.set_result(None,'UPDATE_CURRENT_SAMPLEINDEX',hardness_dataset=self.singleResult, progs=0, batchInfo=smp)
+                currentResult = self.result.copy()
+                self.resultCallback(self.result)
 
                 # mearsure
                 self.hwDigitest.config(debug=False, wait_cmd = False)
@@ -487,8 +496,11 @@ class HardnessStep(DigiCenterStep):
                 
                 # check mearsure done or not
                 if self.singleResult['done']:
+                    
+                    self.lg.debug('self.singleResult is done? '.format(self.singleResult['done']))
                     # all points in current sample done
                     if sampleIndex >= len(self.batchInfoForSamples)-1:
+                        self.lg.debug('sampleIndex >= len(self.batchInfoForSamples)-1: '.format(sampleIndex >= len(self.batchInfoForSamples)-1))
                         # finishd all samples
                         self.set_result(self.singleResult['result'],'PASS', 
                                         eventName=r'{}'.format(sampleIndex), 
@@ -496,18 +508,18 @@ class HardnessStep(DigiCenterStep):
                                         progs=100,
                                         batchInfo=smp
                                         )
-                        self.reset_result()
                         return self.result
                     # go to next sample
                     self.set_result(self.singleResult['result'],'MEAR_NEXT', None, 
                                     eventName=r'{}'.format(sampleIndex), 
                                     hardness_dataset=self.singleResult,
                                     progs=100,
-                                    batchInfo=smp) 
-                    self.resultCallback(self.result)
+                                    batchInfo=smp)
+                    currentResult = self.result.copy()
+                    self.resultCallback(currentResult)
                     self.reset_result()
                     break
-
+        self.commCallback('update_machine_status',{'dt':{'status':1, 'value':None},'temp':None, 'hum':None})
         return self.result
 
     def add_data(self, value, sampleIndexInBatch):      
@@ -529,7 +541,10 @@ class HardnessStep(DigiCenterStep):
     
     def get_max_mear_counts(self):
         if self.isRotation_model:
-            return self.system_numTests
+            if self.force_manual_mode:
+                return self.numTests
+            else:
+                return self.system_numTests
         else:
             return self.numTests
 

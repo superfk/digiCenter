@@ -200,7 +200,7 @@ function connect() {
               updateServerSeqFolder(data);
               break;
             case 'reply_server_error':
-              ipcRenderer.send('show-alert-alert', window.lang_data.modal_alert_title, data.error);
+              ipcRenderer.send('show-server-error',  data.error);
               break;
             default:
                 console.log('Not found this cmd' + cmd)
@@ -630,6 +630,9 @@ function createFncTable(tableData) {
 
   table_func_list.destroy();
 
+  console.log(tableData)
+  console.log(my_columns)
+
   table_func_list = $('#func-list-table').DataTable({
     data: tableData,
     columns: my_columns,
@@ -669,9 +672,9 @@ function createFncTable(tableData) {
     "data": "Enabled",
     "render": function ( data, type, row, meta ) {
       if (data){
-        return "<i class='far fa-check-square'></i>";
+        return "<i class='far fa-check-square fa-2x'></i>";
       }else{
-        return "<i class='far fa-square'></i>";
+        return "<i class='far fa-square fa-2x'></i>";
       }
     },
     "width": 20   
@@ -681,9 +684,9 @@ function createFncTable(tableData) {
     "data": "Visibled",
     "render": function ( data, type, row, meta ) {
       if (data){
-        return "<i class='far fa-check-square'></i>";
+        return "<i class='far fa-check-square fa-2x'></i>";
       }else{
-        return "<i class='far fa-square'></i>";
+        return "<i class='far fa-square fa-2x'></i>";
       }
     },
     "width": 20 

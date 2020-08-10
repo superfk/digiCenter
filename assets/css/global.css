@@ -185,6 +185,10 @@ button > span {
   border-left: 10px solid rgb(36, 160, 36) !important;
 }
 
+.machine-indicator-container .idct-status-running {
+  border-left: 10px solid rgb(238, 126, 35) !important;
+}
+
 .machine-indicator-container .idct-number{
   height: 80px;
   font-size: 40px;
@@ -382,4 +386,17 @@ input:disabled button:disabled{
 
 .langSelected {
   background-color: #ccc; 
+}
+
+.modalContent {
+  width: 100%;
+  max-height: 60vh;
+  padding: 10px 20px;
+  font-size: 1.5rem;
+  overflow: auto;
+}
+
+.errorDetail{
+  width: 100%;
+  font-size: 16px;
 }

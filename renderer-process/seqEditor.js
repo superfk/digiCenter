@@ -62,7 +62,7 @@ function connect() {
             case 'reply_log_to_db':
                 console.log(data);
                 break;
-            case 'update_sequence':
+            case 'reply_load_seq':
                 updateSequence(data)
                 break;
             case 'update_sys_default_config':
@@ -72,7 +72,7 @@ function connect() {
                 ipcRenderer.send('show-option-dialog', data.title, data.reason, 'confirm-save-seq');
                 break;
             case 'reply_server_error':
-                ipcRenderer.send('show-alert-alert', window.lang_data.modal_alert_title, data.error);
+                ipcRenderer.send('show-server-error',  data.error);
                 break;
             default:
                 console.log('Not found this cmd' + cmd)
@@ -350,12 +350,19 @@ ipcRenderer.on('load-seq-editor', (event, path) => {
 
 function updateSequence(res){
     console.log('[res]',res)
-    test_flow.setup = res.setup;
-    test_flow.main = res.main;
-    test_flow.loop = res.loop;
-    test_flow.teardown = res.teardown;
-    seqRend.sortSeq('seqContainer',test_flow.setup, test_flow.main, test_flow.teardown,true);
-    updateTempTimeChart();
+    const errorReason  = res.error;
+    const script = res.script;
+    if (errorReason === null){
+        test_flow.setup = script.setup;
+        test_flow.main = script.main;
+        test_flow.loop = script.loop;
+        test_flow.teardown = script.teardown;
+        seqRend.sortSeq('seqContainer',test_flow.setup, test_flow.main, test_flow.teardown,true);
+        updateTempTimeChart();
+    }else{
+        ipcRenderer.send('show-warning-alert',window.lang_data.modal_warning_title, errorReason);
+    }
+    
   }
 
 tempBox.addEventListener('click', () =>{
