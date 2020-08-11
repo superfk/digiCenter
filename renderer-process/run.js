@@ -23,6 +23,7 @@ let sampleBatchCircleContainer = document.getElementById('sampleBatchCircleConta
 let batchConfirmAndStartBtn = document.getElementById('batchConfirmAndStart');
 let stopSeqBtn = document.getElementById('stop_test');
 let loadSeqBtn = document.getElementById('open_test_seq');
+const batchViewList = document.getElementById('batchViewList')
 let dialog = document.getElementById('modal_moving_sample_dialog');
 let dialog_dataset_list = document.getElementById('modal_moving_sample_dialog_dataset');
 let dialog_dataset_index = document.getElementById('dataset_sampleIndex');
@@ -525,11 +526,12 @@ function selectedHistoryBatch(){
 function immediate_start_test(){
   // start test
   runningTest = true
+  ipcRenderer.send('toggle_monitor',!runningTest);
   batchSetupBtn_disable()
   batchConfirmAndStartBtn_disable();
   stopBtn_enable();
   $('main> nav .nav-item a').removeClass('btnEnable btnDisable').addClass('btnDisable');
-  $('#lang-button').removeClass('btnEnable btnDisable').addClass('btnDisable');
+  $('.lang-flags').removeClass('btnEnable btnDisable').addClass('btnDisable');
   $('#testSeqContainer li').removeClass(run_status_classes).addClass('run-init');
   getBatchInfo();
   initMonitorCirclePlot()
@@ -726,13 +728,14 @@ function endOfTest(res){
   batchSetupBtn_enable();
   stopBtn_disable();
   $('main> nav .nav-item a').removeClass('btnEnable btnDisable').addClass('btnEnable');
-  $('#lang-button').removeClass('btnEnable btnDisable').addClass('btnEnable');
+  $('.lang-flags').removeClass('btnEnable btnDisable').addClass('btnEnable');
   if (!interrupted){
     ipcRenderer.send('show-info-alert',title,reason);
   }else{
     ipcRenderer.send('show-warning-alert',title,reason);
   }
   runningTest = false
+  ipcRenderer.send('toggle_monitor',!runningTest);
 }
 
 const updateLoadedPathObj = (abspath) => {
@@ -914,8 +917,51 @@ confirmSampleBatchConfigBtn.addEventListener('click',()=>{
   ws.send(tools.parseCmd('create_batch',batches));
 })
 
+function createBatchViewList(){
+  // batchInfo:
+  //   batch: "segher"
+  //   notes: ""
+  //   numSample: 3
+  //   project: "rh"
+  //   sampleId: 0
+  //   seq_name: "C:\data_exports\seq_files\singletest.seq"
+  console.log(batches)
+  let batchViewContent = '';
+  batches.forEach((elm,idx)=>{
+    batchViewContent += `
+      <button class="batchAccordion">${elm.batch}</button>
+      <div class="panel">
+        <i class="fab fa-product-hunt"></i><label data-lang='run_project_title' data-lang_type='innertext'> Project</label>
+        <p>${elm.project}</p>
+        <i class="fab fa-buffer"></i><label data-lang='run_n_sample_title' data-lang_type='innertext'> Number of Samples</label>
+        <p>${elm.numSample}</p>
+        <i class="fas fa-align-left"></i><label data-lang='run_load_seq_title' data-lang_type='innertext'> Load Sequence</label>
+        <p>${elm.seq_name}</p>
+        <i class="far fa-sticky-note"></i><label data-lang='run_note_title' data-lang_type='innertext'> Test Note</label>
+        <p>${elm.notes}</p>
+      </div>
+    `
+  }) 
+  batchViewList.innerHTML = batchViewContent;
+  var acc = document.getElementsByClassName("batchAccordion");
+  var i;
+  
+  for (i = 0; i < acc.length; i++) {
+  acc[i].addEventListener("click", function() {
+      this.classList.toggle("active");
+      var panel = this.nextElementSibling;
+      if (panel.style.maxHeight) {
+      panel.style.maxHeight = null;
+      } else {
+      panel.style.maxHeight = panel.scrollHeight + "px";
+      } 
+  });
+  }
+}
+
 function batch_confirmed(){
   initMonitorCirclePlot()
+  createBatchViewList()
 }
 
 $('#sampleBatchConfigClearAllBtn').on('click', ()=>{

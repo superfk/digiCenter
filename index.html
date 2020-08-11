@@ -200,7 +200,7 @@
       </div>
       <div class="modalContent">
         <h4 id="modal_internal_exception_text"  data-lang='internal_exception_msg' data-lang_type='innertext' >Internal Exception</h4>
-        <button id="modal_internal_exception_button" onclick="showDetail('error_detail')" class="w3-btn w3-block w3-black w3-left-align" 
+        <button id="modal_internal_exception_button" onclick="showDetail('error_detail')" class="showDetailAccordion" 
         data-lang='internal_exception_detail' data-lang_type='innertext'>Error Detail</button>
         <div id="error_detail" class="errorDetail w3-hide"></div>
       </div>
@@ -301,7 +301,9 @@
   </script>
   <script>
     function showDetail(id) {
-      var x = document.getElementById(id);
+      let x = document.getElementById(id);
+      let accdBtn = document.getElementById('modal_internal_exception_button')
+      accdBtn.classList.toggle("active");
       if (x.className.indexOf("w3-show") == -1) {
         x.className += " w3-show";
       } else { 

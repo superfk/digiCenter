@@ -1,4 +1,5 @@
 
+import asyncio
 from datetime import datetime
 from queue import Empty
 import time
@@ -204,7 +205,6 @@ class TeardownStep(DigiCenterStep):
 
     @DigiCenterStep.deco
     def do(self):
-        time.sleep(dummy_delay)
         # to set the temperature to safe range
         self.hwDigichamber.set_gradient_up(0)
         self.hwDigichamber.set_gradient_down(0)
@@ -311,6 +311,7 @@ class TemperatureStep(DigiCenterStep):
                 # stop process immediately
                 self.set_result(curT,'FAIL',unit='&#8451', progs=100)
                 break
+            # time.sleep(loopInterval)
             time.sleep(loopInterval)
             prog = round( (abs(curT - initT) / abs(self.actTarget-initT)) * 100, 0)
             if counter*loopInterval >= sendInterval:
@@ -408,6 +409,7 @@ class HardnessStep(DigiCenterStep):
                 self.commCallback('update_machine_status',{'dt':{'status':2, 'value':None},'temp':None, 'hum':None})
                 self.set_result(None,'WAITING',hardness_dataset=self.singleResult, progs=prog, batchInfo=currentSample)
                 self.resultCallback(self.result)
+                # time.sleep(0.5)
                 time.sleep(0.5)
 
     def go_next_measurment_process(self,currentSample,currentPosition):
@@ -429,7 +431,6 @@ class HardnessStep(DigiCenterStep):
             retStatus = self.wait_for_continue()
             self.lg.debug('user moved sample completely')
             
-            raise Exception
             if retStatus == 'retry':
                 self.retry = False
                 self.singleResult['done'] = False
@@ -441,6 +442,7 @@ class HardnessStep(DigiCenterStep):
             N = sampleIndex + 1
             n = currentPosition 
             self.lg.debug('rotate to next position of {}'.format(n))
+            time.sleep(0)
             move_completed, response = self.hwDigitest.set_rotation_pos(N,n)
             if move_completed:
                 return None
@@ -577,6 +579,7 @@ class WaitingStep(DigiCenterStep):
             if self.stopMsgQueue.qsize()>0:
                 # stop process immediately
                 break
+            # time.sleep(0.27)
             time.sleep(0.27)
             endTime = time.time()
             countdownTime = endTime - startTime

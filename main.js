@@ -498,3 +498,6 @@ ipcMain.on('openTeachPosPdf', (event, langID) => {
   })
 
 })
+ipcMain.on('toggle_monitor',(event,start)=>{
+  mainWindow.webContents.send('toggle_monitor', start);
+})

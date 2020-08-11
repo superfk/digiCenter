@@ -3,8 +3,8 @@
   "ReportName": "Report",
   "ReportAlias": "Report",
   "ReportFile": "Report.mrt",
-  "ReportCreated": "/Date(1586706390000+0800)/",
-  "ReportChanged": "/Date(1586706390000+0800)/",
+  "ReportCreated": "/Date(1586735190000+0800)/",
+  "ReportChanged": "/Date(1586735190000+0800)/",
   "EngineVersion": "EngineV2",
   "CalculationMode": "Interpretation",
   "ReportUnit": "Centimeters",
@@ -661,14 +661,6 @@
         },
         "NameInSource": "EXCEL.Test_Data"
       }
-    },
-    "Databases": {
-      "0": {
-        "Ident": "StiExcelDatabase",
-        "Name": "EXCEL",
-        "Alias": "EXCEL",
-        "PathData": "resource://2020-07-31_155551"
-      }
     }
   },
   "Pages": {
@@ -679,7 +671,7 @@
       "Interaction": {
         "Ident": "StiInteraction"
       },
-      "Border": ";;2;;;true;;solid:0,0,0",
+      "Border": ";;2;;;;;solid:0,0,0",
       "Brush": "solid:",
       "Components": {
         "0": {

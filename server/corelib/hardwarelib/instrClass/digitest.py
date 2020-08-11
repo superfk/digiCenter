@@ -144,7 +144,7 @@ class Digitest(BaInstr):
     def get_mode(self):
         return self.write_and_read('GET', 'MS_MODE')
     
-    def get_single_value(self, dummyTemp=0):
+    def get_single_value(self, dummyTemp=0, immediate=False):
         ret = self.write_and_read('GET','MS_VALUE')
         if ret == 'FINISHED':
             try:
@@ -286,7 +286,8 @@ class Digitest(BaInstr):
 class DummyDigitest(BaInstr):
     def __init__(self):
         super(DummyDigitest, self).__init__()
-        self.dummyCounter = 0
+        self.dummyWaitTime = 0
+        self.dummyStartTime = time.time()
         self.dummyType = '"ROTATION DC"'
         self.sampleCounts = 25
         self.mearCounts = 3
@@ -359,9 +360,13 @@ class DummyDigitest(BaInstr):
         return 'ShoreA'
     
     def start_mear(self):
+        self.dummyWaitTime = 0
+        self.dummyStartTime = time.time()
         print('MS_PRO', 'START')
     
     def start_mear_direct(self):
+        self.dummyWaitTime = 0
+        self.dummyStartTime = time.time()
         print('MS_PRO', 'SINGLE')
     
     def stop_mear(self):
@@ -385,40 +390,44 @@ class DummyDigitest(BaInstr):
     def get_mode(self):
         return 'STANDARD_M'
     
-    def get_single_value(self, dummyTemp=0):
+    def get_single_value(self, dummyTemp=0, immediate=False):
+        noise = random.random()*3
+        value = 0.0016 * dummyTemp * dummyTemp - 0.2468 * dummyTemp + 57.073 + noise
+
+        if immediate:
+            return 1, value
+
         time.sleep(0.1)
-        if self.dummyCounter*0.1 < self.duration:
+        countTime = time.time() - self.dummyStartTime
+        if countTime < self.duration:
             ret = '"DEVICE BUSY"'
-            self.dummyCounter += 1
         else:
             ret = 'FINISHED'
-            self.dummyCounter = 0
+            self.dummyWaitTime = 0
 
         if ret == '"DEVICE BUSY"':
             return 0, None
         elif ret == 'FINISHED':
             time.sleep(0.1)
-            noise = random.random()*3
-            ret = 0.0016 * dummyTemp * dummyTemp - 0.2468 * dummyTemp + 57.073 + noise
-            return 1, ret
+            return 1, value
         else:
             return -1, None
     
     def get_buffered_value(self, buffer=13):
         while True:
             time.sleep(0.1)
-            if self.dummyCounter < buffer:
+            if self.dummyWaitTime < buffer:
                 match = True
                 ret = None
-                self.dummyCounter += 1
+                self.dummyWaitTime += 1
             else:
                 match = False
                 ret = True
-                self.dummyCounter = 0
+                self.dummyWaitTime = 0
 
             if match:
                 ret = {}
-                ret['time'] = self.dummyCounter * 0.1
+                ret['time'] = self.dummyWaitTime * 0.1
                 ret['value'] = random.random()*100
                 yield True, ret['time'], ret['value'], "ok"
             else:

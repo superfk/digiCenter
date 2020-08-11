@@ -4,6 +4,7 @@ import corelib.utility.utility as util
 import os, sys
 import productlib.digiCenter.digiCenter_seq as seqClass
 import asyncio
+from concurrent.futures import ThreadPoolExecutor
 import threading, queue
 import time, datetime
 import math,random
@@ -23,6 +24,7 @@ class DigiChamberProduct(pd_product.Product):
         self.dummyH_init = 50
         self.curH = 50
         self.socketCallback = msg_callback
+        self.parentLoop = None
         self.loop = None
         self.ws = None
         self.testStop = False
@@ -39,6 +41,9 @@ class DigiChamberProduct(pd_product.Product):
         self.in_test_mode = False
         self.force_manual_mode = False
         self.sysConfig = None
+        self._executor = ThreadPoolExecutor(10)
+        self.stopMsgQueue = None
+        self.pauseQueue = None
     
     def set_sysConfig(self, sysConfig):
         self.sysConfig = sysConfig
@@ -49,17 +54,14 @@ class DigiChamberProduct(pd_product.Product):
     def set_logger(self, loggerObj):
         self.lg = loggerObj
     
+    def set_parentLoop(self, loop):
+        self.parentLoop = loop
+    
+    def set_testLoop(self, loop):
+        self.loop = loop
+    
     def set_log_to_db_func(self, logDBFunc):
         self.log_to_db_func = logDBFunc
-
-    def start_test_thread(self):
-        self.create_result_callback_loop()
-    
-    def stop_test_thread(self):
-        try:
-            self.loop.stop()
-        except:
-            self.lg('close test corutine error')
     
     def set_force_manual_mode(self, forceManual):
         self.force_manual_mode = forceManual
@@ -186,7 +188,7 @@ class DigiChamberProduct(pd_product.Product):
         else:
             return False
 
-    async def run_seq(self,websocket, batchInfoForSamples):
+    def run_seq(self,websocket, batchInfoForSamples):
         '''
             0:
                 batchInfo:
@@ -203,12 +205,12 @@ class DigiChamberProduct(pd_product.Product):
         try:
             # preinit process
             self.in_test_mode = True
-            self.stopMsgQueue = queue.Queue()
-            self.pauseQueue = queue.Queue()
             self.testStop=False
             self.interruptStop=False
             self.ws = websocket
             self.errorMsg = None
+            self.stopMsgQueue = queue.Queue()
+            self.pauseQueue = queue.Queue()
             startTime = time.time()
             totalStepsCounts = len(self.stepsClass)
             cursor = 0
@@ -253,6 +255,7 @@ class DigiChamberProduct(pd_product.Product):
 
                     # do step
                     testResult = step.do()
+                    # testResult = await step.do()
                     self.log_to_db_func('output of testResult: {}'.format(testResult), 'info', True)
 
                     # handle result
@@ -314,9 +317,9 @@ class DigiChamberProduct(pd_product.Product):
             
             try:
                 self.dChamb.set_manual_mode(False)
-                self.commCallback('update_machine_status',{'dt':None,'temp':{'status':1, 'value':None}, 'hum':{'status':1, 'value':None}})
+                self.sendCommunicateCallback('update_machine_status',{'dt':None,'temp':{'status':1, 'value':None}, 'hum':{'status':1, 'value':None}})
                 self.digiTest.stop_mear()
-                self.commCallback('update_machine_status',{'dt':{'status':1, 'value':None},'temp':None, 'hum':None})
+                self.sendCommunicateCallback('update_machine_status',{'dt':{'status':1, 'value':None},'temp':None, 'hum':None})
                 self.digiTest.set_remote(False)
             except:
                 self.lg.debug('set hardware failed in the finall step of sequence')
@@ -354,7 +357,8 @@ class DigiChamberProduct(pd_product.Product):
             finally:
                 try:
                     if self.digiTest.connected:
-                        statusCode, dtInfo['value'] =self.digiTest.get_single_value(self.curT)
+                        statusCode, dtInfo['value'] =self.digiTest.get_single_value(dummyTemp=self.curT, immediate=True)
+                        self.lg.debug('digiTest statusCode {}'.format(statusCode))
                         if statusCode == 1:
                             dtInfo['status'] = 1 
                         elif statusCode < 0:
@@ -368,7 +372,12 @@ class DigiChamberProduct(pd_product.Product):
                     self.log_to_db_func('digitest get value error: {}'.format(err_msg), 'info', False)
                 finally:
                     status = {'dt':dtInfo,'temp':tempInfo, 'hum':humInfo}
-                    await self.socketCallback(websocket,'update_cur_status',status)
+                    #self.sendCommunicateCallback('update_cur_status',status)
+                    # asyncio.create_task(self.socketCallback(websocket,'update_cur_status',status))
+                    asyncio.run_coroutine_threadsafe(self.socketCallback(websocket,'update_cur_status',status), self.parentLoop)
+                    self.lg.debug(status)
+        else:
+            await asyncio.sleep(0.1) 
 
     def findLoopPair(self, loopid, mainClass):
         loopStarIndex, loopEndIndex = 0, 0
@@ -381,14 +390,6 @@ class DigiChamberProduct(pd_product.Product):
                     break
         return (loopStarIndex,loopEndIndex)
     
-    def create_result_callback_loop(self):
-        self.loop = asyncio.new_event_loop()
-        def f(loop):
-            asyncio.set_event_loop(self.loop)
-            self.loop.run_until_complete()
-        t = threading.Thread(target=f, args=(self.loop,))
-        t.start()
-
     def sendResultCallback(self,result):
         if result['category'] == 'hardness' and result['status'] == 'PASS':
             self.saveResult2DatabaseCallback(result)
@@ -396,13 +397,19 @@ class DigiChamberProduct(pd_product.Product):
             self.saveResult2DatabaseCallback(result)
         else:
             pass
-        asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,'update_step_result',result), self.loop)
+        # asyncio.create_task(self.socketCallback(self.ws,'update_step_result',result))
+        asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,'update_step_result',result), self.parentLoop)
+        # asyncio.create_task(self.socketCallback(self.ws,'update_step_result',result))
     
     def sendCommunicateCallback(self,cmd, data):
-        asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,cmd,data), self.loop)
+        # await self.socketCallback(self.ws,cmd,data)
+        asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,cmd,data), self.parentLoop)
+        # asyncio.create_task(self.socketCallback(self.ws,cmd,data))
     
     def saveResult2DatabaseCallback(self,testResult):
-        asyncio.run_coroutine_threadsafe(self.saveTestResult2DbCallback(testResult), self.loop)
+        # await self.saveTestResult2DbCallback(testResult)
+        asyncio.run_coroutine_threadsafe(self.saveTestResult2DbCallback(testResult), self.parentLoop)
+        # asyncio.create_task(self.saveTestResult2DbCallback(testResult))
         
     def continuous_mear(self,retry=False):
         if retry:

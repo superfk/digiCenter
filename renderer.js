@@ -20,7 +20,7 @@ var systime_hook = document.getElementById('systime');
 let tools = require('./assets/shared_tools');
 let ws;
 // let lang_data = {};
-const monitorValue = setInterval(monitorFunction,1000);
+let monitorValue = null;
 window.lang_data = {};
 
 let login_ok = false;
@@ -157,8 +157,8 @@ function connect() {
           if(data.resp_code==0){
             ipcRenderer.send('show-alert-alert','Alert',data.res + '\n' + data.reason);
           }else{
-            // clearInterval(monitorValue);
-            // 
+            clearInterval(monitorValue);
+            monitorValue = setInterval(monitorFunction,1000)
           }
           break;
         case 'reply_init_hw_status':
@@ -426,7 +426,6 @@ function monitorFunction(){
 }
 
 function updateIndicator(hard=null, temp=null, hum=null){
-  console.log(hard)
   if (hard!=null){
     tools.updateNumIndicator(machine_hard_idct,hard.value, 1)
     tools.updateStatusIndicator(machine_hard_idct_status,hard.status,window.lang_data['machine_connected'],window.lang_data['machine_disconnected'],window.lang_data['machine_running'] )
@@ -442,3 +441,11 @@ function updateIndicator(hard=null, temp=null, hum=null){
   
 }
 
+ipcRenderer.on('toggle_monitor',(event,start)=>{
+  if(start){
+    clearInterval(monitorValue);
+    monitorValue = setInterval(monitorFunction,1000)
+  }else{
+    clearInterval(monitorValue);
+  }
+})

@@ -35,7 +35,8 @@ class BatchInfo(object):
         self.numSamples = int(numOfSample)
 
 class PyServerAPI(object):
-    def __init__(self):
+    def __init__(self, coroLoop=None):
+        self.loop = coroLoop
         self.users = set()
         self.digiTest = None # Digitest()
         self.digiChamber = None # DigiChamber()
@@ -51,12 +52,28 @@ class PyServerAPI(object):
         self.productProcess = DigiChamberProduct('digiCenter',r"C:\\data_exports",self.sendMsg,self.saveTestData)
         self.productProcess.set_logger(self.lg)
         self.productProcess.set_log_to_db_func(self.local_log_to_db)
-        self.productProcess.start_test_thread()
+        self.testLoop = None
+        self.productProcess.set_parentLoop(coroLoop)
         self.initialized = False
         self.langFolder = ''
         self.batch = None
         self.lang_data = None
+        self.create_test_process()
+        self.server = None
 
+    def set_sokectServer(self, server):
+        self.server = server
+
+    def create_test_process(self):
+        self.testLoop = asyncio.new_event_loop()
+        def f(loop):
+            asyncio.set_event_loop(loop)
+            loop.run_forever()
+            loop.close()
+        t = threading.Thread(target=f, args=(self.testLoop,))
+        t.start()
+        self.productProcess.set_testLoop(self.testLoop)
+    
     async def register(self,websocket):
         self.users.add(websocket)
         self.lg.debug('new user connected: {}'.format(websocket))
@@ -184,13 +201,7 @@ class PyServerAPI(object):
                     await self.init_hw(websocket)
                 elif cmd == 'run_seq':
                     batchInfoForSamples = data['batchInfoForSamples']
-                    loop = asyncio.new_event_loop()
-                    def f(loop):
-                        asyncio.set_event_loop(loop)
-                        loop.run_until_complete()
-                    t = threading.Thread(target=f, args=(loop,))
-                    t.start()
-                    future = asyncio.run_coroutine_threadsafe(self.run_seq(websocket,batchInfoForSamples), loop)
+                    await self.run_seq(websocket,batchInfoForSamples)
                 elif cmd == 'continue_seq':
                     isRetry = data
                     self.productProcess.continuous_mear(isRetry)
@@ -227,7 +238,6 @@ class PyServerAPI(object):
                     await self.get_digitest_is_rotaion_mode(websocket)
                 elif cmd == 'close_all':
                     await self.close_all(websocket)
-                    self.productProcess.stop_test_thread()
                 else:
                     self.lg.debug('Not found this cmd: {}'.format(cmd))
         except Exception as e:
@@ -489,8 +499,12 @@ class PyServerAPI(object):
 
     async def run_seq(self, websocket, batchInfoForSamples=[]):
         self.productProcess.create_seq()
-        self.lg.debug('batchInfoForSamples',batchInfoForSamples)
-        await self.productProcess.run_seq(websocket, batchInfoForSamples)      
+        self.lg.debug('batchInfoForSamples', batchInfoForSamples)
+        t = threading.Thread(target=self.productProcess.run_seq, args=(websocket,batchInfoForSamples,))
+        t.start()
+        # self.productProcess.run_seq(websocket,batchInfoForSamples)
+        # asyncio.run_coroutine_threadsafe(self.productProcess.run_seq(websocket,batchInfoForSamples), self.testLoop)
+        # asyncio.create_task(self.productProcess.run_seq(websocket,batchInfoForSamples))
 
     def stop_seq(self):
         self.lg.debug('execute stop seq')
@@ -649,13 +663,14 @@ class PyServerAPI(object):
         
 
 def main():
-    sokObj = PyServerAPI()
-    port=5678
-    start_server = websockets.serve(sokObj.handler, "127.0.0.1", port, ping_interval=30)
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(start_server)
+    sokObj = PyServerAPI(loop)
+    port=5678
+    start_server = websockets.serve(sokObj.handler, "127.0.0.1", port, ping_interval=30, ping_timeout=40)
+    sokObj.set_sokectServer(start_server)
     addr = 'tcp://127.0.0.1:{}'.format(port)
     print('start running on {}'.format(addr))
+    loop.run_until_complete(start_server)
     loop.run_forever()
     
 if __name__ == '__main__':
