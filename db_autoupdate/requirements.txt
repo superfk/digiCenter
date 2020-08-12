@@ -1,2 +1,3 @@
 pyodbc
 pyinstaller
+cryptography==2.8

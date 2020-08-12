@@ -3,8 +3,8 @@
   "ReportName": "Report",
   "ReportAlias": "Report",
   "ReportFile": "Report.mrt",
-  "ReportCreated": "/Date(1586735190000+0800)/",
-  "ReportChanged": "/Date(1586735190000+0800)/",
+  "ReportCreated": "/Date(1586792790000+0800)/",
+  "ReportChanged": "/Date(1586792790000+0800)/",
   "EngineVersion": "EngineV2",
   "CalculationMode": "Interpretation",
   "ReportUnit": "Centimeters",
@@ -1308,6 +1308,7 @@
           "Series": {
             "0": {
               "Ident": "StiScatterLineSeries",
+              "SortBy": "Argument",
               "ShowShadow": false,
               "SeriesLabels": {
                 "Ident": "StiOutsideEndAxisLabels",

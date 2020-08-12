@@ -224,7 +224,6 @@ function connect() {
 
   ws.on('open', function open() { 
     console.log('websocket in run connected')
-    init();
   });
 
   ws.on('ping',()=>{
@@ -246,6 +245,7 @@ function connect() {
         case 'reply_log_to_db':
           break;
         case 'reply_init_hw':
+          console.log('reply_init_hw')
           if(data.resp_code==1){
             runningTest = false
             batchSelector_enable();
@@ -264,8 +264,8 @@ function connect() {
           break;
         case 'get_digitest_is_rotaion_mode':
           digitestIsRotationMode = data;
-          createInstance()
-          updateDigiTestModeCallback()
+          createInstance();
+          updateDigiTestModeCallback();
           break;
         case 'reply_load_seq':
             updateSequence(data)
@@ -395,6 +395,7 @@ stopSeqBtn.addEventListener('click',()=>{
 // **************************************
 
 function init(){
+  console.log('run.js inited')
   ws.send(tools.parseCmd('run_cmd',tools.parseCmd('get_default_seq_path')));
   ws.send(tools.parseCmd('get_digitest_manual_mode'));
   ws.send(tools.parseCmd('get_digitest_is_rotaion_mode'));
@@ -478,6 +479,7 @@ function updateServerSeqFolder(path){
 }
 
 function loadSeqFromServer(){
+  console.log(defaultSeqPath)
   ipcRenderer.send('open-file-dialog',defaultSeqPath,'load-seq-run')
 };
 
@@ -526,6 +528,7 @@ function selectedHistoryBatch(){
 function immediate_start_test(){
   // start test
   runningTest = true
+  ws.send(tools.parseCmd('run_cmd',tools.parseCmd('load_seq',{path: loadSeqPathObj.path})));
   ipcRenderer.send('toggle_monitor',!runningTest);
   batchSetupBtn_disable()
   batchConfirmAndStartBtn_disable();
@@ -925,19 +928,18 @@ function createBatchViewList(){
   //   project: "rh"
   //   sampleId: 0
   //   seq_name: "C:\data_exports\seq_files\singletest.seq"
-  console.log(batches)
   let batchViewContent = '';
   batches.forEach((elm,idx)=>{
     batchViewContent += `
-      <button class="batchAccordion">${elm.batch}</button>
+      <button class="batchAccordion"><span data-lang='run_batch_title' data-lang_type='innertext'>${window.lang_data.run_batch_title}</span>: ${elm.batch}</button>
       <div class="panel">
-        <i class="fab fa-product-hunt"></i><label data-lang='run_project_title' data-lang_type='innertext'> Project</label>
+        <i class="fab fa-product-hunt"></i><label data-lang='run_project_title' data-lang_type='innertext'> ${window.lang_data.run_project_title}</label>
         <p>${elm.project}</p>
-        <i class="fab fa-buffer"></i><label data-lang='run_n_sample_title' data-lang_type='innertext'> Number of Samples</label>
+        <i class="fab fa-buffer"></i><label data-lang='run_n_sample_title' data-lang_type='innertext'> ${window.lang_data.run_n_sample_title}</label>
         <p>${elm.numSample}</p>
-        <i class="fas fa-align-left"></i><label data-lang='run_load_seq_title' data-lang_type='innertext'> Load Sequence</label>
+        <i class="fas fa-align-left"></i><label data-lang='run_load_seq_title' data-lang_type='innertext'> ${window.lang_data.run_load_seq_title}</label>
         <p>${elm.seq_name}</p>
-        <i class="far fa-sticky-note"></i><label data-lang='run_note_title' data-lang_type='innertext'> Test Note</label>
+        <i class="far fa-sticky-note"></i><label data-lang='run_note_title' data-lang_type='innertext'> ${window.lang_data.run_note_title}</label>
         <p>${elm.notes}</p>
       </div>
     `
@@ -962,6 +964,7 @@ function createBatchViewList(){
 function batch_confirmed(){
   initMonitorCirclePlot()
   createBatchViewList()
+  document.getElementById('modal_batch_setup_dialog').style.display='none'
 }
 
 $('#sampleBatchConfigClearAllBtn').on('click', ()=>{
@@ -1000,10 +1003,7 @@ function updateDigiTestModeCallback(){
 }
 
 $('#button-run').on('click',()=>{
-  console.log('[button-run clicked]')
-  console.log('runningTest',runningTest)
   if(runningTest){
-    
   }else{
     updateDigiTestModeCallback()
   }
@@ -1037,3 +1037,8 @@ function updateStatusIndicator(hard=null, temp=null, hum=null){
   }
   
 }
+
+// init after system initialized
+ipcRenderer.on('system-inited', (event)=>{
+  init()
+})

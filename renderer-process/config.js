@@ -630,9 +630,6 @@ function createFncTable(tableData) {
 
   table_func_list.destroy();
 
-  console.log(tableData)
-  console.log(my_columns)
-
   table_func_list = $('#func-list-table').DataTable({
     data: tableData,
     columns: my_columns,

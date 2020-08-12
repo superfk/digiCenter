@@ -5,15 +5,17 @@ module.exports = {
     // **************************************
     // input paras constructor
     // **************************************
-    BooleanPara: function (name, value, unit='', readOnly=false) {
+    BooleanPara: function (name, value, unit='', readOnly=false, langName=null, langFlag=null) {
         this.name = name;
         this.value = value;
         this.unit = unit;
         this.type = 'bool';
         this.readOnly = readOnly;
+        this.nameByLang = langName === null ? name : langName;
+        this.langFlag = langFlag;
     },
 
-    NumberPara: function(name, value, unit='', max=null, min=null, readOnly=false) {
+    NumberPara: function(name, value, unit='', max=null, min=null, readOnly=false, langName=null, langFlag=null) {
         this.name = name;
         this.value = value;
         this.unit = unit;
@@ -21,23 +23,29 @@ module.exports = {
         this.min = min;
         this.type = 'number';
         this.readOnly = readOnly;
+        this.nameByLang = langName === null ? name : langName;
+        this.langFlag = langFlag;
     },
 
-    TextPara: function(name, value, unit='', readOnly=false) {
+    TextPara: function(name, value, unit='', readOnly=false, langName=null, langFlag=null) {
         this.name = name;
         this.value = value;
         this.unit = unit;
         this.type = 'text';
         this.readOnly = readOnly;
+        this.nameByLang = langName === null ? name : langName;
+        this.langFlag = langFlag;
     },
 
-    OptionPara: function(name, value, options, unit='', readOnly=false) {
+    OptionPara: function(name, value, options, unit='', readOnly=false, langName=null, langFlag=null) {
         this.name = name;
         this.value = value;
         this.unit = unit;
         this.options = options;
         this.type = 'select';
         this.readOnly = readOnly;
+        this.nameByLang = langName === null ? name : langName;
+        this.langFlag = langFlag;
     },
 
     // **************************************
@@ -46,10 +54,10 @@ module.exports = {
 
     genTempPara: function(){
         let paras= [
-            new module.exports.NumberPara('target temperature',20,unit='&#8451',max=190,min=-40,readOnly=false),
-            new module.exports.NumberPara('tolerance',1,unit='&#8451',max=10,min=0,readOnly=false),
-            new module.exports.NumberPara('slope',4,'K/min',max=4,min=-4,readOnly=false),
-            new module.exports.NumberPara('increment',0,'&#8451',max=100,min=-100,readOnly=false)
+            new module.exports.NumberPara('target temperature',20,unit='&#8451',max=190,min=-40,readOnly=false, window.lang_data.target_temperature, 'target_temperature'),
+            new module.exports.NumberPara('tolerance',1,unit='&#8451',max=10,min=0,readOnly=false,window.lang_data.tolerance, 'tolerance'),
+            new module.exports.NumberPara('slope',4,'K/min',max=4,min=-4,readOnly=false,window.lang_data.slope, 'slope'),
+            new module.exports.NumberPara('increment',0,'&#8451',max=100,min=-100,readOnly=false,window.lang_data.increment, 'increment')
         ]
         
         // UIkit.modal('#parasModal').show();
@@ -58,17 +66,17 @@ module.exports = {
     genHardPara: function(){
         let paras= [
             // new TextPara('port','COM3',unit='',readOnly=false),
-            new module.exports.OptionPara('mode','STANDARD_M','STANDARD_M',unit='',readOnly=false),
-            new module.exports.OptionPara('method','shoreA','shoreA,shore0',unit='',readOnly=false),
-            new module.exports.NumberPara('measuring time',3,unit='sec',max=99,min=0.1,readOnly=false),
-            new module.exports.NumberPara('number of measurement',3,unit='',max=10,min=1,readOnly=false),
-            new module.exports.OptionPara('numerical method','mean','mean,median',unit='',readOnly=false)
+            // new module.exports.OptionPara('mode','STANDARD_M','STANDARD_M',unit='',readOnly=false),
+            // new module.exports.OptionPara('method','shoreA','shoreA,shore0',unit='',readOnly=false),
+            new module.exports.NumberPara('measuring time',3,unit='sec',max=99,min=0.1,readOnly=false,window.lang_data.measuring_time, 'measuring_time'),
+            new module.exports.NumberPara('number of measurement',3,unit='',max=10,min=1,readOnly=false,window.lang_data.number_of_measurement, 'number_of_measurement'),
+            new module.exports.OptionPara('numerical method','mean','mean,median',unit='',readOnly=false,window.lang_data.numerical_method, 'numerical_method')
         ]
         return module.exports.makeSingleStep('hardness', 'measure', paras);
     },
     genWaitPara: function(){
         let paras= [
-            new module.exports.NumberPara('conditioning time',1,unit='minute',max=480,min=0,readOnly=false)
+            new module.exports.NumberPara('conditioning time',1,unit='minute',max=480,min=0,readOnly=false,window.lang_data.conditioning_time, 'conditioning_time')
         ]
         return module.exports.makeSingleStep('waiting', 'time', paras);
     },
@@ -78,16 +86,16 @@ module.exports = {
         alwayIncrLoopColorIdx +=1;
         let loop_counts = 1;
         let paras= [
-            new module.exports.NumberPara('loop id',loopID,unit='',max=null,min=0,readOnly=true),
-            new module.exports.NumberPara('loop counts',loop_counts,unit='',max=100,min=0,readOnly=false),
-            new module.exports.TextPara('loop color',loopColor,unit='',readOnly=true)
+            new module.exports.NumberPara('loop id',loopID,unit='',max=null,min=0,readOnly=true,window.lang_data.loopid, 'loopid'),
+            new module.exports.NumberPara('loop counts',loop_counts,unit='',max=100,min=0,readOnly=false,window.lang_data.loop_counts, 'loop_counts'),
+            new module.exports.TextPara('loop color',loopColor,unit='',readOnly=true,window.lang_data.loop_color, 'loop_color')
         ]
         let lpStartStep = module.exports.makeSingleStep('loop', 'loop start', paras);
         
         paras= [
-            new module.exports.NumberPara('stop on',loop_counts,unit='',max=null,min=0,readOnly=true),
-            new module.exports.NumberPara('loop id',loopID,unit='',max=null,min=0,readOnly=true),
-            new module.exports.TextPara('loop color',loopColor,unit='',readOnly=true)
+            new module.exports.NumberPara('stop on',loop_counts,unit='',max=null,min=0,readOnly=true,window.lang_data.loop_counts, 'loop_counts'),
+            new module.exports.NumberPara('loop id',loopID,unit='',max=null,min=0,readOnly=true,window.lang_data.loopid, 'loopid'),
+            new module.exports.TextPara('loop color',loopColor,unit='',readOnly=true,window.lang_data.loop_color, 'loop_color')
         ];
             
         let lpEndStep = module.exports.makeSingleStep('loop', 'loop end', paras);
@@ -118,10 +126,36 @@ module.exports = {
 
     genStepTitles: function (seq){
         let titles = [];
+        let catByLang = ''
         for (i = 0; i < seq.length; i++) {
             let {cat, subitem} = seq[i];
+            if (cat == 'temperature' || cat == 'waiting' || cat == 'teardown' || cat == 'hardness'){
+                prgbar = `<progress max="100" value="0" class='stepProg'></progress>`
+            }
+            switch (cat){
+                case 'temperature':
+                    catByLang = 'seqEditor_toolbox_temperature'
+                    break;
+                case 'waiting':
+                    catByLang = 'seqEditor_toolbox_wait'
+                    break;
+                case 'hardness':
+                    catByLang = 'seqEditor_toolbox_hard'
+                    break;
+                case 'loop':
+                    catByLang = 'seqEditor_toolbox_loop'
+                    break;
+                case 'teardown':
+                    catByLang = ''
+                    break;
+                case 'setup':
+                    catByLang = ''
+                    break;
+                default:
+
+            }
             // titles.push(`Step ${i+1} :: ${tools.capitalize(cat)} :: ${tools.capitalize(subitem['item'])}`);
-            titles.push(`${window.lang_data['seq_step']} ${i+1} :: ${tools.capitalize(cat)}`);
+            titles.push(`${window.lang_data['seq_step']} ${i+1} :: ${tools.capitalize(window.lang_data[catByLang])}`);
         }
       
         return titles;
@@ -194,7 +228,8 @@ module.exports = {
     genTeardownTest: function (paras=null){
         if (paras==null){
         paras= [
-            new module.exports.NumberPara('safe temperature',30,unit='&#8451',max=50,min=0,readOnly=false)
+            new module.exports.NumberPara('safe temperature',30,unit='&#8451',max=50,min=0,readOnly=false,window.lang_data.safe_temperature, 'safe_temperature'),
+            new module.exports.NumberPara('waiting time',10,unit='minute',max=60,min=0,readOnly=false,window.lang_data.waiting_time, 'waiting_time')
         ]
         }
     teardown_seq = module.exports.makeSingleStep('teardown','teardown', paras, true, 9999);
@@ -269,14 +304,25 @@ module.exports = {
         
       },
 
-      genParas: function (paras,input=false) {
+      findLangs: (langKey)=>{
+        const langKeys = Object.keys(window.lang_data)
+        const langValues = Object.values(window.lang_data)
+        const langRowIndex = langKeys.findIndex(elm=>elm===langKey)
+        if (langRowIndex !== undefined){
+          return langValues[langRowIndex]
+        }else{
+          return ''
+        }
+      },
+
+      genParas: function (paras, input=false) {
         let c = '';
         paras.forEach(function(item, index, array){
             if (input) {
                 let t = item['type'];
                 let ronly = item['readOnly']?'disabled':'';
                 if (t === 'text'){
-                    c += `<li><label>${tools.capitalize(item['name'])} ${module.exports.genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='text' ${ronly}></li>`;
+                    c += `<li><label ${module.exports.genParaLangIdentifierText(item)}>${tools.capitalize(module.exports.findLangs(item.langFlag))} ${module.exports.genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='text' ${ronly}></li>`;
                 }else if (t === 'number'){
                     let maxValue = item['max']===null?'':`max='${item['max']}'`;
                     let minValue = item['min']===null?'':`min='${item['min']}'`;
@@ -284,12 +330,11 @@ module.exports = {
                     plhValue += "~"
                     plhValue += item['max']===null?'no limit':`${item['max']}`
                     plhValue = "placeholder='" + plhValue + "'"
-                    console.log(maxValue, minValue, plhValue)
-                    c += `<li><label>${tools.capitalize(item['name'])} ${module.exports.genUnit(item['unit'])}</label>
+                    c += `<li><label ${module.exports.genParaLangIdentifierText(item)}>${tools.capitalize(module.exports.findLangs(item.langFlag))} ${module.exports.genUnit(item['unit'])}</label>
                     <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='number' ${maxValue} ${minValue} ${plhValue} ${ronly}></li>`;
       
                 }else if (t === 'bool'){
-                    c += `<li><input class='w3-check w3-border-bottom w3-cell' checked=${item['value']} type='checkbox' ${ronly}><label> ${tools.capitalize(item['name'])} ${module.exports.genUnit(item['unit'])}
+                    c += `<li><input class='w3-check w3-border-bottom w3-cell' checked=${item['value']} type='checkbox' ${ronly}><label ${module.exports.genParaLangIdentifierText(item)}> ${tools.capitalize(module.exports.findlangs(item.langflag))} ${module.exports.genUnit(item['unit'])}
                     </label></li>`;
                     
                 }else if (t === 'select'){
@@ -305,11 +350,11 @@ module.exports = {
                         }
                         
                     })
-                    c += `<li><label>${tools.capitalize(item['name'])} ${module.exports.genUnit(item['unit'])}</label> 
+                    c += `<li><label ${module.exports.genParaLangIdentifierText(item)}>${tools.capitalize(module.exports.findLangs(item.langFlag))} ${module.exports.genUnit(item['unit'])}</label> 
                     <select class="w3-select w3-border" name="option">${opItems}</select></li>`;
                 }
             }else{
-                c += `<li style='font-size:12px;'><label><b>${tools.capitalize(item['name'])} ${module.exports.genUnit(item['unit'])}</b></label>: ${item['value']}</li>`;
+                c += `<li style='font-size:12px;'><label ${module.exports.genParaLangIdentifierText(item)}><b>${tools.capitalize(module.exports.findLangs(item.langFlag))} ${module.exports.genUnit(item['unit'])}</b></label>: ${item['value']}</li>`;
             }
           
         });
@@ -351,12 +396,12 @@ module.exports = {
             mainText = `target:${tTempPara.value}${tTempPara.unit}, tol: ${tTolPara.value}${tTolPara.unit} slope:${slopePara.value} ${slopePara.unit}, 
             incre:${increPara.value} ${increPara.unit}`;
         }else if (cat === 'hardness'){
-            let methodPara = paras.filter(item=>item.name=='method')[0];
-            let modePara = paras.filter(item=>item.name=='mode')[0];
+            // let methodPara = paras.filter(item=>item.name=='method')[0];
+            // let modePara = paras.filter(item=>item.name=='mode')[0];
             let mtPara = paras.filter(item=>item.name=='measuring time')[0];
             let nomearPara = paras.filter(item=>item.name=='number of measurement')[0];
             let nummethodPara = paras.filter(item=>item.name=='numerical method')[0];
-            mainText = `${methodPara.value}, ${modePara.value}, mearTime:${mtPara.value}${mtPara.unit}, mearCounts:${nomearPara.value}, ${nummethodPara.value} `;
+            mainText = `mearTime:${mtPara.value}${mtPara.unit}, mearCounts:${nomearPara.value}, ${nummethodPara.value} `;
         }else if (cat === 'waiting'){
             let cdtPara = paras.filter(item=>item.name=='conditioning time')[0];
             mainText = `conditioningTime:${cdtPara.value} ${cdtPara.unit}`;
@@ -364,20 +409,26 @@ module.exports = {
             if(item=='loop start'){
                 let loopPara = paras.filter(item=>item.name=='loop id')[0];
                 let loopCountPara = paras.filter(item=>item.name=='loop counts')[0];
-                mainText = `Loop START, id:${loopPara.value}, counts:${loopCountPara.value}`;
+                mainText = `loop start, id:${loopPara.value}, counts:${loopCountPara.value}`;
             }else{
                 let loopPara = paras.filter(item=>item.name=='loop id')[0];
                 let loopStop = paras.filter(item=>item.name=='stop on')[0];
-                mainText = `Loop END, id:${loopPara.value}, stop on: loopCount=${loopStop.value}`;
+                mainText = `loop end, id:${loopPara.value}, stop on: loopCount=${loopStop.value}`;
             }
         }else if (cat === 'subprog'){
             let pathPara = paras.filter(item=>item.name=='path')[0];
             mainText = `path:${pathPara.value}`;
         }else if (cat === 'teardown'){
-          let pathPara = paras.filter(item=>item.name=='safe temperature')[0];
-          mainText = `safe temperature:${pathPara.value}`;
+          let safeTempPara = paras.filter(item=>item.name=='safe temperature')[0];
+          let waitPara = paras.filter(item=>item.name=='waiting time')[0];
+          mainText = `safe temperature:${safeTempPara.value}, wait time:${waitPara.value}`;
         }
         return `<div class="paraText">${mainText}</div>`
+      },
+
+      genParaLangIdentifierText: function (paraItem){
+        let langType = 'innertext';
+        return `data-lang=${paraItem.langFlag} data-lang_type=${langType}`
       },
       
       searchLoopStartEndByID: function (loopid, seq){
@@ -503,15 +554,15 @@ module.exports = {
             let newMearT = paraCollection[0].value;
             let newNumOfTest = paraCollection[1].value;
             // test_flow.main[id].subitem.paras[0].value = newCOM;
-            test_flow.main[id].subitem.paras[2].value = newMearT;
-            test_flow.main[id].subitem.paras[3].value = newNumOfTest;
+            test_flow.main[id].subitem.paras[0].value = newMearT;
+            test_flow.main[id].subitem.paras[1].value = newNumOfTest;
             paraCollection = $('#'+paraContainerID+' select');
-            let newMethod = $(paraCollection[0]).find('option:selected').text();
-            let newMode = $(paraCollection[1]).find('option:selected').text();
-            let newNumericMethod = $(paraCollection[2]).find('option:selected').text();
-            test_flow.main[id].subitem.paras[0].value = newMethod;
-            test_flow.main[id].subitem.paras[1].value = newMode;
-            test_flow.main[id].subitem.paras[4].value = newNumericMethod;
+            // let newMethod = $(paraCollection[0]).find('option:selected').text();
+            // let newMode = $(paraCollection[1]).find('option:selected').text();
+            let newNumericMethod = $(paraCollection[0]).find('option:selected').text();
+            // test_flow.main[id].subitem.paras[0].value = newMethod;
+            // test_flow.main[id].subitem.paras[1].value = newMode;
+            test_flow.main[id].subitem.paras[2].value = newNumericMethod;
             
         }else if (cat === 'waiting'){
             paraCollection = $('#'+paraContainerID+' input');

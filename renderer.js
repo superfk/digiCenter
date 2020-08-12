@@ -159,6 +159,7 @@ function connect() {
           }else{
             clearInterval(monitorValue);
             monitorValue = setInterval(monitorFunction,1000)
+            ipcRenderer.send('system-inited');
           }
           break;
         case 'reply_init_hw_status':
@@ -373,6 +374,17 @@ function setLang(lang){
       window.langID = lang;
     }
   })
+}
+
+const findLangs = (langKey)=>{
+  const langKeys = Object.keys(window.lang_data)
+  const langValues = Object.values(window.lang_data)
+  const langRowIndex = langKeys.findIndex(elm=>elm===langKey)
+  if (langRowIndex !== undefined){
+    return langValues[langRowIndex]
+  }else{
+    return ''
+  }
 }
 
 // detect select language

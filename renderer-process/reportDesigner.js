@@ -18,6 +18,33 @@ var options = new Stimulsoft.Designer.StiDesignerOptions();
 	options.appearance.fullScreenMode = true;
 
 
+Stimulsoft.Base.Localization.StiLocalization.addLocalizationFile(path.join(appRoot, "Localization",'en.xml'), false, 'en');
+Stimulsoft.Base.Localization.StiLocalization.addLocalizationFile(path.join(appRoot, "Localization",'de.xml'), false, 'de');
+Stimulsoft.Base.Localization.StiLocalization.addLocalizationFile(path.join(appRoot, "Localization",'zh-CHS.xml'), false, 'zh-CHS');
+Stimulsoft.Base.Localization.StiLocalization.addLocalizationFile(path.join(appRoot, "Localization",'zh-CHT.xml'), false, 'zh-CHT');
+// Stimulsoft.System.NodeJs.localizationPath = "locales";
+
+ipcRenderer.on('set-lang', (event, lang)=>{
+    let langName = 'en';
+    switch (lang){
+        case 'en':
+            langName = 'en'
+            break;
+        case 'de':
+            langName = 'de'
+            break;
+        case 'zh_cn':
+            langName = 'zh-CHS'
+            break;
+        case 'zh_tw':
+            langName = 'zh-CHT'
+            break;
+        default:
+
+    }
+    Stimulsoft.Base.Localization.StiLocalization.cultureName = langName;
+})
+
 ipcRenderer.on('import-data-to-designer', (event, data)=>{
 
     // Create the report viewer with specified options

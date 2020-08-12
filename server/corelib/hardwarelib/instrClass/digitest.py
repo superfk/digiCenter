@@ -146,16 +146,20 @@ class Digitest(BaInstr):
     
     def get_single_value(self, dummyTemp=0, immediate=False):
         ret = self.write_and_read('GET','MS_VALUE')
-        if ret == 'FINISHED':
-            try:
-                data = self.readline_only()
-                return 1, float(data)
-            except:
+        try:
+            mearValue = float(ret)
+            return 1, mearValue
+        except:
+            if ret == 'FINISHED':
+                try:
+                    data = self.readline_only()
+                    return 1, float(data)
+                except:
+                    return -1, None
+            elif ret == 'DISTANCE_TOO_BIG':
                 return -1, None
-        elif ret == 'DISTANCE_TOO_BIG':
-            return -1, None
-        else:
-            return 0, None
+            else:
+                return 0, None
     
     def get_buffered_value(self, buffer=13):
         while True:

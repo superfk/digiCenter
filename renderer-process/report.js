@@ -488,8 +488,7 @@ $('#call-viewer').on('click', ()=>{
 })
 
 function createViewer(data) {
-  console.log('report data',data)
-  ipcRenderer.send('call-report-viewer-window', data);
+  ipcRenderer.send('call-report-viewer-window', data, window.langID);
 }
 
 $('#call-designer').on('click', ()=>{
@@ -499,7 +498,7 @@ $('#call-designer').on('click', ()=>{
 })
 
 function createDesigner(data) {
-  ipcRenderer.send('call-report-designer-window', data);
+  ipcRenderer.send('call-report-designer-window', data, window.langID);
 }
 
 function setGroupTableData(res){

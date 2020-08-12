@@ -202,6 +202,7 @@ class TeardownStep(DigiCenterStep):
     def set_paras(self,step):
         super().set_paras(step)
         self.safeTemp = float(list(filter(lambda name: name['name'] == 'safe temperature', self.paras))[0]['value'])
+        self.waitMinute = float(list(filter(lambda name: name['name'] == 'waiting time', self.paras))[0]['value'])
 
     @DigiCenterStep.deco
     def do(self):
@@ -217,6 +218,7 @@ class TeardownStep(DigiCenterStep):
         self.hwDigichamber.set_manual_mode(True)
         curT = self.hwDigichamber.get_real_temperature()
         initT = curT
+        initTime = time.time()
         while True:
             if self.isInterrupted():
                 # stop process immediately
@@ -230,11 +232,21 @@ class TeardownStep(DigiCenterStep):
             self.hwDigichamber.set_dummy_act_temp(curT)
             ## END   ###################################################
             curT = self.hwDigichamber.get_real_temperature()
-            prog = round( (abs(curT - initT) / abs(target-initT)) * 100, 0)
-            self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
-            self.resultCallback(self.result)
+            # prog = round( (abs(curT - initT) / abs(target-initT)) * 100, 0)
+            # self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
+            # self.resultCallback(self.result)
             if curT<=UL and curT>=LL:
-                break
+                countTime = time.time() - initTime
+                if countTime >= self.waitMinute*60:
+                    break
+                prog = round( countTime / (self.waitMinute*60) * 100 * 0.5, 0) + 50
+                self.set_result(countTime,'WAITING',unit='s', progs=prog)
+                self.resultCallback(self.result)
+            else:
+                prog = round( (abs(curT - initT) / abs(target-initT)) * 100 * 0.5, 0)
+                self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
+                self.resultCallback(self.result)
+                initTime = time.time()
             time.sleep(1)
         try:
             self.hwDigichamber.set_manual_mode(False)
@@ -362,16 +374,13 @@ class HardnessStep(DigiCenterStep):
 
     def set_paras(self,step):
         super().set_paras(step)
-        # self.port = list(filter(lambda name: name['name'] == 'port', self.paras))[0]['value']
-        self.method = list(filter(lambda name: name['name'] == 'method', self.paras))[0]['value']
-        self.mode = list(filter(lambda name: name['name'] == 'mode', self.paras))[0]['value']
         self.mearTime = float(list(filter(lambda name: name['name'] == 'measuring time', self.paras))[0]['value'])
         self.numTests = int(list(filter(lambda name: name['name'] == 'number of measurement', self.paras))[0]['value'])
         self.numericMethod = list(filter(lambda name: name['name'] == 'numerical method', self.paras))[0]['value']
     
     def config_digitest(self):
         self.hwDigitest.set_remote(True)
-        self.hwDigitest.set_mode(self.mode)
+        self.hwDigitest.set_std_mode()
         self.hwDigitest.set_ms_duration(self.mearTime)
         try:
             sampleSize, self.system_numTests = self.hwDigitest.get_rotation_info()

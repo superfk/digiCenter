@@ -129,6 +129,8 @@ class PyServerAPI(object):
                     await self.update_digitest_remote(websocket,data)
                 elif cmd =='update_digitest_manual_mode':
                     await self.update_digitest_manual_mode(websocket,data)
+                elif cmd =='update_default_export_folder':
+                    await self.update_default_export_folder(websocket,data)
                 elif cmd == 'update_database_server':
                     await self.update_database_server(websocket,data)
                 elif cmd == 'check_config_updated':
@@ -340,6 +342,7 @@ class PyServerAPI(object):
         results.append(configs['digitest_COM'] == self.config['system']['digitest_COM'])
         results.append(configs['digitest_manual_mode'] == self.config['system']['digitest_manual_mode'])
         results.append(configs['export_folder'] == self.config['system']['default_export_folder'])
+        self.local_log_to_db('check config result : {}'.format(results))
         await self.sendMsg(websocket,'reply_checking_config',all(results))
     
     async def getHostName(self, websocket):

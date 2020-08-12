@@ -1,6 +1,8 @@
 import pyodbc
 import traceback
 import csv
+from cryptography.fernet import Fernet
+
 
 class DB():
     def __init__(self, server_name, username="",password=""):
@@ -198,7 +200,11 @@ def insertUserPermissionList(db):
     datatype = ['string', 'string','int', 'int']
     bulkInsert(db,'UserPermission',['User_Role', 'Functions', 'Enabled', 'Visibled'], onlyContents, datatype, 1 )
 
-
+def encrypt_password(pw):
+    key = b'mASnZzVxJLLGLIe1H_y_tzl2cu7wzUf7l091-4SPTBo='
+    cipher_suite = Fernet(key)
+    cipher_text = cipher_suite.encrypt(bytes(pw, 'utf-8')).decode("utf-8") 
+    return cipher_text
 
 def main():
     db = DB(r"(localDB)\BareissLocalDB", 'BareissAdmin', 'BaAdmin')

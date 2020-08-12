@@ -160,8 +160,9 @@ module.exports = {
           stausTxt = '';
       }
 
+      html_elem.innerText = stausTxt
+      
       if (preStatusCode !== status){
-        html_elem.innerText = stausTxt
         // update indicator color
         module.exports.changeStatus(html_elem, status);
       }

@@ -1,6 +1,6 @@
 {
   "name": "digiCenter",
-  "version": "0.9.7",
+  "version": "0.9.8",
   "description": "Control center for digi chamber",
   "main": "main.js",
   "scripts": {
@@ -59,15 +59,17 @@
       ]
     },
     "nsis": {
-      "oneClick": false,
+      "oneClick": true,
       "allowElevation": true,
-      "allowToChangeInstallationDirectory": true,
+      "allowToChangeInstallationDirectory": false,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "digiCenter",
       "installerIcon": "img/icon.ico",
       "uninstallerIcon": "img/icon.ico",
-      "installerHeaderIcon": "img/icon.ico"
+      "installerHeaderIcon": "img/icon.ico",
+      "artifactName": "digiCenter Setup.${ext}",
+      "runAfterFinish": false
     }
   },
   "dependencies": {

@@ -375,7 +375,7 @@ class DigiChamberProduct(pd_product.Product):
                     #self.sendCommunicateCallback('update_cur_status',status)
                     # asyncio.create_task(self.socketCallback(websocket,'update_cur_status',status))
                     asyncio.run_coroutine_threadsafe(self.socketCallback(websocket,'update_cur_status',status), self.parentLoop)
-                    self.lg.debug(status)
+                    # self.lg.debug(status)
         else:
             await asyncio.sleep(0.1) 
 

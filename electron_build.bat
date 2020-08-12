@@ -1,1 +1,1 @@
-electron-builder build
+npm run dist

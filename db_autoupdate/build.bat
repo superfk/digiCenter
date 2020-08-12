@@ -1,2 +1,2 @@
-pyinstaller --onefile api.spec --distpath ..\pyserver_dist\api
+pyinstaller --onefile build.spec
 pause

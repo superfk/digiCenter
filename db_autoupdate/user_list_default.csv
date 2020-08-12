@@ -1,3 +1,4 @@
 ﻿ID,User_Name,PW,User_Role,Creation_Date,Expired_Date,Status,First_login
-1,BareissAdmin,gAAAAABdZ3e-jxpw0j3rATbSSOLgv-jvsiiVx0zokcBYnoYUQIVKdkR-C2qfqbCAjxITiCmkt95oApsp9LdlvO9EsJWVlvHV_w==,System_Admin,2019-08-29 14:59:10.0000000,2999-08-29 14:59:10.0000000,1,0
-2,Guest,,Guest,2019-08-29 14:59:10.0000000,2999-08-29 14:59:10.0000000,1,0
+1,BareissAdmin,gAAAAABdZ3e-jxpw0j3rATbSSOLgv-jvsiiVx0zokcBYnoYUQIVKdkR-C2qfqbCAjxITiCmkt95oApsp9LdlvO9EsJWVlvHV_w==,System_Admin,8/29/2019 14:59,8/29/2999 14:59,1,0
+2,Guest,,Guest,8/29/2019 14:59,8/29/2999 14:59,1,0
+3,Admin,gAAAAABfM2pY6AiCAjD3AlSM_yTa7eZQgDsH4j2iA75FecRFK61gvSXw1rKJHMcpGKUVw3HFdmU1_iBtOZK-zM7HfCGVF7ww9w==,Admin,8/29/2019 14:59,8/29/2999 14:59,1,1

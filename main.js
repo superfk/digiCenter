@@ -12,6 +12,9 @@ let ws;
 const taskkill = require('taskkill');
 const find = require('find-process');
 
+const gotTheLock = app.requestSingleInstanceLock()
+let isSecondIndtance = false;
+
 console.log('appRoot:',appRoot)
 const curPath = path.join(appRoot, 'config.json')
 console.log('config Path:',curPath)
@@ -26,7 +29,7 @@ function connect() {
 
   ws.on('open', ()=> {
     console.log('websocket in main connected')
-      init_server();
+    init_server();
   });
 
   ws.on('ping',()=>{
@@ -51,7 +54,7 @@ function connect() {
           if(data.result == 1){
             console.log(data.resp)
             PY_INIT_OK=true;
-            createWindow();
+            createWindow()
           }else{
             console.log(data.resp)
           }
@@ -85,7 +88,7 @@ function connect() {
   };
 }
 
-connect()
+
 
 /*************************************************************
  * py process
@@ -134,36 +137,39 @@ const createPyProc = () => {
     console.log(script);
   } else {
     pyProc = require('child_process').spawn('python', [script, port],{ stdio: 'ignore' })
-    // var batchFile = path.join(__dirname, PY_FOLDER,'start_python_server.bat')
-    // var bat = shell.openItem(batchFile);
-    // console.log(bat)
   }
  
   if (pyProc != null) {
     //console.log(pyProc)
     console.log('child process success on port ' + port);
   }
+  connect();
 }
 
 const exitPyProc = (e) => {
   e.preventDefault()
-  find('name', 'api.exe', true)
-  .then(function (list) {
-    console.log('there are %s api.exe process(es)', list.length);
-    const apiPids = list.map(elm=>elm.pid)
-    console.log('api.exe pid:', apiPids);
-    try{
-      (async () => {
-        await taskkill(apiPids,{force: true, tree: true});
-        await ws.close()
-        ws = null;
-        app.exit(0)
-      })();
-      
-    }catch (err) {
+  if(!isSecondIndtance){
+    find('name', 'api.exe', true)
+    .then(function (list) {
+      console.log('there are %s api.exe process(es)', list.length);
+      const apiPids = list.map(elm=>elm.pid)
+      console.log('api.exe pid:', apiPids);
+      try{
+        (async () => {
+          await taskkill(apiPids,{force: true, tree: true});
+          await ws.close()
+          ws = null;
+          app.exit(0)
+        })();
+        
+      }catch (err) {
+    
+      }
+    });
+  }else{
+    app.exit(0)
+  }
   
-    }
-  });
 }
 
 // init config and database
@@ -185,6 +191,19 @@ app.on('before-quit',exitPyProc)
 
 let mainWindow = null;
 let progressBar = null;
+
+if (!gotTheLock) {
+  isSecondIndtance = true
+  app.quit()
+} else {
+  app.on('second-instance', (event, commandLine, workingDirectory) => {
+    // Someone tried to run a second instance, we should focus our window.
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore()
+      mainWindow.focus()
+    }
+  })
+}
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
@@ -228,10 +247,11 @@ const createWindow = () => {
     dialog.showMessageBox(mainWindow,options, (index) => {
       app.quit();
     })
-    
-
   }
+
 }
+
+
 
 function createProgressBar(title='Progress bar', text='', detail=''){
   progressBar = new ProgressBar({
@@ -242,7 +262,7 @@ function createProgressBar(title='Progress bar', text='', detail=''){
 
 }
 
-const createReportViewerWindow = (data) => {
+const createReportViewerWindow = (data, langID='en') => {
   let reportViewerWindow = new BrowserWindow({
     width: 800, 
     height: 600,
@@ -265,18 +285,20 @@ const createReportViewerWindow = (data) => {
   })
 
   reportViewerWindow.webContents.once('did-finish-load', () => {
+    console.log('report localization:', langID)
+    reportViewerWindow.webContents.send('set-lang', langID)
     reportViewerWindow.webContents.send('import-data-to-viewer', data)
   });
 
 }
 
-const createReportDesignerWindow = (data) => {
+const createReportDesignerWindow = (data, langID='en') => {
   let reportDesignerWindow = new BrowserWindow({
     width: 800, 
     height: 600,
     icon: path.join(appRoot,'img/icon.ico'),
     parent: mainWindow,
-    modal: true,
+    modal: false,
     webPreferences: {
       nodeIntegration: true
     }
@@ -294,18 +316,20 @@ const createReportDesignerWindow = (data) => {
   })
 
   reportDesignerWindow.webContents.once('did-finish-load', () => {
+    reportDesignerWindow.webContents.send('set-lang', langID)
     reportDesignerWindow.webContents.send('import-data-to-designer', data)
+    
   });
 
  
 }
 
-ipcMain.on('call-report-viewer-window', (event, data) =>{
-  createReportViewerWindow(data);
+ipcMain.on('call-report-viewer-window', (event, data, langID='en') =>{
+  createReportViewerWindow(data, langID);
 })
 
-ipcMain.on('call-report-designer-window', (event, data) =>{
-  createReportDesignerWindow(data);
+ipcMain.on('call-report-designer-window', (event, data, langID='en') =>{
+  createReportDesignerWindow(data, langID);
 })
 
 ipcMain.on('start-indet-progressbar', (event, title, text, msg) =>{
@@ -470,6 +494,7 @@ ipcMain.on('trigger_tanslate', (event) => {
   mainWindow.webContents.send('trigger_tanslate');
 })
 
+
 // detect config changed
 ipcMain.on('trigger_config_changed', (event)=>{
   mainWindow.webContents.send('update_config');
@@ -500,4 +525,8 @@ ipcMain.on('openTeachPosPdf', (event, langID) => {
 })
 ipcMain.on('toggle_monitor',(event,start)=>{
   mainWindow.webContents.send('toggle_monitor', start);
+})
+
+ipcMain.on('system-inited', (event) => {
+  mainWindow.webContents.send('system-inited');
 })
