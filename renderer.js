@@ -40,6 +40,7 @@ let machine_humi_idct_status = document.querySelectorAll('#machine_hum_idct  .id
 // login button
 var hasLogin = false;
 const loginBtn = document.getElementById('login');
+const closeLoginPanel = document.getElementById('closeLoginPanel')
 const useridInput = document.getElementById('input-userid');
 const pwInput = document.getElementById('input-password');
 const confirmloginBtn = document.getElementById('confirm-login');
@@ -103,6 +104,7 @@ function connect() {
             $('#modal_login').hide();
             ipcRenderer.send('login-changed');
             window.removeEventListener('keypress', checkkeypressLogin);
+            window.removeEventListener('keypress', checkkeypressFirstLogin);
           }else{
             changeLoginAuth(fn_list);
             // first login
@@ -110,6 +112,8 @@ function connect() {
               ipcRenderer.send('show-warning-alert',window.lang_data.modal_warning_title, reason);
               $('#first_login_panel').show();
               $('#normal_login_panel').hide();
+              window.removeEventListener('keypress', checkkeypressLogin);
+              window.removeEventListener('keypress', checkkeypressFirstLogin);
               window.addEventListener('keypress', checkkeypressFirstLogin);
               hasLogin = false;
             }else{
@@ -117,6 +121,7 @@ function connect() {
               ipcRenderer.send('show-warning-alert',window.lang_data.modal_warning_title, reason);
               $('#modal_login').hide();
               window.removeEventListener('keypress', checkkeypressLogin);
+              window.removeEventListener('keypress', checkkeypressFirstLogin);
             }
           }
           break;
@@ -135,6 +140,7 @@ function connect() {
           $('#modal_login').hide();
           ipcRenderer.send('login-changed');
           window.removeEventListener('keypress', checkkeypressLogin);
+          window.removeEventListener('keypress', checkkeypressFirstLogin);
           break;
         case 'reply_set_new_password_when_first_login':
           if (data[0]){
@@ -144,8 +150,9 @@ function connect() {
             }else{
               ipcRenderer.send('show-warning-alert',window.lang_data.modal_warning_title, data[1]);
             }
-            window.addEventListener('keypress', checkkeypressLogin);
+            window.removeEventListener('keypress', checkkeypressLogin);
             window.removeEventListener('keypress', checkkeypressFirstLogin);
+            window.addEventListener('keypress', checkkeypressLogin);
           break;
         case 'reply_update_default_lang':
           let lang_ID = data.langID;
@@ -245,23 +252,6 @@ for (var i = 0; i < list.length; i++) {
     ipcRenderer.send('updateFootStatus',"");
   });
 }
-
-var checkkeypressLogin = function(e){
-  var keyCode = e.keyCode;
-  // detect enter
-    if(keyCode == 13){
-      confirm_login();
-    }
-}
-
-var checkkeypressFirstLogin = function(e){
-  var keyCode = e.keyCode;
-  // detect enter
-    if(keyCode == 13){
-      confirm_first_login();
-    }
-}
-
 loginBtn.addEventListener('click', (event) => {
   ipcRenderer.send('save_log','Click login button', 'info', 1);
   useridInput.value = "";
@@ -269,7 +259,15 @@ loginBtn.addEventListener('click', (event) => {
   ipcRenderer.send('show-login');
   $('#first_login_panel').hide();
   $('#normal_login_panel').show();
+  window.removeEventListener('keypress', checkkeypressLogin);
+  window.removeEventListener('keypress', checkkeypressFirstLogin);
   window.addEventListener('keypress', checkkeypressLogin);
+})
+
+closeLoginPanel.addEventListener('click', (event) => {
+  $('#modal_login').hide();
+  window.removeEventListener('keypress', checkkeypressLogin);
+  window.removeEventListener('keypress', checkkeypressFirstLogin);
 })
 
 var changeLoginColor = function(loginOK){
@@ -337,8 +335,9 @@ var back_to_normal_login = document.getElementById('back_to_normal_login')
 back_to_normal_login.addEventListener('click', function(){
   $('#first_login_panel').hide();
   $('#normal_login_panel').show();
+  window.removeEventListener('keypress', checkkeypressLogin);
+  window.removeEventListener('keypress', checkkeypressFirstLogin);
   window.addEventListener('keypress', checkkeypressLogin);
-  window.removeEventListener('keypress', checkkeypressFirstLogin)
 })
 
 new_pw_confirm_btn.addEventListener('click', ()=>{
@@ -374,17 +373,6 @@ function setLang(lang){
       window.langID = lang;
     }
   })
-}
-
-const findLangs = (langKey)=>{
-  const langKeys = Object.keys(window.lang_data)
-  const langValues = Object.values(window.lang_data)
-  const langRowIndex = langKeys.findIndex(elm=>elm===langKey)
-  if (langRowIndex !== undefined){
-    return langValues[langRowIndex]
-  }else{
-    return ''
-  }
 }
 
 // detect select language
@@ -461,3 +449,20 @@ ipcRenderer.on('toggle_monitor',(event,start)=>{
     clearInterval(monitorValue);
   }
 })
+
+
+var checkkeypressLogin = function(e){
+  var keyCode = e.keyCode;
+  // detect enter
+    if(keyCode == 13){
+      confirm_login();
+    }
+}
+
+var checkkeypressFirstLogin = function(e){
+  var keyCode = e.keyCode;
+  // detect enter
+    if(keyCode == 13){
+      confirm_first_login();
+    }
+}

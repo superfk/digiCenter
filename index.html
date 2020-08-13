@@ -44,7 +44,7 @@
     <div class='w3-bar-item w3-center' style="height: 100%; width: 200px; display: flex;justify-content: center;align-items: center;">
       <img src="img/Bareiss_LOGO.png"  class='w3-center' style="width: 100%;">
     </div>
-    <a id='login' href="#" class="w3-button w3-right loginButton loginNG"><i class="fa fa-user w3-xxlarge"></i></a>
+    <a id='login' href="#" class="w3-button w3-right loginButton loginNG" tabindex="-1"><i class="fa fa-user w3-xxlarge"></i></a>
     <div class='w3-bar-item w3-container w3-right'>
         <ul class="w3-ul w3-tiny" style="margin: 0rem;padding: 0rem;border: 0rem;">
             <li id='login_username' data-lang='head_login_username' data-lang_type='innerhtml' class="w3-medium" style="margin: 0rem;padding: 0rem;font-weight:bold;">Please Login</li>
@@ -52,8 +52,8 @@
         </ul>      
     </div>
     <div class="w3-dropdown-hover w3-right" style="height: 100%;" >
-      <button id='lang-button' class="w3-button" style="height: 100%;">Language</button>
-      <div class="w3-dropdown-content w3-bar-block w3-border" style="border-bottom: 1px solid #ccc;">
+      <button id='lang-button' class="w3-button" style="height: 100%;" tabindex="-1">Language</button>
+      <div class="w3-dropdown-content w3-bar-block w3-border" style="border-bottom: 1px solid #ccc;" tabindex="-1">
         <a id='en' href="#" class="w3-bar-item w3-button lang-flags">English</a>
         <a id='de' href="#" class="w3-bar-item w3-button lang-flags">German</a>
         <a id='zh_cn' href="#" class="w3-bar-item w3-button lang-flags">简体中文</a>
@@ -67,19 +67,19 @@
     <!-- Sidebar/menu -->
     <nav class="nav js-nav w3-sidebar w3-bar-block js-nav" style="z-index:3">
       <div class="nav-item u-category-dataEx">
-        <a href="#" id="button-config" data-section="config" data-auth='button-config' class="w3-bar-item nav-button">
+        <a href="#" id="button-config" data-section="config" data-auth='button-config' class="w3-bar-item nav-button" tabindex="-1">
           <i class="fas fa-sliders-h w3-xlarge w3-margin-right" data-section="config" style='width:30px;justify-content: center;text-align: center;'></i>
           <span data-section="config" data-lang='side_config' data-lang_type='innertext'>Configuration</span>
         </a>
-        <a href="#" id="button-seqEditor" data-section="seqEditor" data-auth='button-seqEditor' class="w3-bar-item nav-button">
+        <a href="#" id="button-seqEditor" data-section="seqEditor" data-auth='button-seqEditor' class="w3-bar-item nav-button" tabindex="-1">
           <i class="fas fa-file-upload w3-xlarge w3-margin-right" data-section="seqEditor" style='width:30px;justify-content: center;text-align: center;'></i>
           <span data-section="seqEditor" data-lang='side_seqEditor' data-lang_type='innertext' >SeqEditor</span>
         </a>
-        <a href="#" id="button-run" data-section="run" data-auth='button-run' class="w3-bar-item nav-button">
+        <a href="#" id="button-run" data-section="run" data-auth='button-run' class="w3-bar-item nav-button" tabindex="-1">
           <i class="far fa-play-circle w3-xlarge w3-margin-right" data-section="run" style='width:30px;justify-content: center;text-align: center;'></i>
           <span data-section="run" data-lang='side_run' data-lang_type='innertext' >Run</span>
         </a>
-        <a href="#" id="button-report" data-section="report" data-auth='button-report' class="w3-bar-item nav-button">
+        <a href="#" id="button-report" data-section="report" data-auth='button-report' class="w3-bar-item nav-button" tabindex="-1">
           <i class="fas fa-chart-line w3-xlarge w3-margin-right" data-section="report" style='width:30px;justify-content: center;text-align: center;'></i>
           <span data-section="report" data-lang='side_report' data-lang_type='innertext'>Report</span>
         </a>
@@ -211,8 +211,7 @@
   <div id="modal_login" class="w3-modal" style='z-index:10'>
       <div class="w3-modal-content w3-animate-opacity w3-card-4" style="width:400px;">
         <div class="w3-container w3-flat-green-sea"> 
-          <span onclick="document.getElementById('modal_login').style.display='none'" 
-          class="w3-button w3-display-topright">&times;</span>
+          <span id='closeLoginPanel' class="w3-button w3-display-topright">&times;</span>
           <h2 id="modal_login_title" data-lang='modal_login_title' data-lang_type='innertext' style="margin-top: 1rem">Please Login</h2>
         </div>
         <!-- for normal login -->

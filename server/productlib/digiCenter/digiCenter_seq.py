@@ -210,15 +210,16 @@ class TeardownStep(DigiCenterStep):
         self.hwDigichamber.set_gradient_up(0)
         self.hwDigichamber.set_gradient_down(0)
         target = self.safeTemp
-        tol = 0.05
-        UL = target * (1+tol)
-        LL = target * (1-tol)
+        tol = 5 # degree
+        UL = target + tol
+        LL = target - tol
         self.hwDigichamber.set_setPoint(target)
         self.commCallback('update_gauge_ref',target)
         self.hwDigichamber.set_manual_mode(True)
         curT = self.hwDigichamber.get_real_temperature()
         initT = curT
         initTime = time.time()
+        startWait = False
         while True:
             if self.isInterrupted():
                 # stop process immediately
@@ -228,14 +229,15 @@ class TeardownStep(DigiCenterStep):
                 signSlope = -1*60
             else:
                 signSlope = 60
-            curT = curT + signSlope/60*1 + random.random()*0.02
+            curT = curT + signSlope/60*1 + random.random()*0.002
             self.hwDigichamber.set_dummy_act_temp(curT)
             ## END   ###################################################
             curT = self.hwDigichamber.get_real_temperature()
             # prog = round( (abs(curT - initT) / abs(target-initT)) * 100, 0)
             # self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
             # self.resultCallback(self.result)
-            if curT<=UL and curT>=LL:
+            if (curT<=UL and curT>=LL) or startWait:
+                startWait = True
                 countTime = time.time() - initTime
                 if countTime >= self.waitMinute*60:
                     break
@@ -340,7 +342,7 @@ class TemperatureStep(DigiCenterStep):
             else:
                 signSlope = self.slope
             ## START ##########only for simulation of chamber###########
-            curT = curT + signSlope/60*1 + random.random()*0.02
+            curT = curT + signSlope/60*1 + random.random()*0.002
             self.hwDigichamber.set_dummy_act_temp(curT)
             ## END   ###################################################
             curT = self.hwDigichamber.get_real_temperature()
@@ -474,6 +476,7 @@ class HardnessStep(DigiCenterStep):
             # {'id': 3, 'status': 'filled', 'batchInfo': {'project': '0729', 'batch': '2', 'notes': '', 'seq_name': 'C:\\data_exports\\seq_files\\singletest.seq', 'numSample': 4, 'sampleId': 3}, 'color': 'red'}
             self.lg.debug('{}'.format(smp))
             self.lg.debug('####### current sample ######')
+            self.reset_result()
             n = 1
             while True:
                 if self.isInterrupted():
@@ -508,10 +511,10 @@ class HardnessStep(DigiCenterStep):
                 # check mearsure done or not
                 if self.singleResult['done']:
                     
-                    self.lg.debug('self.singleResult is done? '.format(self.singleResult['done']))
+                    self.lg.debug('self.singleResult is done? {}'.format(self.singleResult['done']))
                     # all points in current sample done
                     if sampleIndex >= len(self.batchInfoForSamples)-1:
-                        self.lg.debug('sampleIndex >= len(self.batchInfoForSamples)-1: '.format(sampleIndex >= len(self.batchInfoForSamples)-1))
+                        self.lg.debug('sampleIndex >= len(self.batchInfoForSamples)-1: {}'.format(sampleIndex >= len(self.batchInfoForSamples)-1))
                         # finishd all samples
                         self.set_result(self.singleResult['result'],'PASS', 
                                         eventName=r'{}'.format(sampleIndex), 
@@ -519,7 +522,9 @@ class HardnessStep(DigiCenterStep):
                                         progs=100,
                                         batchInfo=smp
                                         )
-                        return self.result
+                        currentResult = self.result.copy()
+                        self.resultCallback(currentResult)
+                        break
                     # go to next sample
                     self.set_result(self.singleResult['result'],'MEAR_NEXT', None, 
                                     eventName=r'{}'.format(sampleIndex), 
@@ -528,7 +533,6 @@ class HardnessStep(DigiCenterStep):
                                     batchInfo=smp)
                     currentResult = self.result.copy()
                     self.resultCallback(currentResult)
-                    self.reset_result()
                     break
         self.commCallback('update_machine_status',{'dt':{'status':1, 'value':None},'temp':None, 'hum':None})
         return self.result

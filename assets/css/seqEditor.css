@@ -43,13 +43,17 @@
 
 
 .mainSeqSection {
-  overflow: auto;
+  overflow: hidden;
   background-color: var(--color-bg);
   position: absolute;
   width: 1000px;
   left: 160px;
   top:0px;
   bottom: 0px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
 }
 
 
@@ -58,11 +62,12 @@
 }
 
 .mainSeqContainer {
-  overflow: auto;
-  position: absolute;
-  top: 56px;
+  overflow-y: auto;
+  /* position: absolute;
+  top: 56px; */
   width: 98%;
-  bottom: 350px;
+  height: 70%;
+  max-height: 500px;
   padding: 10px 10px 10px 10px;
   /* border: 1px solid lightsteelblue; */
 }
@@ -88,12 +93,13 @@
 }
 
 .timeHsitorySection {
+  margin-top: auto;
   overflow: hidden;
   background-color: var(--color-bg);
-  position: absolute;
-  left: 0;
-  bottom: 0px;
-  width: 100%;
+  /* position: absolute;
+  bottom: 0; */
+  width: 98%;
+  height: 30%;
   padding: 10px 16px 10px 16px;
 }
 
@@ -221,6 +227,19 @@
   background-color:transparent;
   color:transparent;
   border-top: 2px solid !important;
+}
+
+@media (max-height:700px){
+  .timeHsitorySection {
+    -webkit-transition: height .5s;
+    transition: height .5s;
+    height: 45px;
+    overflow: hidden;
+  }
+  .timeHsitorySection .w3-bar-item{
+    background-color: #ccc;
+    width: 100%;
+  }
 }
 
 

@@ -10,13 +10,13 @@
                     <div class="w3-container w3-display-container w3-padding-16">
                         <h3 data-lang='run_batchinfo_title' data-lang_type='innertext'>Batch Info</h3>
                         <div class='sampleSetupButtonContainer'>
-                            <button id='openSampleSetupList' data-auth='open_sampleSetupList' class="w3-button w3-block w3-orange "
+                            <button id='openSampleSetupList' tabindex="-1" data-auth='open_sampleSetupList' class="w3-button w3-block w3-orange "
                             ><i class="fas fa-spinner w3-medium w3-margin-right"></i><span data-lang='run_open_sampleSetupList_btn' data-lang_type='innertext'>Test Setup</span> </button>
 
-                            <button id='batchConfirmAndStart' data-auth='start_test' class="w3-button w3-block w3-green "
+                            <button id='batchConfirmAndStart' tabindex="-1" data-auth='start_test' class="w3-button w3-block w3-green "
                             ><i class="fas fa-play w3-medium w3-margin-right"></i> <span data-lang='run_start_btn' data-lang_type='innertext'>Start</span></button>
 
-                            <button id='stop_test' data-auth='stop_test' class="w3-button w3-block  w3-red" 
+                            <button id='stop_test' tabindex="-1" data-auth='stop_test' class="w3-button w3-block  w3-red" 
                             ><i class="fas fa-stop-circle w3-medium w3-margin-right"></i><span data-lang='run_stop_btn' data-lang_type='innertext'></span></button>
                         </div>
                         <hr>
@@ -189,12 +189,12 @@
                             
                             <div id='batchSelectorDiv' class='batchSelector'>
                                 <div data-lang='run_batch_selector_title' data-lang_type='innertext'>Batch Selector</div>
-                                <a href="#" id='new_a_batch' data-auth='new_a_batch' class="w3-button w3-center" style='width:30px;height:auto;padding: 0;'><i class="fas fa-plus w3-medium"></i></a>
-                                <a href="#" id='load_a_batch' data-auth='load_a_batch' class="w3-button w3-center" style='width:30px;height:auto;padding: 0;'><i class="far fa-folder-open w3-medium"></i></a>
+                                <a href="#" id='new_a_batch' tabindex="-1" data-auth='new_a_batch' class="w3-button w3-center" style='width:30px;height:auto;padding: 0;'><i class="fas fa-plus w3-medium"></i></a>
+                                <a href="#" id='load_a_batch' tabindex="-1" data-auth='load_a_batch' class="w3-button w3-center" style='width:30px;height:auto;padding: 0;'><i class="far fa-folder-open w3-medium"></i></a>
                             </div>
                             <div id='sampleBatchConfigFormContent' class='sampleBatchConfigForm'>
                                 <p><i class="fas fa-align-left"></i><label data-lang='run_load_seq_title' data-lang_type='innertext'> Load Sequence</label>
-                                    <a href="#" id='open_test_seq' data-auth='open_test_seq' class="w3-button w3-center" style='display: inline-block;width:30px;height:auto;padding: 0;'>
+                                    <a href="#" id='open_test_seq' tabindex="-1" data-auth='open_test_seq' class="w3-button w3-center" style='display: inline-block;width:30px;height:auto;padding: 0;'>
                                         <i class="far fa-folder-open w3-medium"></i>
                                     </a>
                                     <input class="w3-input w3-border" type="text" name="SeqName" readonly disabled>
@@ -208,9 +208,9 @@
                                 <p><i class="far fa-sticky-note"></i><label data-lang='run_note_title' data-lang_type='innertext'> Test Note</label></p>
                                 <textarea cols="5" rows="5" name="Note"></textarea>
                             </div>
-                            <p><button data-auth='sampleBatchConfigAddBtn' class="w3-button w3-block w3-blue w3-center" type="submit" 
+                            <p><button tabindex="-1" data-auth='sampleBatchConfigAddBtn' class="w3-button w3-block w3-blue w3-center" type="submit" 
                                 ><i class="fas fa-plus"></i> <span data-lang='sampleBatchConfigAddBtn' data-lang_type='innertext'>Add</span></button></p>
-                            <button id='sampleBatchConfigClearAllBtn' data-auth='sampleBatchConfigClearAllBtn' class="w3-button w3-block w3-red w3-center" type="button" 
+                            <button id='sampleBatchConfigClearAllBtn' tabindex="-1" data-auth='sampleBatchConfigClearAllBtn' class="w3-button w3-block w3-red w3-center" type="button" 
                                 ><i class="fas fa-eraser"></i><span data-lang='sampleBatchConfigClearAllBtn' data-lang_type='innertext'>Clear All</span></button>
                           </form>
                           
@@ -226,17 +226,17 @@
                         </div>                        
                         <div class="sampleBatchCircleToolbar">
                             <div class="goToIndexRow">
-                                <button id='moveHomeBtn' data-auth='moveHomeBtn' class="w3-button w3-border w3-center moveBtn" type="button"
+                                <button id='moveHomeBtn' tabindex="-1" data-auth='moveHomeBtn' class="w3-button w3-border w3-center moveBtn" type="button"
                                 ><i class="fas fa-home"></i> <span data-lang='moveHomeBtn' data-lang_type='innertext'>Go Home</span></button>
                             </div>
-                            <!-- <button id='moveLastBtn' data-auth='moveLastBtn' class="w3-button w3-border w3-center moveBtn" type="button" style='display: none;'
+                            <!-- <button id='moveLastBtn' tabindex="-1" data-auth='moveLastBtn' class="w3-button w3-border w3-center moveBtn" type="button" style='display: none;'
                                 ><i class="fas fa-chevron-left"></i> <span data-lang='moveLastBtn' data-lang_type='innertext'>To Last Sample</span></button>
-                            <button id='moveHomeBtn' data-auth='moveHomeBtn' class="w3-button w3-border w3-center moveBtn" type="button"
+                            <button id='moveHomeBtn' tabindex="-1" data-auth='moveHomeBtn' class="w3-button w3-border w3-center moveBtn" type="button"
                                 ><i class="fas fa-home"></i> <span data-lang='moveHomeBtn' data-lang_type='innertext'>Go Home</span></button>
-                            <button id='moveNextBtn' data-auth='moveNextBtn' class="w3-button w3-border w3-center moveBtn" type="button" style='display: none;'
+                            <button id='moveNextBtn' tabindex="-1" data-auth='moveNextBtn' class="w3-button w3-border w3-center moveBtn" type="button" style='display: none;'
                                 ><i class="fas fa-chevron-right"></i> <span data-lang='moveNextBtn' data-lang_type='innertext'>To Next Sample</span></button> -->
                             <div class="goToIndexRow">
-                                <button id='goToIndexBtn' data-auth='goToIndexBtn' class="w3-button w3-border w3-center moveBtn" type="button" 
+                                <button id='goToIndexBtn' tabindex="-1" data-auth='goToIndexBtn' class="w3-button w3-border w3-center moveBtn" type="button" 
                                 ><i class="fas fa-chevron-right"></i> <span data-lang='goToIndexBtn' data-lang_type='innertext'>Go To Index</span></button>
                                 <input id='goToIndexValue' class="w3-input w3-border" type="number" name="goToIndex" value='1' min='1'>
                             </div>
@@ -245,7 +245,7 @@
                     </div>
                 </div>
                 <div style="padding:20px;width: 100%;">
-                    <button id='confirmSampleBatchConfigBtn' class="w3-btn w3-block w3-green" data-auth='sampleSetupConfirmBtn' data-lang='sampleSetupConfirmBtn' data-lang_type='innertext' >Confirm</button>
+                    <button id='confirmSampleBatchConfigBtn' class="w3-btn w3-block w3-green" tabindex="-1" data-auth='sampleSetupConfirmBtn' data-lang='sampleSetupConfirmBtn' data-lang_type='innertext' >Confirm</button>
                 </div>
             </div>
         </div>

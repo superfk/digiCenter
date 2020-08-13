@@ -1,6 +1,6 @@
 {
   "name": "digiCenter",
-  "version": "0.9.8",
+  "version": "0.9.9",
   "description": "Control center for digi chamber",
   "main": "main.js",
   "scripts": {

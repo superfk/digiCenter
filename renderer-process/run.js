@@ -849,7 +849,7 @@ function plotList(){
 function setSampleOccupy(index=0, batchInfo={}, color='white'){
   let spcCirlce = batchInfoForSamples.find(elm=>elm.id===index)
   spcCirlce.status = 'filled'
-  spcCirlce.batchInfo = batchInfo
+  spcCirlce.batchInfo = {...batchInfo}
   spcCirlce.color=color
   batchInfoForSamples.splice(index,1,spcCirlce)
 }
@@ -880,20 +880,50 @@ $('#sampleBatchConfigForm').on('submit', (e)=>{
   let proj = batchinfos.filter(item=>item.name=='Project')[0].value;
   let batch = batchinfos.filter(item=>item.name=='Batch')[0].value;
   let numSample = batchinfos.filter(item=>item.name=='NumberOfSample')[0].value;
+  let emptySamples = batchInfoForSamples.filter((elm)=>elm.status==='empty');
+  numSample = parseInt(numSample) > emptySamples.length ? emptySamples.length : parseInt(numSample);
   let note = batchinfos.filter(item=>item.name=='Note')[0].value;
   let curBatchinfo = {'project':proj, 'batch':batch, 'notes':note, 'seq_name':seqPath,'numSample':parseInt(numSample), 'sampleId':0}
-  let counter = 0;
+
+  let sampleCounterInBatch = 0;
+  let sampleColor = 'red';
+  const existedBatch = batches.find(elm=>elm.batch===batch);
+  const existedBatchIndex = batches.findIndex(elm=>elm.batch===batch);
+  let isNewBatch = existedBatch === undefined ? true : false;
+  if (isNewBatch){
+    sampleColor = tools.pick_color_hsl(batchCounter)
+  }else{
+    sampleCounterInBatch = existedBatch.numSample;
+    const existedSample = batchInfoForSamples.find((elm)=>elm.batchInfo.batch === existedBatch.batch);
+    if (existedSample !== undefined){
+      sampleColor = existedSample.color;
+    }
+  }
+  console.log('sampleCounterInBatch',sampleCounterInBatch)
+  let counter = 0
   batchInfoForSamples.forEach(elm=>{
-    if(counter<numSample){
-      if(elm.status==='empty'){
-        curBatchinfo.sampleId = counter
-        setSampleOccupy(elm.id, {...curBatchinfo}, tools.pick_color_hsl(batchCounter))
+    if (counter < numSample){
+      if (elm.status ==='filled'){
+        const thisBatchName = elm.batchInfo.batch;
+        let thisBatchTotalSamples = elm.batchInfo.numSample;
+        if (thisBatchName === curBatchinfo.batch){
+          curBatchinfo.numSample = thisBatchTotalSamples + parseInt(numSample)
+          sampleCounterInBatch += 1
+        }
+      }else if(elm.status ==='empty'){
+        curBatchinfo.sampleId = sampleCounterInBatch
+        setSampleOccupy(elm.id, {...curBatchinfo}, sampleColor)
+        sampleCounterInBatch += 1
         counter += 1
       }
     }
   })
-  batches.push({...curBatchinfo})
-  batchCounter += 1
+  if (isNewBatch){
+    batches.push({...curBatchinfo})
+    batchCounter += 1
+  }else{
+    batches.splice(existedBatchIndex, 1, {...curBatchinfo})
+  }
   refreshSeqsInAllSamples(seqPath)
   
   if (forceManualMode || !digitestIsRotationMode){

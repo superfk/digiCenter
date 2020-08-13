@@ -67,25 +67,20 @@
             <div class='w3-container w3-cell mainSeqSection'>
                 <div class='w3-bar w3-large w3-border-bottom w3-border-lightgray'>
                     <div class="w3-bar-item" data-lang='seqEditor_main_title' data-lang_type='innertext'>Main Sequence</div>
-                    <a href="#" id='save_seq' data-auth='save_seq' class="w3-bar-item w3-button w3-right" ><i class="far fa-save"></i></a>
-                    <a href="#" id='open_seq' data-auth='open_seq' class="w3-bar-item w3-button w3-right"><i class="far fa-folder-open"></i></a>
-                    <a href="#" id='create_seq' data-auth='create_seq' class="w3-bar-item w3-button w3-right"><i class="far fa-file"></i></a>
-                    
-                    
+                    <a href="#" id='save_seq' data-auth='save_seq' class="w3-bar-item w3-button w3-right" tabindex="-1"><i class="far fa-save"></i></a>
+                    <a href="#" id='open_seq' data-auth='open_seq' class="w3-bar-item w3-button w3-right" tabindex="-1"><i class="far fa-folder-open"></i></a>
+                    <a href="#" id='create_seq' data-auth='create_seq' class="w3-bar-item w3-button w3-right" tabindex="-1"><i class="far fa-file"></i></a>
                 </div>
-                
-                
                 <div class='w3-container mainSeqContainer'>
                     <ul id='seqContainer'>
                     </ul>
                 </div>
-
                 <!-- graph section -->
                 <div class='timeHsitorySection'>
                     <div class='w3-bar w3-large w3-border-bottom w3-border-lightgray'>
                         <div class="w3-bar-item" data-lang='seqEditor_temp_cahrt_title' data-lang_type='innertext'>Temperature History Chart</div>
                     </div>
-                    <div id="tempTime_graph"></div>
+                    <div id="tempTime_graph" class='tempTime_graph_container'></div>
 
                 <!-- end of graph section -->
                 </div>
@@ -102,14 +97,14 @@
                     <div class='w3-container w3-cell-row w3-margin-bottom'>
                         <div class="w3-container w3-cell">
                             <button id='applyParaPanel' class="w3-bar-item w3-button w3-border w3-leftbar w3-border-green"
-                            data-lang='seqEditor_paras_apply' data-lang_type='innertext'>
+                            data-lang='seqEditor_paras_apply' data-lang_type='innertext' tabindex="-1" >
                             Apply 
                                 <i class="fas fa-check" style="color:green"></i>
                             </button>
                         </div>
                         <div class="w3-container w3-cell">
                             <button id='closeParaPanel' class="w3-bar-item w3-button w3-border w3-leftbar w3-border-red"
-                            data-lang='seqEditor_paras_close' data-lang_type='innertext'>
+                            data-lang='seqEditor_paras_close' data-lang_type='innertext' tabindex="-1">
                             Close 
                                 <i class="fas fa-times" style="color:red"></i>
                             </button>

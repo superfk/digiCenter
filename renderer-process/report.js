@@ -87,7 +87,6 @@ var groupTable = new Tabulator("#groupTableContainer", {
       
   ],
   groupHeader: function(value, count, data, group){
-    console.log(data)
     // tools.generateHardnessPlot('historyChart',0)
     // tools.plotly_addNewDataToPlot('historyChart',actTemp,value,y2val=null,sampleId=sampleIndex)
     const groupField = group._group.field
@@ -266,6 +265,11 @@ function showData(res){
   
   if (typeof res !== 'undefined' && res.length > 0){
     setGroupTableData(res);
+    res.forEach(elm=>{
+      elm.Hardness_result.toFixed(2);
+      elm.Temperature.toFixed(2);
+    })
+    console.log(res)
     createTable(res);
     let x_val = res.map(a=>{
       let dateB = moment(new Date(a.Recordtime)).format('YYYY/MM/DD hh:mm:ss');

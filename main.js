@@ -469,7 +469,6 @@ ipcMain.on('show-option-dialog', (event, title, msg, callback, args) => {
   }
   dialog.showMessageBox(mainWindow, options)
   .then(result => {
-    console.log(result.response)
     if (result.response == 0){
       event.reply(callback, result.response, args);
     }

@@ -101,7 +101,6 @@ connect();
 // **************************************
 // generate graph functions
 // **************************************
-generateTempTimePlot();
 
 function generateTempTimePlot(xarr=[],yarr=[]){
 
@@ -140,7 +139,7 @@ function generateTempTimePlot(xarr=[],yarr=[]){
         legend: {"orientation": "h",x:0, xanchor: 'left',y:1.2,yanchor: 'top'},
         width: 800,
         height: 280,
-        margin: { t: 20, r: 40, l: 60, b: 50},
+        margin: { t: 50, r: 100, l:50, b:100, pad: 4},
         paper_bgcolor:'rgba(0,0,0,0)',
         plot_bgcolor:'rgba(0,0,0,0)',
         autosize: false,
@@ -151,11 +150,31 @@ function generateTempTimePlot(xarr=[],yarr=[]){
       const config = {
         displaylogo: false,
         modeBarButtonsToRemove: ['toImage','lasso2d','select2d', 'pan2d','zoom2d','hoverClosestCartesian','hoverCompareCartesian','toggleSpikelines'],
-        responsive: false
+        responsive: true
       };
       
       Plotly.newPlot('tempTime_graph', data, layout,config);
   }
+
+  function repositionChart(){
+    var update = {
+      autosize: true,
+    };
+    if (!$('#tempTime_graph').html()===''){
+      // check if chart has data, if no data, the following function will throw error
+      Plotly.relayout('tempTime_graph', update);
+    }
+  
+    Plotly.relayout('tempTime_graph', update);
+  
+  }
+
+  $(window).resize((e)=>{
+    repositionChart()
+  })
+
+  generateTempTimePlot();
+  repositionChart();
 
 // **************************************
 // general functions
@@ -284,6 +303,7 @@ function updateTempTimeChart(){
         annotations: markers
       };
     Plotly.relayout('tempTime_graph', layout);
+    repositionChart();
 }
 
 function getActiveli(){

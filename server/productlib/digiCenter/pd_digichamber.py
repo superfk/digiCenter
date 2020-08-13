@@ -358,7 +358,7 @@ class DigiChamberProduct(pd_product.Product):
                 try:
                     if self.digiTest.connected:
                         statusCode, dtInfo['value'] =self.digiTest.get_single_value(dummyTemp=self.curT, immediate=True)
-                        self.lg.debug('digiTest statusCode {}'.format(statusCode))
+                        # self.lg.debug('digiTest statusCode {}'.format(statusCode))
                         if statusCode == 1:
                             dtInfo['status'] = 1 
                         elif statusCode < 0:
