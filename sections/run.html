@@ -21,11 +21,12 @@
                         </div>
                         <hr>
                         <div id='seqStats' class='seqStatsContainer'>
-                            <div style="font-size: 0.9rem;">Approx. ranges of this batch</div>
-                            <div><i class="fas fa-thermometer-full" style="width: 20px;text-align: center;"></i><span style="margin-left: 10px">225</span>℃</div>
-                            <div><i class="fas fa-thermometer-empty" style="width: 20px;text-align: center;"></i><span style="margin-left: 10px">-20</span>℃</div>
-                            <div><i class="fas fa-stopwatch" style="width: 20px;text-align: center;"></i><span style="margin-left: 10px">00:30:25</span></div>
+                            <div data-lang='run_batchstats' data-lang_type='innertext' style="font-size: 0.85rem;"></div>
+                            <div><i class="fas fa-thermometer-full" style="width: 20px;text-align: center;"></i><span id='batchMaxTemperature' style="margin-left: 10px">--</span>℃</div>
+                            <div><i class="fas fa-thermometer-empty" style="width: 20px;text-align: center;"></i><span id='batchMinTemperature' style="margin-left: 10px">--</span>℃</div>
+                            <div><i class="fas fa-stopwatch" style="width: 20px;text-align: center;"></i><span id='batchMaxTime' style="margin-left: 10px">--:--:--</span></div>
                         </div>
+                        <hr>
                         <div id='batchViewList' class='batchReadOnlyForm'>
                         </div>
                        

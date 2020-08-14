@@ -497,6 +497,9 @@ function updateSequence(res) {
     test_flow.teardown = script.teardown;
     seqRend.sortSeq('testSeqContainer', test_flow.setup, test_flow.main, test_flow.teardown, false);
     const statsOfSeqs = seqRend.calcApproxTimeAndTemperature(test_flow, 20);
+    document.getElementById('batchMaxTemperature').innerHTML=statsOfSeqs.stats.maxTemp;
+    document.getElementById('batchMinTemperature').innerHTML=statsOfSeqs.stats.mintemp;
+    document.getElementById('batchMaxTime').innerHTML=tools.sec2dt(statsOfSeqs.stats.overallTime*60).substr(11, 8);
   } else {
     ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, errorReason);
   }

@@ -433,10 +433,19 @@ $('body').on('click', '.delete_list', function () {
 });
 
 applyParaBtn.addEventListener('click', () => {
-    test_flow = seqRend.applyChange(paraContainerID = 'paraContainer', test_flow = test_flow, activePara = activePara)
-    seqRend.sortSeq('seqContainer', test_flow.setup, test_flow.main, test_flow.teardown, true);
-    makeSortable();
-    updateTempTimeChart();
+    const tempTestFlow = seqRend.applyChange(paraContainerID = 'paraContainer', test_flow = {...test_flow}, activePara = activePara)
+    let calObj = seqRend.calcApproxTimeAndTemperature(tempTestFlow, 20);
+    console.log(calObj.stats.maxTemp)
+    if (calObj.stats.maxTemp>190){
+        ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, window.lang_data.exceed_max_temp);
+    }else if(calObj.stats.mintemp<-40){
+        ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title,  window.lang_data.exceed_min_temp);
+    }else{
+        test_flow = seqRend.applyChange(paraContainerID = 'paraContainer', test_flow = test_flow, activePara = activePara)
+        seqRend.sortSeq('seqContainer', test_flow.setup, test_flow.main, test_flow.teardown, true);
+        makeSortable();
+        updateTempTimeChart();
+    }
 })
 
 // detect select language

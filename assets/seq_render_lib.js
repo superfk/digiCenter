@@ -547,7 +547,7 @@ module.exports = {
         if (cat === 'temperature') {
             paraCollection = $('#' + paraContainerID + ' input');
             $.each(paraCollection, (index, item) => {
-                test_flow.main[id].subitem.paras[index].value = $(item).val()
+                test_flow.main[id].subitem.paras[index].value = $(item).val();
             })
         } else if (cat === 'hardness') {
             paraCollection = $('#' + paraContainerID + ' input');

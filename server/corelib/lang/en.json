@@ -256,5 +256,8 @@
   "waiting_time":"waiting time",
   "safe_temperature":"safe temperature",
   "digitest_distance_too_big":"DigiTest Error. Distance too big, please check sample.",
-  "rotation_table_move_fail":"RotationTableMoveError. Please check motor."
+  "rotation_table_move_fail":"RotationTableMoveError. Please check motor.",
+  "run_batchstats":"Approx. ranges of time and temperature",
+  "exceed_max_temp":"Maximun temperature is out of range",
+  "exceed_min_temp":"Minimum temperature is out of range"
 }

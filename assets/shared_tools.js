@@ -58,7 +58,7 @@ module.exports = {
       
       var layout = {
         xaxis: {
-          title: '℃',
+          title: 'Temperature(℃)',
           zeroline: false,
           showline: true
         },

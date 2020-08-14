@@ -256,5 +256,8 @@
   "waiting_time":"等待時間",
   "safe_temperature":"安全溫度",
   "digitest_distance_too_big":"DigiTest發生錯誤，量測距離過長，請確認樣品",
-  "rotation_table_move_fail":"轉盤移動錯誤，請確認馬達"
+  "rotation_table_move_fail":"轉盤移動錯誤，請確認馬達",
+  "run_batchstats":"預估時間與溫度範圍",
+  "exceed_max_temp":"超過最大溫度上限",
+  "exceed_min_temp":"超過最小溫度下限"
 }

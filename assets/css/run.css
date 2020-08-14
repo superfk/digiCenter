@@ -45,10 +45,13 @@
 
 .sampleSetupListContainer {
     width: 100%;
-    margin: 0px;
+    margin: 0;
     padding: 5px;
     height: 100%;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
 }
 #sampleListStatusContainer{
     display: flex;
@@ -136,11 +139,13 @@ textarea { resize: vertical; max-height: 100px; min-height: 50px; max-width: 100
     justify-content: flex-start;
     align-items: center;
     flex-wrap: wrap;
+    height: 5%;
+    min-height: 20px;
 }
 
 .gridCard .cardContent{
     width: 100%;
-    height: 90%;
+    height: 95%;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -484,9 +489,10 @@ progress[value]::-webkit-progress-bar {
 }
 
 #sampleCircleStatus {
-    width: 100%;
-    height: 100%;
+    width: 95%;
+    height: 95%;
     position: relative;
+    margin: auto;
 }
 
 #sampleCircle {
