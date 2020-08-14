@@ -557,7 +557,7 @@ class PyServerAPI(object):
             data[i]['Creation_Date'] = date
         await self.sendMsg(websocket,'reply_query_batch_history', data)
 
-    async def saveTestData(self,testResult):
+    def saveTestData(self,testResult):
         fields = ['Recordtime','Project_name','Batch_name','Seq_name','Operator','Seq_step_id','Sample_counter','Hardness_result',
         'Temperature','Humidity','Raw_data','Math_method']
         now = datetime.datetime.now().strftime(r"%Y/%m/%d %H:%M:%S.%f")

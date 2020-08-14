@@ -254,5 +254,7 @@
   "loop_color":"Loop-Farb",
   "stop on":"Aufhören",
   "waiting_time":"Wartezeit",
-  "safe_temperature":"sichere Temperatur"
+  "safe_temperature":"sichere Temperatur",
+  "digitest_distance_too_big":"DigiTest Fehler, Die Entfernung zu groß, bitte Probe überprüfen.",
+  "rotation_table_move_fail":"RotationTableMoveError. Bitte überprüfen Motor."
 }

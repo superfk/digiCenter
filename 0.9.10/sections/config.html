@@ -1,0 +1,297 @@
+ <!-- template -->
+ <template class="task-template">
+  <link rel="stylesheet" type="text/css" href="assets/css/config.css">
+        <section id="config-section" class="section js-section u-category-config">
+          <!-- side bar of configurations -->
+          <div class="configSidebar w3-sidebar w3-bar-block w3-flat-midnight-blue w3-card w3-center w3-small">
+            <h5 class="w3-bar-item config-sidebar"> </h5>
+            <button data-lang='side_general' data-lang_type='innertext' class="w3-bar-item w3-button config-tablink" onclick="openLink(event, 'General')" tabindex="-1">General</button>
+            <button data-lang='side_posteach' data-lang_type='innertext' class="w3-bar-item w3-button config-tablink" onclick="openLink(event, 'PosTeach')" tabindex="-1">Teach Position Guide</button>
+            <button data-lang='side_userMang' data-lang_type='innertext' class="w3-bar-item w3-button config-tablink" onclick="openLink(event, 'Users')" tabindex="-1">User Managment</button>
+            <button data-lang='side_systemlog' data-lang_type='innertext' class="w3-bar-item w3-button config-tablink" onclick="openLink(event, 'SysLog')" tabindex="-1">System Log</button>
+          </div>
+          
+          <!-- Content of config item -->
+          <div class='configContent'>
+            <!-- General config item -->
+            <div id="General" class="w3-container config-tab w3-animate-opacity" style="display:none">
+
+              <div class="w3-panel w3-leftbar w3-hover-border-green">
+                <div data-lang='general_remote_title' data-lang_type='innertext' class="w3-text-black w3-large">Remote<b>Remote</b></div>
+                <ul class="w3-ul">
+                  <li>
+                    <label data-lang='general_ip_label' data-lang_type='innertext' class="w3-text-dark-grey">Machine IP</label>
+                    <input id="machine_ip" class="w3-input w3-hover-pale-yellow" type="text" tabindex="-1">
+                  </li>
+                  <li>
+                    <label data-lang='general_digitest_com_label' data-lang_type='innertext' class="w3-text-dark-grey">DigiTest COM port</label>
+                    <input id="digitest_com" class="w3-input w3-hover-pale-yellow" type="text" tabindex="-1">
+                  </li>
+                  <li>                    
+                    <input id="digitest_mode_switch" class="w3-check w3-hover-pale-yellow" type="checkbox" tabindex="-1">
+                    <label data-lang='general_digitest_mode_switch' data-lang_type='innertext' class="w3-text-dark-grey">Force Manual Mode</label>
+                  </li>
+                </ul>
+              </div>
+
+              <div class="w3-panel w3-leftbar w3-hover-border-green">
+                <div data-lang='general_data_title' data-lang_type='innertext' sclass="w3-text-black w3-large"><b>Data</b></div>
+                <ul class="w3-ul">
+                  <li>
+                    <label data-lang='general_expFolder_label' data-lang_type='innertext' class="w3-text-dark-grey">Report Export Folder</label>
+                    <button id="choose_export_folder_btn" data-lang='general_choFolder_btn' data-lang_type='innertext' class="w3-button w3-border w3-hover-border" style="margin-bottom:0.3rem;" tabindex="-1">Choose Folder</button>
+                    <input id="export_path" class="w3-input w3-hover-pale-yellow" type="text" placeholder="C:\dataexport" tabindex="-1">
+                  </li>
+
+                  <!-- <li>
+                      <label data-lang='genreal_db_title' data-lang_type='innertext' class="w3-text-dark-grey">Database server</label>
+                      <button id="auto_getHostname_btn" data-lang='general_db_getComName_btn' data-lang_type='innertext' class="w3-button w3-border w3-hover-border" style="margin-bottom:0.3rem;">Get Computer Name</button>
+                      <span id='computerName' class='w3-small' style="margin-left: 0.2rem;"></span>
+                      <input id="db_server" data-lang='general_db_server_plhd' data-lang_type='plhd' class="w3-input w3-hover-pale-yellow" type="text" placeholder="[ComputerName]\SQLEXPRESS">
+                  </li> -->
+                </ul>   
+              </div>
+
+              <div class="w3-panel">
+                  <a href="#" 
+                  id="apply_change_general" 
+                  data-lang='general_applychange_btn' 
+                  data-lang_type='innertext' 
+                  data-auth='apply_change_general' 
+                  class="w3-button w3-green w3-large" 
+                  style="width:100%" tabindex="-1"><i class="fas fa-check w3-large" style="margin-right:5px"></i>Apply Changes</a>
+              </div>
+            </div>
+
+            <!-- General config item -->
+            <div id="PosTeach" class="w3-container config-tab w3-animate-opacity" style="display:none">
+              <div style="width:100%; height: 50%;padding:20px;">
+                <div style="margin: 20px;width:40%;display: inline-block;">
+                  <img src="img/teach/demo1.jpg" alt="teach" width="100%">
+                </div>
+                <div style="margin:20px;width:40%;display: inline-block;">
+                  <img src="img/teach/demo2.jpg" alt="teach" width="100%">
+                </div>
+              </div>
+              <div style="width:100%;display: flex;justify-content: center;align-items: center;">
+                <a href="#" id="open_teach_pos_pdf" data-lang='open_teach_pos_pdf' data-lang_type='innertext' style="font-size: 3rem;">Click me to open guide of teaching position</a>
+              </div>
+            </div>
+
+            <!-- User item -->
+            <div id="Users" class="w3-container config-tab w3-animate-opacity" style="display:none">
+              <div class="w3-panel">
+              
+                <div class="w3-row w3-half">
+                  <a id='user_account_tab' href="javascript:void(0)" onclick="openUserTab(event, 'user_list');" tabindex="-1">
+                    <div data-lang='user_usraccount_tab' data-lang_type='innertext' class="w3-half user-tablink w3-bottombar w3-hover-opacity w3-padding w3-large"><i class="fas fa-users w3-large" style="margin-right:0.5rem;"></i>User Account</div>
+                  </a>
+                  <a id='user_role_tab' href="javascript:void(0)" onclick="openUserTab(event, 'user_role');" tabindex="-1">
+                    <div data-lang='user_usrrole_tab' data-lang_type='innertext' class="w3-half user-tablink w3-bottombar w3-hover-opacity w3-padding w3-large"><i class="fas fa-user-tag w3-large" style="margin-right:0.5rem;"></i>User Role</div>
+                  </a>
+                </div>
+                <!-- user list content -->
+                <div id="user_list" class="w3-container user-tab w3-animate-opacity" style="display:none">
+                  <div class="w3-panel">
+                      <div class='w3-bar'>
+                        <a id='add_new_user_btn' href="#" data-auth='add_new_user_btn' class="w3-bar-item w3-button w3-black w3-left w3-small" style="margin-right:5px" tabindex="-1">+</a>
+                        <a id='delete_user_btn' href="#" data-auth='delete_user_btn' class="w3-bar-item w3-button w3-black w3-left w3-small" tabindex="-1">-</a>
+                        <a href="#" id="new_pw_btn" data-auth='new_pw_btn' class="w3-button w3-blue w3-bar-item w3-right auth_disabled"><i class="fas fa-barcode" style="margin-right:5px"></i><span data-lang='user_newpw' data-lang_type='innertext'  tabindex="-1">New Password</span></a>
+                        <a href="#" id="deactivate_user_btn" data-auth='deactivate_user_btn' class="w3-button w3-red w3-bar-item w3-right auth_disabled" style="margin-right:5px"><i class="fas fa-user-alt-slash"style="margin-right:5px"></i><span data-lang='user_deactivate' data-lang_type='innertext'  tabindex="-1">Deactivate</span></a>
+                        <a href="#" id="activate_user_btn"  data-auth='activate_user_btn' class="w3-button w3-green w3-bar-item w3-right auth_disabled" style="margin-right:5px"><i class="fas fa-user-check" style="margin-right:5px"></i><span data-lang='user_activate' data-lang_type='innertext' tabindex="-1">Activate</span></a>
+                      </div>
+                      <div class='w3-bar'>
+                        <div  data-lang='user_users_title' data-lang_type='innertext' class='w3-bar-item'>Users</div>
+                      </div>                   
+                      <table id="user-list-table" class="display" style="width:100%;">
+                        <thead>
+                          <tr>
+                              <th>User Name</th>
+                              <th>Role</th>
+                              <th>Status</th>
+                              <th>First?</th>
+                              <th>Createtion Date</th>
+                              <th>Expired Date</th>
+                          </tr>
+                        </thead>
+                      </table>
+                  </div>
+                </div>
+
+                <!-- user roles content -->
+                <div id="user_role" class="w3-container user-tab w3-animate-opacity" style="display:none">
+                  
+                  <div class="w3-panel w3-third">
+                    <div class='w3-bar'>
+                      <a id='add_new_role_btn' href="#" data-auth='add_new_role_btn' class="w3-bar-item w3-button w3-black w3-left w3-small" style="margin-right:5px" tabindex="-1">+</a>
+                      <a id='delete_new_role_btn' href="#" data-auth='delete_new_role_btn' class="w3-bar-item w3-button w3-black w3-left w3-small" tabindex="-1">-</a>
+                    </div>
+                    <div class='w3-bar'>
+                      <div data-lang='user_userrole_title' data-lang_type='innertext' class='w3-bar-item'>User Roles</div>
+                    </div>                   
+                    <table id="role-list-table" class="display w3-small" style="width:100%;">
+                      <thead>
+                        <tr>
+                            <th>Roles</th>
+                        </tr>
+                      </thead>
+                    </table>
+                  </div>
+
+                  <div class="w3-panel w3-rest">
+                    <div class='w3-bar'>
+                        <a href="#" id="apply_change_user_fnc" data-auth='apply_change_user_fnc' class="w3-button w3-green w3-bar-item w3-left auth_disabled" tabindex="-1">
+                          <i class="fas fa-check" style="margin-right:5px"></i>
+                          <span data-lang='user_userperm_apply_btn' data-lang_type='innertext'>Apply Changes</span></a>
+                    </div>
+                    <div class='w3-bar'>
+                        <div data-lang='user_userperm_title' data-lang_type='innertext' class='w3-bar-item'>Permission</div>
+                    </div>
+                    
+                    <table id="func-list-table" class="display w3-small" style="width:100%;">
+                      <thead>
+                        <tr>
+                          <th>Index</th> 
+                          <th>Functions</th>
+                          <th>Enabled</th>
+                          <th>Visibled</th>
+                          <th>Tree Index</th>
+                          <th>fnc_name</th>
+                        </tr>
+                      </thead>
+                    </table>
+
+                  </div>
+                </div>
+
+              </div>
+            </div>
+
+            <!-- System log item -->
+            <div id="SysLog" class="w3-container config-tab w3-animate-opacity" style="display:none">
+              <div class='w3-container w3-margin'>
+                <div class="w3-text-black w3-large"><b data-lang='syslog_download_title' data-lang_type='innertext'>Select period of system log</b></div>
+                
+                <label class="w3-text-teal"><b data-lang="report_filter_from" data-lang_type="innertext" >From</b></label>
+                <input id="syslog_from" class="w3-input w3-border w3-light-grey input-append date" type="datetime-local" id="date-start" style='width:250px'>
+                <span class="add-on"><i class="icon-th"></i></span>
+
+                <label class="w3-text-teal"><b data-lang="report_filter_to" data-lang_type="innertext">To</b></label>
+                <input id="syslog_to" class="w3-input w3-border w3-light-grey input-append date" type="datetime-local" id="date-end" style='width:250px'>
+                <span class="add-on"><i class="icon-th"></i></span>
+                
+                <div class='w3-container w3-margin-top' style='margin-left:0;padding-left: 0;'>
+                <button id="download_syslog_btn" data-lang='syslog_download_btn' data-lang_type='innertext' data-auth='download_syslog_btn' class="w3-btn w3-border w3-hover-border w3-green"  style='width:150px' tabindex="-1">Download</button>
+                <a id='systemlog_link'  target="_blank" href='#'></a>
+                </div>
+                
+              </div>
+              <div class='w3-container w3-margin'>
+                <div id="syslog-table"></div>
+              </div>
+            </div>
+          
+          </div>
+
+          <!-- new user -->
+          <div class="w3-container">
+            <div id="new-user-account-modal" class="w3-modal">
+              <div class="w3-modal-content w3-card-4"style="width: 50%">
+                <header class="w3-container w3-teal" style="width: 100%">
+                  <span onclick="document.getElementById('new-user-account-modal').style.display='none'" 
+                  class="w3-button w3-display-topright">&times;</span>
+                    <h5 data-lang='modal_newuser_title' data-lang_type='innertext'>Please keyin new user name and role</h5>
+                  </header>
+                <div class="w3-container" style="width: 100%">
+                  <!-- set input form here -->
+                  <div class="w3-half w3-padding-16">
+                    <div class='w3-padding'>
+                        <label data-lang='modal_newuser_username' data-lang_type='innertext'>User Name</label>
+                      <input id='new-user-name-input' class="w3-input w3-border" type="text" placeholder="">
+                    </div>
+                    <div class='w3-padding'>
+                      <div class="w3-dropdown-hover">
+                        <button id='please_select_role_btn' data-lang='modal_newuser_userrole' data-lang_type='innertext' class="w3-button w3-light-gray">(Please Select Roles)<i class="fas fa-sort-down w3-large w3-margin-left"></i></button>
+                        <div id='new-user-role-dropdown' class="w3-dropdown-content w3-bar-block w3-card-4">
+                        </div>
+                      </div>
+                    </div>
+                    <div class='w3-padding'>
+                      <button id='new-user-confirm-btn' data-lang='modal_newuser_adduser_btn' data-lang_type='innertext' class="w3-button w3-black">Add</button>
+                      
+                      <div class='w3-margin-top w3-animate-opacity' id='rand_pw_indicator' style="width: 100%; display:none"></div>
+                      
+                    </div>
+                  </div>    
+                </div>
+              </div>
+            </div>
+         </div>
+
+          <!-- new user role -->
+          <div class="w3-container">
+            <div id="new-user-role-modal" class="w3-modal">
+              <div class="w3-modal-content w3-card-4"style="width: 50%">
+                <header class="w3-container w3-teal" style="width: 100%">
+                  <span onclick="document.getElementById('new-user-role-modal').style.display='none'" 
+                  class="w3-button w3-display-topright">&times;</span>
+                    <h5 data-lang='modal_newuserrole_title' data-lang_type='innertext'>Please keyin new role and then click add</h5>
+                  </header>
+                <div class="w3-container" style="width: 100%">
+                  <!-- set input form here -->
+                  <div class="w3-half w3-padding-16">
+                    <div class='w3-padding'>
+                      <label data-lang='modal_newuserrole_userrole_title' data-lang_type='innertext'>User Role</label>
+                      <input id='new-role-name' class="w3-input w3-border" type="text" placeholder="">
+                    </div>
+                    <div class='w3-padding'>
+                        <label data-lang='modal_newuserrole_userrole_level' data-lang_type='innertext'>Level</label>
+                        <input id='new-role-level' class="w3-input w3-border" type="number" min='1' max='254' placeholder="1 ~ 254">
+                    </div>
+                    <div class='w3-padding'>
+                      <button id='new-role-add-btn' data-lang='modal_newuserrole_adduser_btn' data-lang_type='innertext' class="w3-button w3-black">Add</button>
+                      </div>
+                  </div>                      
+                </div>
+              </div>
+            </div>
+          </div>
+          
+
+          <script>
+            require('./renderer-process/config.js');
+
+            function openLink(evt, animName) {
+            var i, x, tablinks;
+            x = document.getElementsByClassName("config-tab");
+            for (i = 0; i < x.length; i++) {
+              x[i].style.display = "none";
+            }
+            tablinks = document.getElementsByClassName("config-tablink");
+            for (i = 0; i < x.length; i++) {
+              tablinks[i].className = tablinks[i].className.replace(" w3-leftbar w3-border-red w3-medium", "");
+            }
+            document.getElementById(animName).style.display = "block";
+            evt.currentTarget.className += " w3-leftbar w3-border-red w3-medium";
+          }
+          </script>
+
+          <script>
+            function openUserTab(evt, usertab) {
+              var i, x, tablinks;
+              x = document.getElementsByClassName("user-tab");
+              for (i = 0; i < x.length; i++) {
+                x[i].style.display = "none";
+              }
+              tablinks = document.getElementsByClassName("user-tablink");
+              for (i = 0; i < x.length; i++) {
+                tablinks[i].className = tablinks[i].className.replace(" w3-border-red", "");
+              }
+              document.getElementById(usertab).style.display = "block";
+              evt.currentTarget.firstElementChild.className += " w3-border-red";
+            }
+            </script>
+      
+        </section>
+      </template>
+      

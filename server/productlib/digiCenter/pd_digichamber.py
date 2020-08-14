@@ -275,10 +275,15 @@ class DigiChamberProduct(pd_product.Product):
                                     self.stepsClass[s].reset_loopiter()
                                 step.resetLoop()
                                 cursor += 1
+                    elif testResult['status'] in ['ERROR_STOP']:
+                        if testResult['eventName'] == 'distance_too_big':
+                            self.errorMsg = self.lang_data['digitest_distance_too_big']
+                        elif testResult['eventName'] == 'move_fail':
+                            self.errorMsg = self.lang_data['rotation_table_move_fail']
+                        self.set_test_stop()
 
                     # check if finish final step
                     if cursor >= totalStepsCounts:
-                        self.testStop=True
                         self.set_normal_test_stop()
             else:
                 # script not exsisted
@@ -408,7 +413,8 @@ class DigiChamberProduct(pd_product.Product):
     
     def saveResult2DatabaseCallback(self,testResult):
         # await self.saveTestResult2DbCallback(testResult)
-        asyncio.run_coroutine_threadsafe(self.saveTestResult2DbCallback(testResult), self.parentLoop)
+        # asyncio.run_coroutine_threadsafe(self.saveTestResult2DbCallback(testResult), self.parentLoop)
+        self.saveTestResult2DbCallback(testResult)
         # asyncio.create_task(self.saveTestResult2DbCallback(testResult))
         
     def continuous_mear(self,retry=False):

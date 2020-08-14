@@ -1,0 +1,104 @@
+{
+  "name": "digiCenter",
+  "version": "0.9.10",
+  "description": "Control center for digi chamber",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder"
+  },
+  "keywords": [
+    "Electron",
+    "Python"
+  ],
+  "author": "ShawnHsiao@bareiss",
+  "license": "MIT",
+  "build": {
+    "productName": "digiCenter",
+    "appId": "app.digicenter.v000900",
+    "copyright": "Bareiss",
+    "buildVersion": "0.9.0",
+    "directories": {
+      "output": "builds"
+    },
+    "win": {
+      "icon": "img/icon.ico",
+      "files": [
+        "**/*",
+        "ext_modules/stimulsoft-Reports.JS-2020.2.2/Css/*",
+        "ext_modules/stimulsoft-Reports.JS-2020.2.2/Scripts/*",
+        "assets/*",
+        "sections/*",
+        "!**/xpyserver_dist/*",
+        "!**/builds/*",
+        "!**/.vscode/*",
+        "!**/server/*",
+        "!**/systemlog/*",
+        "!**/db_autoupdate/*",
+        "!**/forTesting/*",
+        "!**/.git/*",
+        "!**/__pycache__/*",
+        "!**/doc/*"
+      ],
+      "extraFiles": [
+        "config.json",
+        "pyserver_dist",
+        "lang",
+        "Report.mrt",
+        "doc"
+      ],
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": true,
+      "allowElevation": true,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "digiCenter",
+      "installerIcon": "img/icon.ico",
+      "uninstallerIcon": "img/icon.ico",
+      "installerHeaderIcon": "img/icon.ico",
+      "artifactName": "digiCenter Setup.${ext}",
+      "runAfterFinish": false
+    }
+  },
+  "dependencies": {
+    "bootstrap": "^4.3.1",
+    "d3": "^5.14.2",
+    "electron-is-dev": "^1.2.0",
+    "electron-pdf-window": "^1.0.12",
+    "electron-progressbar": "^1.2.0",
+    "electron-root-path": "^1.0.16",
+    "electron-settings": "^3.2.0",
+    "electron-shortcut-normalizer": "^1.0.0",
+    "find-process": "^1.4.3",
+    "highlight.js": "^9.15.9",
+    "hydrogen": "^0.2.0",
+    "jquery": "^3.4.1",
+    "moment": "^2.24.0",
+    "popper": "^1.0.1",
+    "popper.js": "^1.15.0",
+    "stimulsoft-reports-js": "^2020.2.2",
+    "tabulator": "^0.2.40",
+    "tabulator-tables": "^4.7.2",
+    "taskkill": "^3.1.0",
+    "uikit": "^3.2.3",
+    "ws": "^7.2.1"
+  },
+  "devDependencies": {
+    "electron": "^7.0.0",
+    "electron-builder": "^21.2.0",
+    "electron-packager": "^8.7.2",
+    "prebuild-install": "^5.3.1"
+  }
+}

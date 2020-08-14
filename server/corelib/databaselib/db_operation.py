@@ -23,6 +23,7 @@ class DB():
         try:
             conn_str = r"DRIVER={ODBC Driver 11 for SQL Server};SERVER="+ self.server_name + ";DATABASE="+db_name+";UID="+ self.username+";PWD="+self.password+""
             self.coxn = pyodbc.connect(conn_str)
+            self.coxn.autocommit = True
             self.cursor = self.coxn.cursor()
             self.connected = True
         except:
@@ -39,20 +40,20 @@ class DB():
                 pairs.append(r"{} {}".format(f,typ))
         data_str = ','.join(map(str, pairs))
         print(data_str)
-        exe_str = r"CREATE TABLE {}({})".format(table, data_str)
+        exe_str = r"CREATE TABLE {}({});".format(table, data_str)
         self.cursor.execute(exe_str) 
         self.coxn.commit()
 
     def drop_table(self, table):
         '''DROP TABLE table'''
-        exe_str = r"DROP TABLE {}".format(table)
+        exe_str = r"DROP TABLE {};".format(table)
         self.cursor.execute(exe_str) 
         self.coxn.commit()
 
     def select(self, table, fields="*", condition="", types=[]):
         """Sample select query"""
         fileds_str = ','.join(map(str, fields))
-        exe_str = r"SELECT {} FROM {} {}".format(fileds_str, table, condition)
+        exe_str = r"SELECT {} FROM {} {};".format(fileds_str, table, condition)
         # get columns type in this query table
         col = dict()
         cols = self.cursor.columns(table=table)
@@ -88,7 +89,7 @@ class DB():
         # data_str = ','.join(map(str, values))
         para_str = ','.join(map(str, '?'*len(data)))
         # print(data_str)
-        exe_str = r"""INSERT INTO {} ({}) VALUES ({})""".format(table, fileds_str, para_str)
+        exe_str = r"""INSERT INTO {} ({}) VALUES ({});""".format(table, fileds_str, para_str)
         # "insert into products(id, name) values (?, ?)", 'pyodbc', 'awesome library'
         self.cursor.execute(exe_str, data)
         self.coxn.commit()
@@ -100,19 +101,19 @@ class DB():
         for col in fields:
             pairs.append("{}=?".format(col))
         data_str = ','.join(map(str, pairs))
-        exe_str = r"""UPDATE {} SET {} {}""".format(table, data_str, condition)
+        exe_str = r"""UPDATE {} SET {} {};""".format(table, data_str, condition)
         self.cursor.execute(exe_str, data)
         self.coxn.commit()
     
     def delete(self, table, condition):
         '''DELETE FROM Table_Name WHERE condition'''
-        exe_str = r"DELETE FROM {} {}".format(table, condition)
+        exe_str = r"DELETE FROM {} {};".format(table, condition)
         self.cursor.execute(exe_str)
         self.coxn.commit()
 
     def execute(self, sql):
         exe_str = sql
-        self.cursor.execute(exe_str)
+        self.cursor.execute(exe_str+";")
         rows =self.cursor.fetchall()
         self.coxn.commit()
         fmt_all_row = []

@@ -342,10 +342,13 @@ class TemperatureStep(DigiCenterStep):
             else:
                 signSlope = self.slope
             ## START ##########only for simulation of chamber###########
+            
             curT = curT + signSlope/60*1 + random.random()*0.002
+            
             self.hwDigichamber.set_dummy_act_temp(curT)
             ## END   ###################################################
             curT = self.hwDigichamber.get_real_temperature()
+            
             if curT<=UL and curT>=LL:
                 break
         self.set_result(curT,'PASS',unit='&#8451', progs=100)
@@ -410,12 +413,13 @@ class HardnessStep(DigiCenterStep):
                 if statusCode < 0:
                     self.lg.debug('Error: DISTANCE_TOO_BIG when measuring')
                     h_data = 0.0
+                    return 'ERROR_STOP', h_data
                 output_data = round(h_data,1)
                 self.commCallback('only_update_hardness_indicator',output_data)
                 self.commCallback('update_machine_status',{'dt':{'status':1, 'value':output_data},'temp':None, 'hum':None})
                 self.set_result(None,'WAITING',hardness_dataset=self.singleResult, progs=100, batchInfo=currentSample)
                 self.resultCallback(self.result)
-                return output_data
+                return 'OK', output_data
             else:
                 self.commCallback('update_machine_status',{'dt':{'status':2, 'value':None},'temp':None, 'hum':None})
                 self.set_result(None,'WAITING',hardness_dataset=self.singleResult, progs=prog, batchInfo=currentSample)
@@ -489,7 +493,7 @@ class HardnessStep(DigiCenterStep):
                 # move
                 status = self.go_next_measurment_process(smp, n)
                 if status == 'move_fail':
-                    self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
+                    self.set_result(round(0.0,1),'ERROR_STOP', eventName='move_fail',hardness_dataset=self.singleResult, progs=100)
                     return self.result
                 # update current sample highlight
                 self.set_result(None,'UPDATE_CURRENT_SAMPLEINDEX',hardness_dataset=self.singleResult, progs=0, batchInfo=smp)
@@ -498,9 +502,13 @@ class HardnessStep(DigiCenterStep):
 
                 # mearsure
                 self.hwDigitest.config(debug=False, wait_cmd = False)
-                output_data = self.mear_process(smp)
+                statusMsg, output_data = self.mear_process(smp)
                 self.hwDigitest.config(debug=False, wait_cmd = True)
-                self.lg.debug('[output_data] {}'.format(output_data))
+                self.lg.debug('[statusMsg, output_data] {}, {}'.format(statusMsg, output_data))
+                if statusMsg == 'ERROR_STOP':
+                    self.lg.debug('[output_data] {}'.format(output_data))
+                    self.set_result(None,'ERROR_STOP',eventName='distance_too_big', hardness_dataset=self.singleResult, progs=100, batchInfo=smp)
+                    return self.result
 
                 # record data
                 if output_data is not None:

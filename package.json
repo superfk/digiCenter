@@ -1,6 +1,6 @@
 {
   "name": "digiCenter",
-  "version": "0.9.9",
+  "version": "0.9.10",
   "description": "Control center for digi chamber",
   "main": "main.js",
   "scripts": {
@@ -13,7 +13,7 @@
     "Electron",
     "Python"
   ],
-  "author": "ShawnHsiao@bareiss",
+  "author": "shawn@bareiss.tw",
   "license": "MIT",
   "build": {
     "productName": "digiCenter",
@@ -47,7 +47,8 @@
         "pyserver_dist",
         "lang",
         "Report.mrt",
-        "doc"
+        "doc",
+        "Localization"
       ],
       "target": [
         {

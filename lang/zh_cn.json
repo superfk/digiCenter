@@ -254,5 +254,7 @@
   "loop_color":"回圈颜色",
   "stop on":"停止条件",
   "waiting_time":"等待时间",
-  "safe_temperature":"安全温度"
+  "safe_temperature":"安全温度",
+  "digitest_distance_too_big":"DigiTest发生错误，量测距离过长，请确认样品",
+  "rotation_table_move_fail":"转盘移动错误，请确认马达"
 }

@@ -1,0 +1,149 @@
+ <!-- template -->
+ <template class="task-template">
+  <section id="report-section" class="section js-section u-category-analysis">
+    <header class="section-header">
+      <div class="section-wrapper">
+          <!-- <button class='w3-flat-nephritis w3-padding w3-medium'><b>Database Query Filters</b></div> -->
+        <button onclick="showSection('fitler_section')" class="w3-button w3-block w3-flat-wet-asphalt w3-left-align">
+          <i class="fa fa-caret-down"></i>
+          <span data-lang="report_query_title" data-lang_type="innertext"> Database Query Filters</span></button>
+        <div id='fitler_section' class="w3-container w3-hide w3-border w3-border-green w3-medium">
+          
+          <p>
+            <div class='w3-row'>
+              <div class='w3-container w3-third'>
+                <label class="w3-text-teal"><b data-lang="report_filter_project" data-lang_type="innertext" >Project</b></label>
+                <input id='project-field' class="w3-input w3-border w3-light-grey" type="text" value="">
+              </div>
+              <div class='w3-container w3-third'>
+                <label class="w3-text-teal"><b data-lang="report_filter_batch" data-lang_type="innertext" >Batch</b></label>
+                <input id='batch-field' class="w3-input w3-border w3-light-grey" type="text" value="">
+              </div>
+              <div class='w3-container w3-third'>
+                  <label class="w3-text-teal"><b data-lang="report_filter_op" data-lang_type="innertext">Operator</b></label>
+                  <input id='operator-field' class="w3-input w3-border w3-light-grey" type="text" value="">
+              </div>
+            </div>
+            <div class='w3-row' style="margin-top: 0.2rem">
+                <div class='w3-container w3-third'>
+                  <label class="w3-text-teal"><b data-lang="report_filter_from" data-lang_type="innertext" >From</b></label>
+                  <input class="w3-input w3-border w3-light-grey input-append date" type="datetime-local" id="date-start">
+                  <span class="add-on"><i class="icon-th"></i></span>
+                </div>
+                <div class='w3-container w3-third'>
+                    <label class="w3-text-teal"><b data-lang="report_filter_to" data-lang_type="innertext">To</b></label>
+                    <input class="w3-input w3-border w3-light-grey input-append date" type="datetime-local" id="date-end" >
+                    <span class="add-on"><i class="icon-th"></i></span>
+                </div>
+            </div>
+          </p>
+          <p>
+          <div class='w3-container w3-third' style="margin-bottom: 0.5rem">
+            <button id='query-data' tabindex="-1" data-auth='query-data' data-lang="report_filter_confirm_btn" data-lang_type="innertext" class="w3-btn w3-blue-grey">Query</button>
+          </div></p>
+
+            
+        
+      </div>
+    </header>
+    
+
+    <!-- new table -->
+ <div id='report-csv-table-visible' class="w3-container w3-margin-top w3-hide">
+  <div class="w3-container" >
+    <div class='w3-row w3-small'>
+        <div class='w3-bar w3-container w3-flat-wet-asphalt'>
+          <button id='table-tab' data-lang="report_table_tab" data-lang_type="innertext" class="w3-bar-item w3-button tablink w3-red" onclick="openReportTab(event,'Table')">Table</button>
+          <button id='groupTable-tab' data-lang="report_groupTable_tab" data-lang_type="innertext" class="w3-bar-item w3-button tablink" onclick="openReportTab(event,'GroupTable')">GroupTable</button>
+          <!-- <button id='hvtchart-tab' data-lang="report_table_hvtchart" data-lang_type="innertext" class="w3-bar-item w3-button tablink" onclick="openReportTab(event,'HardVsTempChart')">HvsT Chart</button> -->
+          <button id='chart-tab' data-lang="report_table_chart" data-lang_type="innertext" class="w3-bar-item w3-button tablink" onclick="openReportTab(event,'HistoryChart')">History Chart</button>
+          <!-- <button id="print-test-data" tabindex="-1" data-auth='print-test-data' class="w3-button w3-bar-item w3-blue w3-right" >
+            <i class="fas fa-file-export"></i><span data-lang="report_print_btn" data-lang_type="innertext" style='margin-left: 5px;'>Print</span>
+          </button> -->
+          <button id="export-test-data-to-file" tabindex="-1" data-auth='export-test-data-to-file' class="w3-button w3-bar-item w3-flat-nephritis w3-right" >
+            <i class="fas fa-file-export"></i><span data-lang="report_export_btn" data-lang_type="innertext" style='margin-left: 5px;'>Export..</span>
+          </button>
+          <button id="call-designer" tabindex="-1" data-auth='design-report' class="w3-button w3-bar-item w3-flat-peter-river w3-right" >
+            <i class="fas fa-ruler-combined"></i><span data-lang="design-report" data-lang_type="innertext" style='margin-left: 5px;'>Designer</span>
+          </button>
+          <button id="call-viewer" tabindex="-1" data-auth='view-report' class="w3-button w3-bar-item w3-flat-carrot w3-right" >
+            <i class="fas fa-file-alt"></i><span data-lang="view-report" data-lang_type="innertext" style='margin-left: 5px;'>Viewer</span>
+          </button>
+        </div>
+      </div>
+    <!-- tabs for table and chart -->           
+      <div id="Table" class="w3-container w3-border tabpage w3-small">
+          <table id="test-data-table-in-report" class="display" style="width:100%">
+              <thead>
+                  <tr>
+                      <th>Recordtime</th>
+                      <th>Project_name</th>
+                      <th>Batch_name</th>
+                      <th>Seq_name</th>
+                      <th>Operator</th>
+                      <th>Seq_step_id</th>
+                      <th>Sample_counter</th>
+                      <th>Hardness_result</th>
+                      <th>Temperature</th>
+                      <th>Humidity</th>
+                      <th>Raw_data</th>
+                      <th>Math_method</th>
+                  </tr>
+              </thead>
+            </table>
+      </div>
+      
+      <!-- <div id="HardVsTempChart" class="w3-container w3-border tabpage w3-small" style="display:none">
+        <div class="w3-container chart-container">
+          <div id="hardnessVStemp_plot" class='w3-margin w3-display-center'></div>
+        </div>
+      </div> -->
+      <div id="HistoryChart" class="w3-container w3-border tabpage w3-small" style="display:none">
+        <div class="w3-container chart-container">
+          <div id="historyChart_plot" class='w3-margin w3-display-center'></div>
+        </div>
+      </div>
+      <div id="GroupTable" class="w3-container w3-border tabpage w3-small" style="display:none">
+        <div class="w3-container chart-container">
+          <div id="groupTableContainer" class='w3-margin w3-display-center'></div>
+        </div>
+      </div>
+
+  </div>       
+</div>
+
+    <script>
+      require('./renderer-process/report.js');
+
+      function openReportTab (evt,tabname) {
+        var i, x, tablinks;
+        x = document.getElementsByClassName("tabpage");
+        for (i = 0; i < x.length; i++) {
+          x[i].style.display = "none";
+        }
+        tablinks = document.getElementsByClassName("tablink");
+        for (i = 0; i < x.length; i++) {
+          tablinks[i].className = tablinks[i].className.replace(" w3-red", "");
+        }
+        document.getElementById(tabname).style.display = "block";
+        evt.currentTarget.className += " w3-red";
+        }
+
+        function showSection(id) {
+          var x = document.getElementById(id);
+          if (x.className.indexOf("w3-show") == -1) {
+            x.className += " w3-show";
+            x.previousElementSibling.className = 
+            x.previousElementSibling.className.replace("w3-flat-wet-asphalt", "w3-flat-nephritis");
+          } else { 
+            x.className = x.className.replace(" w3-show", "");
+            x.previousElementSibling.className = 
+            x.previousElementSibling.className.replace("w3-flat-nephritis", "w3-flat-wet-asphalt");
+          }
+        }
+      
+
+    </script>
+
+  </section>
+</template>
