@@ -2,7 +2,7 @@ const electron = require('electron')
 const app = electron.app
 const BrowserWindow = electron.BrowserWindow
 const path = require('path')
-const {ipcMain, dialog, shell} = require('electron')
+const { ipcMain, dialog, shell } = require('electron')
 const appRoot = require('electron-root-path').rootPath;
 const ProgressBar = require('electron-progressbar');
 const isDev = require('electron-is-dev');
@@ -15,47 +15,47 @@ const find = require('find-process');
 const gotTheLock = app.requestSingleInstanceLock()
 let isSecondIndtance = false;
 
-console.log('appRoot:',appRoot)
+console.log('appRoot:', appRoot)
 const curPath = path.join(appRoot, 'config.json')
-console.log('config Path:',curPath)
+console.log('config Path:', curPath)
 
 function connect() {
-  try{
+  try {
     const WebSocket = require('ws');
     ws = new WebSocket('ws://127.0.0.1:5678');
-  }catch(e){
+  } catch (e) {
     console.log('Socket init error. Reconnect will be attempted in 1 second.', e.reason);
   }
 
-  ws.on('open', ()=> {
+  ws.on('open', () => {
     console.log('websocket in main connected')
     init_server();
   });
 
-  ws.on('ping',()=>{
-    
-    ws.send(tools.parseCmd('pong','from main'));
+  ws.on('ping', () => {
+
+    ws.send(tools.parseCmd('pong', 'from main'));
   })
 
-  ws.on('message',(message)=>{
-    try{
+  ws.on('message', (message) => {
+    try {
       msg = tools.parseServerMessage(message);
       let cmd = msg.cmd;
       let data = msg.data;
-      console.log('[cmd] ',cmd)
-      switch(cmd) {
+      console.log('[cmd] ', cmd)
+      switch (cmd) {
         case 'ping':
-          ws.send(tools.parseCmd('pong',data));
+          ws.send(tools.parseCmd('pong', data));
           break;
         case 'reply_log_to_db':
           console.log(data);
           break;
         case 'result_of_backendinit':
-          if(data.result == 1){
+          if (data.result == 1) {
             console.log(data.resp)
-            PY_INIT_OK=true;
-            createWindow()
-          }else{
+            PY_INIT_OK = true;
+            createWindow();
+          } else {
             console.log(data.resp)
           }
           break;
@@ -70,19 +70,19 @@ function connect() {
           console.log('Not found this cmd ' + cmd)
           break;
       }
-    }catch(e){
+    } catch (e) {
       console.error(e)
     }
   });
 
-  ws.onclose = function(e) {
+  ws.onclose = function (e) {
     console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
-    setTimeout(function() {
+    setTimeout(function () {
       connect();
     }, 1000);
   };
 
-  ws.onerror = function(err) {
+  ws.onerror = function (err) {
     console.error('Socket encountered error: ', err.message, 'Closing socket');
     ws.close();
   };
@@ -136,9 +136,9 @@ const createPyProc = () => {
     console.log('Found server exe:')
     console.log(script);
   } else {
-    pyProc = require('child_process').spawn('python', [script, port],{ stdio: 'ignore' })
+    pyProc = require('child_process').spawn('python', [script, port], { stdio: 'ignore' })
   }
- 
+
   if (pyProc != null) {
     //console.log(pyProc)
     console.log('child process success on port ' + port);
@@ -148,47 +148,50 @@ const createPyProc = () => {
 
 const exitPyProc = (e) => {
   e.preventDefault()
-  if(!isSecondIndtance){
+  if (!isSecondIndtance) {
     find('name', 'api.exe', true)
-    .then(function (list) {
-      console.log('there are %s api.exe process(es)', list.length);
-      const apiPids = list.map(elm=>elm.pid)
-      console.log('api.exe pid:', apiPids);
-      try{
-        (async () => {
-          await taskkill(apiPids,{force: true, tree: true});
-          await ws.close()
-          ws = null;
-          app.exit(0)
-        })();
-        
-      }catch (err) {
-    
-      }
-    });
-  }else{
+      .then(function (list) {
+        console.log('there are %s api.exe process(es)', list.length);
+        const apiPids = list.map(elm => elm.pid)
+        console.log('api.exe pid:', apiPids);
+        try {
+          (async () => {
+            await taskkill(apiPids, { force: true, tree: true });
+            await ws.close()
+            ws = null;
+            app.exit(0)
+          })();
+
+        } catch (err) {
+
+        }
+      });
+  } else {
     app.exit(0)
   }
-  
+
 }
 
 // init config and database
-var init_server = function(){
-  ws.send(tools.parseCmd('load_sys_config',curPath));
+var init_server = function () {
+  ws.send(tools.parseCmd('load_sys_config', curPath));
   ws.send(tools.parseCmd('backend_init'));
-  ws.send(tools.parseCmd('load_default_lang',appRoot));
+  ws.send(tools.parseCmd('load_default_lang', appRoot));
 }
 
 
-app.on('ready', createPyProc)
-app.on('before-quit',exitPyProc)
+app.on('ready', () => {
+  createStartupWindow();
+  createPyProc();
+})
+app.on('before-quit', exitPyProc)
 // app.on('will-quit', exitPyProc)
 
 
 /*************************************************************
  * window management
  *************************************************************/
-
+let startupWindow = null;
 let mainWindow = null;
 let progressBar = null;
 
@@ -205,9 +208,27 @@ if (!gotTheLock) {
   })
 }
 
+// startup screen
+const createStartupWindow = () => {
+  startupWindow = new BrowserWindow({
+    frame: false,
+    width: 500,
+    height: 300,
+    alwaysOnTop: true,
+    backgroundColor : "#80FFFFFF"
+  })
+  startupWindow.loadURL(require('url').format({
+    pathname: path.join(__dirname, 'sections/startupScreen.html'),
+    protocol: 'file:',
+    slashes: true
+  }))
+  startupWindow.on('close', () => { startupWindow = null })
+  startupWindow.show()
+}
+
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 1024, 
+    width: 1024,
     height: 600,
     icon: __dirname + '/img/icon.ico',
     backgroundColor: '#2e2c29',
@@ -223,9 +244,9 @@ const createWindow = () => {
 
   mainWindow.maximize();
 
-  if (isDev){
+  if (isDev) {
     mainWindow.webContents.openDevTools();
-  }else {
+  } else {
     mainWindow.removeMenu();
   }
 
@@ -237,14 +258,14 @@ const createWindow = () => {
     mainWindow = null
   })
 
-  if (!PY_INIT_OK){
+  if (!PY_INIT_OK) {
     console.log('created window')
     const options = {
       type: 'error',
       title: 'Database connection error',
       message: 'Database connection error'
     }
-    dialog.showMessageBox(mainWindow,options, (index) => {
+    dialog.showMessageBox(mainWindow, options, (index) => {
       app.quit();
     })
   }
@@ -253,7 +274,7 @@ const createWindow = () => {
 
 
 
-function createProgressBar(title='Progress bar', text='', detail=''){
+function createProgressBar(title = 'Progress bar', text = '', detail = '') {
   progressBar = new ProgressBar({
     title: title,
     text: text,
@@ -262,23 +283,23 @@ function createProgressBar(title='Progress bar', text='', detail=''){
 
 }
 
-const createReportViewerWindow = (data, langID='en') => {
+const createReportViewerWindow = (data, langID = 'en') => {
   let reportViewerWindow = new BrowserWindow({
-    width: 800, 
+    width: 800,
     height: 600,
-    icon: path.join(appRoot,'img/icon.ico'),
+    icon: path.join(appRoot, 'img/icon.ico'),
     parent: mainWindow,
     webPreferences: {
       nodeIntegration: true
     }
   })
   reportViewerWindow.loadURL(require('url').format({
-    pathname: path.join(__dirname, 'sections','reportViewer.html'),
+    pathname: path.join(__dirname, 'sections', 'reportViewer.html'),
     protocol: 'file',
     slashes: true
   }))
-  
-  if (isDev) {reportViewerWindow.removeMenu();}
+
+  if (isDev) { reportViewerWindow.removeMenu(); }
 
   reportViewerWindow.on('closed', () => {
     reportViewerWindow = null
@@ -292,11 +313,11 @@ const createReportViewerWindow = (data, langID='en') => {
 
 }
 
-const createReportDesignerWindow = (data, langID='en') => {
+const createReportDesignerWindow = (data, langID = 'en') => {
   let reportDesignerWindow = new BrowserWindow({
-    width: 800, 
+    width: 800,
     height: 600,
-    icon: path.join(appRoot,'img/icon.ico'),
+    icon: path.join(appRoot, 'img/icon.ico'),
     parent: mainWindow,
     modal: false,
     webPreferences: {
@@ -304,12 +325,12 @@ const createReportDesignerWindow = (data, langID='en') => {
     }
   })
   reportDesignerWindow.loadURL(require('url').format({
-    pathname: path.join(__dirname, 'sections','reportDesigner.html'),
+    pathname: path.join(__dirname, 'sections', 'reportDesigner.html'),
     protocol: 'file:',
     slashes: true
   }))
-  
-  if (isDev) {reportDesignerWindow.removeMenu();}
+
+  if (isDev) { reportDesignerWindow.removeMenu(); }
 
   reportDesignerWindow.on('closed', () => {
     reportDesignerWindow = null
@@ -318,30 +339,30 @@ const createReportDesignerWindow = (data, langID='en') => {
   reportDesignerWindow.webContents.once('did-finish-load', () => {
     reportDesignerWindow.webContents.send('set-lang', langID)
     reportDesignerWindow.webContents.send('import-data-to-designer', data)
-    
+
   });
 
- 
+
 }
 
-ipcMain.on('call-report-viewer-window', (event, data, langID='en') =>{
+ipcMain.on('call-report-viewer-window', (event, data, langID = 'en') => {
   createReportViewerWindow(data, langID);
 })
 
-ipcMain.on('call-report-designer-window', (event, data, langID='en') =>{
+ipcMain.on('call-report-designer-window', (event, data, langID = 'en') => {
   createReportDesignerWindow(data, langID);
 })
 
-ipcMain.on('start-indet-progressbar', (event, title, text, msg) =>{
+ipcMain.on('start-indet-progressbar', (event, title, text, msg) => {
   createProgressBar(title, text, msg);
 })
 
-ipcMain.on('completed-indet-progressbar', (event, msg='Task completed. Exiting...') =>{
+ipcMain.on('completed-indet-progressbar', (event, msg = 'Task completed. Exiting...') => {
   progressBar.detail = msg;
   progressBar.setCompleted();
 })
 
-ipcMain.on('abort-indet-progressbar', (event) =>{
+ipcMain.on('abort-indet-progressbar', (event) => {
   console.log('abort progressbar');
   progressBar.close();
 })
@@ -358,7 +379,7 @@ ipcMain.on('open-file-dialog', (event, default_Path, calback) => {
     if (!result.canceled) {
       event.reply(calback, result.filePaths[0])
     }
-  }).catch(err => {console.log(err)})
+  }).catch(err => { console.log(err) })
 })
 
 
@@ -368,14 +389,14 @@ ipcMain.on('save-file-dialog', (event, default_Path, calback) => {
       { name: 'Sequence', extensions: ['seq'] }
     ],
     defaultPath: default_Path,
-    'showOverwriteConfirmation':false
+    'showOverwriteConfirmation': false
   }).then(result => {
     console.log(result)
     if (!result.canceled) {
       console.log('callback is: ' + calback)
       event.reply(calback, result.filePath)
     }
-  }).catch(err => {console.log(err)})
+  }).catch(err => { console.log(err) })
 })
 
 ipcMain.on('open-folder-dialog', (event, default_Path, calback) => {
@@ -387,14 +408,14 @@ ipcMain.on('open-folder-dialog', (event, default_Path, calback) => {
       console.log(result.filePaths)
       event.reply(calback, result.filePaths[0])
     }
-  }).catch(err=>{console.log(err)})
+  }).catch(err => { console.log(err) })
 })
 
 app.on('window-all-closed', (e) => {
   e.preventDefault()
   ws.send(tools.parseCmd('close_all'));
   if (process.platform !== 'darwin') {
-    setTimeout(function() {
+    setTimeout(function () {
       app.quit();
     }, 10000);
   }
@@ -406,40 +427,40 @@ app.on('activate', () => {
   }
 })
 
-function updatefoot(msg, color='w3-red'){
+function updatefoot(msg, color = 'w3-red') {
   let code = `
   document.getElementById("footStatus").innerHTML="${msg}"
   `
   mainWindow.webContents.executeJavaScript(code);
 }
 
-function showInternalErrorModal(msg){
+function showInternalErrorModal(msg) {
   mainWindow.webContents.send('show-server-error', msg);
 }
 
 // save_log
-ipcMain.on('save_log', (event, msg, type='info', audit=0) => {
-  try{
-    ws.send(tools.parseCmd('log_to_db',{ 'msg':msg, 'msg_type':type, 'audit':audit}));
-  }catch(err){
+ipcMain.on('save_log', (event, msg, type = 'info', audit = 0) => {
+  try {
+    ws.send(tools.parseCmd('log_to_db', { 'msg': msg, 'msg_type': type, 'audit': audit }));
+  } catch (err) {
     console.log('save log error')
   }
-  
+
 })
 
 // show info dialog
 ipcMain.on('show-info-alert', (event, title, msg) => {
-  mainWindow.webContents.send('show-info-alert',title, msg);
+  mainWindow.webContents.send('show-info-alert', title, msg);
 })
 
 // show warning dialog
 ipcMain.on('show-warning-alert', (event, title, msg) => {
-  mainWindow.webContents.send('show-warning-alert',title, msg);
+  mainWindow.webContents.send('show-warning-alert', title, msg);
 })
 
 // show alert dialog
 ipcMain.on('show-alert-alert', (event, title, msg) => {
-  mainWindow.webContents.send('show-alert-alert',title, msg);
+  mainWindow.webContents.send('show-alert-alert', title, msg);
 })
 
 // show internal error dialog
@@ -468,22 +489,22 @@ ipcMain.on('show-option-dialog', (event, title, msg, callback, args) => {
     buttons: ['Yes', 'No']
   }
   dialog.showMessageBox(mainWindow, options)
-  .then(result => {
-    if (result.response == 0){
-      event.reply(callback, result.response, args);
-    }
-  }).catch(err => {
-    console.log(err)
-  })
+    .then(result => {
+      if (result.response == 0) {
+        event.reply(callback, result.response, args);
+      }
+    }).catch(err => {
+      console.log(err)
+    })
 })
-ipcMain.on('ignoreMouse', (event,state) => {
+ipcMain.on('ignoreMouse', (event, state) => {
   mainWindow.setIgnoreMouseEvents(state);
 })
 
-ipcMain.on('exejavascript', (event,code) => {
+ipcMain.on('exejavascript', (event, code) => {
   mainWindow.webContents.executeJavaScript(code);
 })
-ipcMain.on('updateFootStatus', (event,msg) => {
+ipcMain.on('updateFootStatus', (event, msg) => {
   updatefoot(msg);
 })
 ipcMain.on('login-changed', (event) => {
@@ -495,9 +516,9 @@ ipcMain.on('trigger_tanslate', (event) => {
 
 
 // detect config changed
-ipcMain.on('trigger_config_changed', (event)=>{
+ipcMain.on('trigger_config_changed', (event) => {
   mainWindow.webContents.send('update_config');
-  ws.send(tools.parseCmd('load_sys_config',curPath));
+  ws.send(tools.parseCmd('load_sys_config', curPath));
 })
 
 ipcMain.on('openTeachPosPdf', (event, langID) => {
@@ -507,8 +528,8 @@ ipcMain.on('openTeachPosPdf', (event, langID) => {
   })
 
   let pdfPath = path.join(appRoot, `doc/${langID}/Teach_digitest.pdf`);
-  if(langID===undefined){
-    pdfPath =path.join(appRoot, 'doc/en/Teach_digitest.pdf');
+  if (langID === undefined) {
+    pdfPath = path.join(appRoot, 'doc/en/Teach_digitest.pdf');
   }
 
   teachPdfWin.loadURL(pdfPath)
@@ -522,10 +543,12 @@ ipcMain.on('openTeachPosPdf', (event, langID) => {
   })
 
 })
-ipcMain.on('toggle_monitor',(event,start)=>{
+ipcMain.on('toggle_monitor', (event, start) => {
   mainWindow.webContents.send('toggle_monitor', start);
 })
 
 ipcMain.on('system-inited', (event) => {
+  startupWindow.close();
+  mainWindow.focus()
   mainWindow.webContents.send('system-inited');
 })
