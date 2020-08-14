@@ -1,10 +1,10 @@
 {
-  "ReportGuid": "7cd5759fa4612815b4e95770dbd6a23d",
+  "ReportGuid": "7c1372e435caf1a83b0d9d665cda83ca",
   "ReportName": "Report",
   "ReportAlias": "Report",
   "ReportFile": "Report.mrt",
-  "ReportCreated": "/Date(1586792790000+0800)/",
-  "ReportChanged": "/Date(1586792790000+0800)/",
+  "ReportCreated": "/Date(1586821590000+0800)/",
+  "ReportChanged": "/Date(1586821590000+0800)/",
   "EngineVersion": "EngineV2",
   "CalculationMode": "Interpretation",
   "ReportUnit": "Centimeters",
@@ -1317,10 +1317,9 @@
                   "Height": 6
                 },
                 "ValueTypeSeparator": "-",
-                "LabelColor": "50,58,69",
-                "BorderColor": "Transparent",
-                "Brush": "solid:",
-                "Font": ";10;;"
+                "LabelColor": "95,95,95",
+                "BorderColor": "95,95,95",
+                "Brush": "solid:WhiteSmoke"
               },
               "TrendLine": {
                 "Ident": "StiTrendLineNone"
@@ -1333,32 +1332,31 @@
                 "Value": "Hardness vs Temperature"
               },
               "Marker": {
-                "Brush": "solid:152,252,255",
-                "BorderColor": "0,52,119"
+                "Brush": "solid:250,161,159",
+                "BorderColor": "50,0,0"
               },
               "LineMarker": {
-                "Brush": "solid:102,202,255",
-                "BorderColor": "0,2,69"
+                "Brush": "solid:200,111,109",
+                "BorderColor": "0,0,0"
               },
-              "LineColor": "52,152,219",
-              "Lighting": false
+              "LineColor": "150,61,59"
             }
           },
           "Area": {
             "Ident": "StiScatterArea",
-            "BorderColor": "171,172,173",
-            "Brush": "solid:255,255,255",
+            "BorderColor": "95,95,95",
+            "Brush": "gradient:255,255,255::90",
             "InterlacingHor": {
-              "InterlacedBrush": "solid:10,155,155,155",
+              "InterlacedBrush": "solid:10,145,145,145",
               "Area": true
             },
             "InterlacingVert": {
-              "InterlacedBrush": "solid:10,155,155,155",
+              "InterlacedBrush": "solid:10,145,145,145",
               "Area": true
             },
             "GridLinesHor": {
-              "Color": "100,105,105,105",
-              "MinorColor": "100,105,105,105",
+              "Color": "100,95,95,95",
+              "MinorColor": "100,95,95,95",
               "Area": true
             },
             "GridLinesHorRight": {
@@ -1366,32 +1364,32 @@
               "Area": true
             },
             "GridLinesVert": {
-              "Color": "100,105,105,105",
-              "MinorColor": "100,105,105,105",
+              "Color": "100,95,95,95",
+              "MinorColor": "100,95,95,95",
               "Area": true
             },
             "YAxis": {
               "Ident": "StiYLeftAxis",
               "StartFromZero": false,
               "Labels": {
-                "Color": "140,140,140"
+                "Color": "95,95,95"
               },
-              "LineColor": "140,140,140",
+              "LineColor": "95,95,95",
               "Title": {
                 "Text": "Hardness",
-                "Color": "140,140,140",
+                "Color": "95,95,95",
                 "Direction": "BottomToTop"
               }
             },
             "YRightAxis": {
               "Ident": "StiYRightAxis",
               "Labels": {
-                "Color": "140,140,140",
+                "Color": "95,95,95",
                 "TextAlignment": "Left"
               },
-              "LineColor": "140,140,140",
+              "LineColor": "95,95,95",
               "Title": {
-                "Color": "140,140,140",
+                "Color": "95,95,95",
                 "Direction": "TopToBottom"
               }
             },
@@ -1399,33 +1397,33 @@
               "Ident": "StiXBottomAxis",
               "StartFromZero": false,
               "Labels": {
-                "Color": "140,140,140"
+                "Color": "95,95,95"
               },
-              "LineColor": "140,140,140",
+              "LineColor": "95,95,95",
               "Title": {
                 "Text": "Temperature",
-                "Color": "140,140,140"
+                "Color": "95,95,95"
               },
               "ShowEdgeValues": true
             },
             "XTopAxis": {
               "Ident": "StiXTopAxis",
               "Labels": {
-                "Color": "140,140,140"
+                "Color": "95,95,95"
               },
-              "LineColor": "140,140,140",
+              "LineColor": "95,95,95",
               "Title": {
-                "Color": "140,140,140"
+                "Color": "95,95,95"
               }
             }
           },
           "Table": {
-            "GridLineColor": "225,225,225",
+            "GridLineColor": "95,95,95",
             "Header": {
               "Brush": "solid:White"
             },
             "DataCells": {
-              "TextColor": "140,140,140"
+              "TextColor": "95,95,95"
             }
           },
           "SeriesLabels": {
@@ -1438,10 +1436,10 @@
           },
           "Legend": {
             "ShowShadow": false,
-            "BorderColor": "225,225,225",
-            "Brush": "solid:255,255,255",
-            "TitleColor": "105,105,105",
-            "LabelsColor": "140,140,140",
+            "BorderColor": "95,95,95",
+            "Brush": "gradient:255,255,255::90",
+            "TitleColor": "95,95,95",
+            "LabelsColor": "95,95,95",
             "MarkerSize": {
               "Width": 10,
               "Height": 10
@@ -1449,10 +1447,10 @@
             "Size": "0,0"
           },
           "Title": {
-            "Brush": "solid:140,140,140"
+            "Brush": "solid:95,95,95"
           },
           "Style": {
-            "Ident": "StiStyle29"
+            "Ident": "StiStyle03"
           }
         },
         "3": {

@@ -621,18 +621,18 @@ class PyServerAPI(object):
 
     async def query_data_from_db(self, websocket, filters):
         condition = r"WHERE "
-        fields = ["Recordtime", "Project_name", "Batch_name", "Seq_name", "Operator", "Seq_step_id", 
-        "Sample_counter","Hardness_result","Temperature","Humidity","Raw_data","Math_method"]
+        fields = ["Recordtime", "Project_name", "Batch_name","Sample_counter","Hardness_result","Temperature","Humidity","Raw_data","Math_method",
+         "Seq_name", "Operator", "Seq_step_id"]
         # types = ["datetime2", "varchar(255)", "varchar(255)", "nvarchar(1024)", "varchar(255)", "smallint", "float", "float", "float", "datetime2",
         #         "float", "float", "float", "float", "float"]
         if filters['date_start']:
             condition = condition + r"Recordtime>='{}' AND Recordtime < '{}' ".format(filters['date_start'], filters['date_end'])
         if filters['project'] and filters['project'] != '':
-            condition = condition + r"AND Project_name LIKE '%{}%' ".format(filters['project'])
+            condition = condition + r"AND Project_name = '{}' ".format(filters['project'])
         if filters['batch'] and filters['batch'] != '':
-            condition = condition + r"AND Batch_name LIKE '%{}%' ".format(filters['batch'])
+            condition = condition + r"AND Batch_name = '{}' ".format(filters['batch'])
         if filters['operator'] and filters['operator'] != '':
-            condition = condition + r"AND Operator LIKE '%{}%';".format(filters['operator'])
+            condition = condition + r"AND Operator = '{}';".format(filters['operator'])
         data = self.db.select('Test_Data',fields, condition)
         await self.sendMsg(websocket,'reply_query_data_from_db',{'resp_code': 1, 'res':data})
 

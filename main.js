@@ -548,7 +548,9 @@ ipcMain.on('toggle_monitor', (event, start) => {
 })
 
 ipcMain.on('system-inited', (event) => {
-  startupWindow.close();
+  if (startupWindow!==null){
+    startupWindow.close();
+  }
   mainWindow.focus()
   mainWindow.webContents.send('system-inited');
 })

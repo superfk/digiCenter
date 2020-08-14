@@ -496,6 +496,7 @@ function updateSequence(res) {
     test_flow.loop = script.loop;
     test_flow.teardown = script.teardown;
     seqRend.sortSeq('testSeqContainer', test_flow.setup, test_flow.main, test_flow.teardown, false);
+    const statsOfSeqs = seqRend.calcApproxTimeAndTemperature(test_flow, 20);
   } else {
     ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, errorReason);
   }
