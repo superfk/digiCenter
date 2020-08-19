@@ -259,5 +259,9 @@
   "rotation_table_move_fail":"转盘移动错误，请确认马达",
   "run_batchstats":"预估时间与温度范围",
   "exceed_max_temp":"超过最大温度上限",
-  "exceed_min_temp":"超过最小温度下限"
+  "exceed_min_temp":"超过最小温度下限",
+  "error_happen_go_teardown_header":"执行流程结束程序?",
+  "teardown_error_title":"发生错误! 是否要执行流程结束程序(加热程序)",
+  "teardown_go_btn":"执行流程结束程序",
+  "teardown_cancel_btn":"停止流程"
 }

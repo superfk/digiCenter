@@ -205,8 +205,8 @@ class PyServerAPI(object):
                     batchInfoForSamples = data['batchInfoForSamples']
                     await self.run_seq(websocket,batchInfoForSamples)
                 elif cmd == 'continue_seq':
-                    isRetry = data
-                    self.productProcess.continuous_mear(isRetry)
+                    status = data
+                    self.productProcess.continuous_mear(status)
                 elif cmd == 'create_batch':
                     batches = data
                     for bc in batches:

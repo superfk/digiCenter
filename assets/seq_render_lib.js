@@ -591,8 +591,8 @@ module.exports = {
         }
         return test_flow;
     },
-    calcApproxTimeAndTemperature: (test_flow, iniTemp = 20) => {
-        let curTemp = 20;
+    calcApproxTimeAndTemperature: (test_flow, iniTemp = 20, samples=1) => {
+        let curTemp = iniTemp;
         let xTime = 0.0;
         let cursor = 0;
         let loopArr = []; // [{id:313, iter:0, counts:0}]
@@ -661,26 +661,25 @@ module.exports = {
                 temperatureArr.push(curTemp)
                 cursor += 1;
             } else if (item.cat === 'hardness') {
-                ann = {
-                    x: tools.sec2dt(xTime * 60),
-                    y: curTemp,
-                    xref: 'x',
-                    yref: 'y',
-                    text: 'MS',
-                    showarrow: true,
-                    arrowhead: 3,
-                    ax: -10,
-                    ay: -40
-                };
-
-                markers.push(ann)
-
-                let mearSec = item.subitem.paras.filter(item => item.name == 'measuring time')[0].value + 6; // 6s is the approx. moving time
-                let mearMin = mearSec / 60;
-                xTime += parseFloat(mearMin)
-                timeArr.push(xTime)
-                temperatureArr.push(curTemp)
-                // tools.plotly_addNewDataToPlot('tempTime_graph',xTime,curTemp);
+                for(let i=0; i<samples; i++){
+                    ann = {
+                        x: tools.sec2dt(xTime * 60),
+                        y: curTemp,
+                        xref: 'x',
+                        yref: 'y',
+                        text: 'MS',
+                        showarrow: true,
+                        arrowhead: 3,
+                        ax: -10,
+                        ay: -40
+                    };
+                    markers.push(ann)
+                    let mearSec = item.subitem.paras.filter(item => item.name == 'measuring time')[0].value + 6; // 6s is the approx. moving time
+                    let mearMin = mearSec / 60;
+                    xTime += parseFloat(mearMin);
+                    timeArr.push(xTime);
+                    temperatureArr.push(curTemp)
+                }
                 cursor += 1;
             } else {
                 cursor += 1;

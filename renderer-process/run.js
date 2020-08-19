@@ -33,6 +33,10 @@ let dialog_dataset_mean = document.getElementById('dataset_mean');
 let dialog_dataset_stdev = document.getElementById('dataset_stdev');
 let start_btn = document.getElementById('start_mear_after_move_sample');
 let retry_btn = document.getElementById('retry_mear_after_move_sample');
+const showTeardownDialog = document.getElementById('modal_go_teardown_dialog');
+const teardownError = document.getElementById('errorMsgDetail');
+let go_teardown_btn = document.getElementById('goTeardown');
+let cancel_teardown_btn = document.getElementById('cancelTeardown');
 const statusCircle = document.getElementById('sampleCircleStatus')
 let hard_idct_status = document.querySelectorAll('#machine_hard_idct .idct-status')[0]
 let temp_idct_status = document.querySelectorAll('#machine_tempr_idct .idct-status')[0]
@@ -312,6 +316,9 @@ function connect() {
         case 'update_machine_status':
           updateStatusIndicator(data.dt, data.temp, data.hum)
           break;
+        case 'show_go_teardown_dialog':
+          showGoTeardownDialog(data);
+          break;
         case 'end_of_test':
           endOfTest(data)
           break;
@@ -496,10 +503,6 @@ function updateSequence(res) {
     test_flow.loop = script.loop;
     test_flow.teardown = script.teardown;
     seqRend.sortSeq('testSeqContainer', test_flow.setup, test_flow.main, test_flow.teardown, false);
-    const statsOfSeqs = seqRend.calcApproxTimeAndTemperature(test_flow, 20);
-    document.getElementById('batchMaxTemperature').innerHTML=statsOfSeqs.stats.maxTemp;
-    document.getElementById('batchMinTemperature').innerHTML=statsOfSeqs.stats.mintemp;
-    document.getElementById('batchMaxTime').innerHTML=tools.sec2dt(statsOfSeqs.stats.overallTime*60).substr(11, 8);
   } else {
     ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, errorReason);
   }
@@ -725,8 +728,24 @@ retry_btn.addEventListener('click', () => {
 function start_mear_after_move_sample(isRetry = false) {
   let dialog = document.getElementById('modal_moving_sample_dialog');
   dialog.style.display = 'none';
-  ws.send(tools.parseCmd('continue_seq', isRetry));
+  let status = isRetry ? 'retry' : 'continue';
+  ws.send(tools.parseCmd('continue_seq', status));
 }
+
+function showGoTeardownDialog(error){
+  showTeardownDialog.style.display = 'block';
+  teardownError.innerHTML = error;
+}
+
+go_teardown_btn.addEventListener('click',()=>{
+  showTeardownDialog.style.display = 'none';
+  ws.send(tools.parseCmd('continue_seq', 'run_teardown'));
+})
+
+cancel_teardown_btn.addEventListener('click',()=>{
+  showTeardownDialog.style.display = 'none';
+  ws.send(tools.parseCmd('continue_seq', 'stop'));
+})
 
 function endOfTest(res) {
   console.log('[end of test]', res)
@@ -1002,7 +1021,20 @@ function createBatchViewList() {
 function batch_confirmed() {
   initMonitorCirclePlot()
   createBatchViewList()
-  document.getElementById('modal_batch_setup_dialog').style.display = 'none'
+  let currentSamples = batchInfoForSamples.filter(elm => elm.status === 'filled');
+  console.log(currentSamples)
+  let sampleSize = 0;
+  let curTemp = 20;
+  if (currentSamples !== undefined){
+    sampleSize = currentSamples.length;
+    curTemp = document.querySelectorAll('#machine_tempr_idct .idct-number')[0].innerText;
+  }
+  console.log(curTemp)
+  document.getElementById('modal_batch_setup_dialog').style.display = 'none';
+  let statsOfSeqs = seqRend.calcApproxTimeAndTemperature(test_flow, parseFloat(curTemp), samples = sampleSize);
+  document.getElementById('batchMaxTemperature').innerHTML = statsOfSeqs.stats.maxTemp;
+  document.getElementById('batchMinTemperature').innerHTML = statsOfSeqs.stats.mintemp;
+  document.getElementById('batchMaxTime').innerHTML = tools.sec2dt(statsOfSeqs.stats.overallTime * 60).substr(11, 8);
 }
 
 $('#sampleBatchConfigClearAllBtn').on('click', () => {

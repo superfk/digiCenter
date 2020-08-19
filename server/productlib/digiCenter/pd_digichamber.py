@@ -229,6 +229,7 @@ class DigiChamberProduct(pd_product.Product):
                     s.set_batchInfoForSamples(batchInfoForSamples)
                     s.set_sysConfig(self.sysConfig)
                     s.lg = self.lg
+                    s.set_error_occurred(False)
 
                 # main process 
                 while True:
@@ -276,11 +277,16 @@ class DigiChamberProduct(pd_product.Product):
                                 step.resetLoop()
                                 cursor += 1
                     elif testResult['status'] in ['ERROR_STOP']:
+                        # set cursor to teardown step
+                        cursor = totalStepsCounts-1
+                        # set errormsg
                         if testResult['eventName'] == 'distance_too_big':
                             self.errorMsg = self.lang_data['digitest_distance_too_big']
                         elif testResult['eventName'] == 'move_fail':
                             self.errorMsg = self.lang_data['rotation_table_move_fail']
-                        self.set_test_stop()
+                        # set error attribute to every step
+                        for s in self.stepsClass:
+                            s.set_error_occurred(True, self.errorMsg)
 
                     # check if finish final step
                     if cursor >= totalStepsCounts:
@@ -417,11 +423,15 @@ class DigiChamberProduct(pd_product.Product):
         self.saveTestResult2DbCallback(testResult)
         # asyncio.create_task(self.saveTestResult2DbCallback(testResult))
         
-    def continuous_mear(self,retry=False):
-        if retry:
+    def continuous_mear(self,status):
+        if status == 'retry':
             self.pauseQueue.put('retry')
-        else:
+        elif status == 'continue':
             self.pauseQueue.put('continue')
+        elif status == 'run_teardown':
+            self.pauseQueue.put('run_teardown')
+        elif status == 'stop':
+            self.pauseQueue.put('stop')
     
     def set_normal_test_stop(self):
         self.testStop=True

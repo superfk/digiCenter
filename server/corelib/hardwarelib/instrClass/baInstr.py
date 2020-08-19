@@ -154,5 +154,5 @@ if __name__ == '__main__':
     # print(ret)
     
     # ba.close_rs232()
-    ser = serial.Serial('COM3',9600)
-    ser.close()
+    # ser = serial.Serial('COM3',9600)
+    # ser.close()

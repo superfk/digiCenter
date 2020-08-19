@@ -37,6 +37,8 @@ class DigiCenterStep(object):
         self.lg = None
         self.force_manual_mode = False
         self.sysConfig = None
+        self.errorOccurred = False
+        self.errorDetail = ''
         
 
     def initResult(self):
@@ -169,13 +171,14 @@ class DigiCenterStep(object):
 
     def isInterrupted(self):
         return self.stopMsgQueue.qsize()>0
-    
-    def pause_step(self):
-        self.pauseQueue.put(True)
 
     def wait_for_continue(self):
         retStatus = self.pauseQueue.get()
         return retStatus
+
+    def set_error_occurred(self, error=False, detail=''):
+        self.errorOccurred = error
+        self.errorDetail = detail
 
 class SetupStep(DigiCenterStep):
     def __init__(self):
@@ -206,58 +209,68 @@ class TeardownStep(DigiCenterStep):
 
     @DigiCenterStep.deco
     def do(self):
-        # to set the temperature to safe range
-        self.hwDigichamber.set_gradient_up(0)
-        self.hwDigichamber.set_gradient_down(0)
-        target = self.safeTemp
-        tol = 5 # degree
-        UL = target + tol
-        LL = target - tol
-        self.hwDigichamber.set_setPoint(target)
-        self.commCallback('update_gauge_ref',target)
-        self.hwDigichamber.set_manual_mode(True)
-        curT = self.hwDigichamber.get_real_temperature()
-        initT = curT
-        initTime = time.time()
-        startWait = False
-        while True:
-            if self.isInterrupted():
-                # stop process immediately
-                break
-            ## START ##########only for simulation of chamber###########
-            if (target-curT)<0:
-                signSlope = -1*60
-            else:
-                signSlope = 60
-            curT = curT + signSlope/60*1 + random.random()*0.002
-            self.hwDigichamber.set_dummy_act_temp(curT)
-            ## END   ###################################################
+        retStatus = 'normal'
+        if self.errorOccurred: 
+            # ask if need to go teardown
+            self.commCallback('show_go_teardown_dialog', self.errorDetail )
+            self.lg.debug('wait for user chose if needs to run teardown step')
+            retStatus = self.wait_for_continue()
+        if retStatus == 'run_teardown' or retStatus == 'normal':
+            # to set the temperature to safe range
+            self.hwDigichamber.set_gradient_up(0)
+            self.hwDigichamber.set_gradient_down(0)
+            target = self.safeTemp
+            tol = 5 # degree
+            UL = target + tol
+            LL = target - tol
+            self.hwDigichamber.set_setPoint(target)
+            self.commCallback('update_gauge_ref',target)
+            self.hwDigichamber.set_manual_mode(True)
             curT = self.hwDigichamber.get_real_temperature()
-            # prog = round( (abs(curT - initT) / abs(target-initT)) * 100, 0)
-            # self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
-            # self.resultCallback(self.result)
-            if (curT<=UL and curT>=LL) or startWait:
-                startWait = True
-                countTime = time.time() - initTime
-                if countTime >= self.waitMinute*60:
+            initT = curT
+            initTime = time.time()
+            startWait = False
+            while True:
+                if self.isInterrupted():
+                    # stop process immediately
                     break
-                prog = round( countTime / (self.waitMinute*60) * 100 * 0.5, 0) + 50
-                self.set_result(countTime,'WAITING',unit='s', progs=prog)
-                self.resultCallback(self.result)
-            else:
-                prog = round( (abs(curT - initT) / abs(target-initT)) * 100 * 0.5, 0)
-                self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
-                self.resultCallback(self.result)
-                initTime = time.time()
-            time.sleep(1)
+                ## START ##########only for simulation of chamber###########
+                if (target-curT)<0:
+                    signSlope = -1*60
+                else:
+                    signSlope = 60
+                curT = curT + signSlope/60*1 + random.random()*0.002
+                self.hwDigichamber.set_dummy_act_temp(curT)
+                ## END   ###################################################
+                curT = self.hwDigichamber.get_real_temperature()
+                # prog = round( (abs(curT - initT) / abs(target-initT)) * 100, 0)
+                # self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
+                # self.resultCallback(self.result)
+                if (curT<=UL and curT>=LL) or startWait:
+                    startWait = True
+                    countTime = time.time() - initTime
+                    if countTime >= self.waitMinute*60:
+                        break
+                    prog = round( countTime / (self.waitMinute*60) * 100 * 0.5, 0) + 50
+                    self.set_result(countTime,'WAITING',unit='s', progs=prog)
+                    self.resultCallback(self.result)
+                else:
+                    prog = round( (abs(curT - initT) / abs(target-initT)) * 100 * 0.5, 0)
+                    self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
+                    self.resultCallback(self.result)
+                    initTime = time.time()
+                time.sleep(1)
         try:
             self.hwDigichamber.set_manual_mode(False)
             self.commCallback('update_machine_status',{'dt':None,'temp':{'status':1, 'value':None}, 'hum':{'status':1, 'value':None}})
-            self.hwDigitest.stop_mear()
-            self.commCallback('update_machine_status',{'dt':{'status':1, 'value':None},'temp':None, 'hum':None})
-            self.hwDigitest.set_remote(False)
         except:
-            print('teardown set hardware failed')
+            self.lg.debug('set manual mode for digiChamber failed')
+        try:
+            self.hwDigitest.stop_mear()
+            self.hwDigitest.set_remote(False)
+            self.commCallback('update_machine_status',{'dt':{'status':1, 'value':None},'temp':None, 'hum':None})
+        except:
+            self.lg.debug('set manual mode for digiTest failed')
         finally:
             self.set_result('PASS','PASS',progs=100)
         return self.result

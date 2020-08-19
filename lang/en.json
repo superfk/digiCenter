@@ -259,5 +259,9 @@
   "rotation_table_move_fail":"RotationTableMoveError. Please check motor.",
   "run_batchstats":"Approx. ranges of time and temperature",
   "exceed_max_temp":"Maximun temperature is out of range",
-  "exceed_min_temp":"Minimum temperature is out of range"
+  "exceed_min_temp":"Minimum temperature is out of range",
+  "error_happen_go_teardown_header":"Go Teardown?",
+  "teardown_error_title":"Error During Test!\nDo you want to execute teardown step (heating process)?",
+  "teardown_go_btn":"Go Teardown Step",
+  "teardown_cancel_btn":"Stop"
 }
