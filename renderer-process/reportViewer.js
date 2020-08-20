@@ -5,14 +5,13 @@ const path = require('path');
 
 var viewer, report;
 
-Stimulsoft.Base.StiLicense.key =
-    "6vJhGtLLLz2GNviWmUTrhSqnOItdDwjBylQzQcAOiHncDzQDe6bFww6Bip9/CL33fxnJPP3QrZTug8MsoatxwE/til" +
-    "JCvOzAnn3tlnwD3NkpkdTB0eQ4cqj8Y3/86PwkdFOyHWQxiCdcnMTkAiAdIm0byV81l0zvJ6mXmozg+LvK7u3cb/hP" +
-    "1nJoUkyT0ycq1fs3N7zB6KedopoBV4bu6UqbxbXgdV80vdKvwueQReBIN9vNu0q5v3ZInPNJEG9iGGEXUduUpU0dFX" +
-    "zq29KdJDc53GV0sXvOhzcJP9uyIY2Yk2Rb0H74aJqivQsVUPBkicLDFr1DWmV7hHFMhqztC39YlOFboj+o/SRe4vhx" +
-    "Ey/zWZnzJTkHb4U/JWCs1KvD3PgKPmqCXlwPMOifMPE0/XpvXwCrRDx4C9DgGgb0YdMUCeW/o7v2XrJjRmvqc+itsz" +
-    "5XZIMU9KICb9Hm9CLmdBbX79eHSnBsDmxM2wjn6bIqQpSUoSpjOR31lW5b1K4eRqEzl9UmxWzp+w7SNNdbiIf51ok+" +
-    "+WoJ6KhcwRrvF4hROVsnKWZAP1s3m1u6Zhot";
+Stimulsoft.Base.StiLicense.key = "6vJhGtLLLz2GNviWmUTrhSqnOItdDwjBylQzQcAOiHmu2ExFZfV4X456jKoOffeNxTQJ1EIeZEkqTZHJNsXGhctzPx" + 
+"91G5llbM2R3ilLBE3nZDpSkukMTMN6PGIheMsO8tukhmzubmUpIRDFBrVhsL7WhvAxLhzvXi77tjWcPn6js1jNN0rG" + 
+"zNU8xp1Jy9EiC83KaDOz6r850NZ5F9bSGd3tnAdZLcB1/7tyDq24B+MzpZV4e9yjsAgAMjoCmHOjoCgZmwHyoq14gK" + 
+"GNYiZB/6QkBbd5ZrYYVn9B1yiGLKv82Rb5kGrrGRx0S72qO28p+ijke1mlF9aeWlrjUOStCrMjDAPK+0F4l/asflKW" + 
+"23gFBdK3caRDHiNf9JOSilkLRfTA/tGRTZhx6nuDPkwh4sDytJV17GpC0p03bNNC6OlvsPBgqkuiHqUCBu0oaMnsfO" + 
+"ZMlGHdSTlhI/PFdT3qXL6MpgjdgAVsp4hMwPGQSxpUlhgUj/iAbwdakAszu2eKJh/ybXJ5BoShLwBSVsevt8Ji49kf" + 
+"onSZtCYvW/KpKyMyp4Ahxv4TMBwML7T4iv8S";
 
 var options = new Stimulsoft.Viewer.StiViewerOptions();
 options.appearance.scrollbarsMode = true;

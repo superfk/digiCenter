@@ -1,4 +1,4 @@
-.flexWrapper{
+.flexWrapper {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
@@ -6,26 +6,27 @@
     width: 100%;
     height: 100%;
 }
-#batchInfoPanel{
-    height:100%;
-    width:350px;
+
+#batchInfoPanel {
+    height: 100%;
+    width: 350px;
     background-color: var(--color-c2);
-    color:  #F2F2F2;
-    z-index:1;
+    color: #F2F2F2;
+    z-index: 1;
     padding: 8px;
 }
 
-.batchSelector > div{
+.batchSelector>div {
     font-size: larger;
     display: inline-block;
 }
 
-.batchContent{
+.batchContent {
     border: 1px solid lightslategrey;
-    padding:8px;
+    padding: 8px;
 }
 
-#batchInfoPanel h3{
+#batchInfoPanel h3 {
     padding: 5px 0 0px 0px;
     width: 95%;
     box-sizing: border-box;
@@ -34,12 +35,12 @@
     color: var(--color-c4);
 }
 
-#batchInfoForm p{
+#batchInfoForm p {
     margin: 5px 0px 2px 0px;
-    color:  rgb(199, 192, 192);
+    color: rgb(199, 192, 192);
 }
 
-#batchInfoPanel label{
+#batchInfoPanel label {
     padding-left: 5px;
 }
 
@@ -53,7 +54,8 @@
     justify-content: center;
     align-items: center;
 }
-#sampleListStatusContainer{
+
+#sampleListStatusContainer {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
@@ -62,7 +64,7 @@
     width: 100%;
 }
 
-#sampleListStatusContainer > div{
+#sampleListStatusContainer>div {
     margin: 2px;
     border: 4px solid rgb(95, 93, 93);
     width: 40px;
@@ -85,45 +87,52 @@
     margin-bottom: 10px;
 }
 
-textarea { resize: vertical; max-height: 100px; min-height: 50px; max-width: 100%; width:100%;}
+textarea {
+    resize: vertical;
+    max-height: 100px;
+    min-height: 50px;
+    max-width: 100%;
+    width: 100%;
+}
 
 .testToolBar {
     position: absolute;
     left: 350px;
-    top:0;
+    top: 0;
     height: 60px;
-    background: linear-gradient(45deg, var(--color-c1),var(--color-c4));
-    color:  #F2F2F2;
+    background: linear-gradient(45deg, var(--color-c1), var(--color-c4));
+    color: #F2F2F2;
 }
 
-.testMainPanel{
+.testMainPanel {
     height: 100%;
     width: 100%;
     background-color: white;
-    color:  var(--color-c5);
+    color: var(--color-c5);
     font-size: 0.9rem;
     padding: 10px 20px 10px 10px;
     display: grid;
-    grid-template-columns: repeat(6,1fr);
-    grid-template-rows: repeat(2,minmax(400px,50%));
-    grid-template-areas: 
-    "seqGrid seqGrid seqGrid seqGrid monitorGrid monitorGrid"
-    "hardVsTempGraph hardVsTempGraph hardVsTempGraph historyGraph historyGraph historyGraph";
+    grid-template-columns: repeat(6, 1fr);
+    grid-template-rows: repeat(2, minmax(400px, 50%));
+    grid-template-areas: "seqGrid seqGrid seqGrid seqGrid monitorGrid monitorGrid" "hardVsTempGraph hardVsTempGraph hardVsTempGraph historyGraph historyGraph historyGraph";
     column-gap: 10px;
     row-gap: 10px;
 }
 
 .seqGrid {
-    grid-area:seqGrid;
+    grid-area: seqGrid;
 }
-.monitorGrid{
-    grid-area:monitorGrid ;
+
+.monitorGrid {
+    grid-area: monitorGrid;
 }
-.hardVsTempGraph{
-    grid-area:hardVsTempGraph;
+
+.hardVsTempGraph {
+    grid-area: hardVsTempGraph;
 }
-.historyGraph{
-    grid-area:historyGraph;
+
+.historyGraph {
+    grid-area: historyGraph;
 }
 
 .gridCard {
@@ -132,8 +141,8 @@ textarea { resize: vertical; max-height: 100px; min-height: 50px; max-width: 100
     margin: 0px 10px;
 }
 
-.gridCard .cardHeader{
-    background: linear-gradient(45deg, var(--color-c3),var(--color-c4));
+.gridCard .cardHeader {
+    background: linear-gradient(45deg, var(--color-c3), var(--color-c4));
     color: white;
     display: flex;
     justify-content: flex-start;
@@ -143,60 +152,61 @@ textarea { resize: vertical; max-height: 100px; min-height: 50px; max-width: 100
     min-height: 20px;
 }
 
-.gridCard .cardContent{
+.gridCard .cardContent {
     width: 100%;
     height: 95%;
     display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
-    margin:0;
+    margin: 0;
     padding: 5px;
     overflow: hidden;
 }
 
-.seqSection{
+.seqSection {
     background-color: white;
-    color:  var(--color-c5);
+    color: var(--color-c5);
 }
 
-.seqSection .cardContent{
+.seqSection .cardContent {
     display: flex;
     justify-content: flex-start;
     align-items: flex-start;
     overflow-y: auto;
 }
 
-.sampleMonitorSection{
+.sampleMonitorSection {
     background-color: white;
-    color:  var(--color-c5);
+    color: var(--color-c5);
     width: 100%;
     height: 100%;
 }
 
-.hardnessGraphSection{
+.hardnessGraphSection {
     background-color: white;
-    color:  var(--color-c5);
-    width:100%;
-    max-width:100%;
+    color: var(--color-c5);
+    width: 100%;
+    max-width: 100%;
 }
 
-.historyGraphSection{
+.historyGraphSection {
     background-color: white;
-    color:  var(--color-c5);
+    color: var(--color-c5);
     width: 100%;
     height: 100%;
 }
 
-#testSeqContainer{
+#testSeqContainer {
     margin: 0px !important;
     padding: 10px 5px 10px 0px !important;
     width: 100%;
     overflow: auto;
 }
 
-#testSeqContainer li .w3-bar-item { 
-    padding: 5px; 
-    height:40px;
+#testSeqContainer li .w3-bar-item {
+    padding: 5px;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: left;
@@ -213,17 +223,24 @@ textarea { resize: vertical; max-height: 100px; min-height: 50px; max-width: 100
     margin-left: 10px;
     color: rgb(11, 17, 100);
     font-size: smaller;
-    display:inline-block;
-  }
+    display: inline-block;
+}
 
-#testSeqContainer .active-item { background: #F39814; color: white; }
-#testSeqContainer li.disabledStep {background: gray!important; color: white;}
+#testSeqContainer .active-item {
+    background: #F39814;
+    color: white;
+}
 
-.seqSection > .cardContent > ul {
+#testSeqContainer li.disabledStep {
+    background: gray!important;
+    color: white;
+}
+
+.seqSection>.cardContent>ul {
     list-style-type: none;
-  }
-  
-.seqSection > .cardContent > ul > li {
+}
+
+.seqSection>.cardContent>ul>li {
     /* You need to turn on relative positioning so the line is placed relative to the item rather than absolutely on the page */
     position: relative;
     /* Use padding to space things out rather than margins as the line would get broken up otherwise */
@@ -233,45 +250,56 @@ textarea { resize: vertical; max-height: 100px; min-height: 50px; max-width: 100
     border-bottom: 1px solid lightgray;
 }
 
-#testSeqContainer .loop {box-shadow: 2px 0px 0px 0px}
-
-/* .loopStart{box-shadow: 6px 0px 0px 0px red;} */
-#testSeqContainer .loopEnd{box-shadow: 2px 0px 0px 0px}
-#testSeqContainer .lopCount{
-  font-size: 14px;
-  margin:0px 0px 0px 0px!important;
-  padding: 5px 2px 5px 2px !important;
-  justify-content: center  !important;
-  background-color:#3498db;
-  color:#fff;
-  visibility: hidden;
-  width:26px!important;}
-  
-#testSeqContainer .lopCount-enabled{visibility: visible;}
-#testSeqContainer .lopCount-start-enabled{
-  visibility: visible;
-  background-color:transparent;
-  color:transparent;
-  border-top: 2px solid !important;
+#testSeqContainer .loop {
+    box-shadow: 2px 0px 0px 0px
 }
 
-#testSeqContainer .stepParas{
-    font-size:0.9rem;
+
+/* .loopStart{box-shadow: 6px 0px 0px 0px red;} */
+
+#testSeqContainer .loopEnd {
+    box-shadow: 2px 0px 0px 0px
+}
+
+#testSeqContainer .lopCount {
+    font-size: 14px;
+    margin: 0px 0px 0px 0px!important;
+    padding: 5px 2px 5px 2px !important;
+    justify-content: center !important;
+    background-color: #3498db;
+    color: #fff;
+    visibility: hidden;
+    width: 26px!important;
+}
+
+#testSeqContainer .lopCount-enabled {
+    visibility: visible;
+}
+
+#testSeqContainer .lopCount-start-enabled {
+    visibility: visible;
+    background-color: transparent;
+    color: transparent;
+    border-top: 2px solid !important;
+}
+
+#testSeqContainer .stepParas {
+    font-size: 0.9rem;
     justify-content: left;
     overflow-x: auto;
 }
 
-#testSeqContainer  .stepResult{
+#testSeqContainer .stepResult {
     font-size: 14px;
     color: var(--color-c1);
     font-weight: bold;
-    text-align:left;
+    text-align: left;
     visibility: visible;
-    width:140px!important;
+    width: 140px!important;
     overflow-x: hidden;
 }
 
-#testSeqContainer  .stepResult::before{
+#testSeqContainer .stepResult::before {
     display: inline-block;
     content: 'value: ';
     font-size: 12px;
@@ -279,24 +307,24 @@ textarea { resize: vertical; max-height: 100px; min-height: 50px; max-width: 100
     margin-right: 2px;
 }
 
-.dataset-table-container{
+.dataset-table-container {
     overflow: auto;
-    width:100%;
+    width: 100%;
     height: 250px;
     font-size: small;
     border: 2px solid lightslategray;
 }
 
 .scaling-svg-container {
-    position: relative; 
-    height: 300px; 
+    position: relative;
+    height: 300px;
     width: 300px;
     /* override this inline for aspect ratio other than square */
 }
 
 #indentor-svg {
-    position: absolute; 
-    height: 200px; 
+    position: absolute;
+    height: 200px;
     width: 30px;
     top: 20px;
     left: 50%;
@@ -306,13 +334,19 @@ textarea { resize: vertical; max-height: 100px; min-height: 50px; max-width: 100
 }
 
 @keyframes sample-moving {
-    0%   {transform: translateX(-50%)}
-    50% {transform: translateX(-25%)}
-    100% {transform: translateX(-25%)}
-  }
+    0% {
+        transform: translateX(-50%)
+    }
+    50% {
+        transform: translateX(-25%)
+    }
+    100% {
+        transform: translateX(-25%)
+    }
+}
 
 #sample-svg {
-    position: absolute; 
+    position: absolute;
     top: 240px;
     left: 50%;
     -ms-transform: translateX(-50%);
@@ -338,39 +372,40 @@ textarea { resize: vertical; max-height: 100px; min-height: 50px; max-width: 100
     opacity: 0.7;
 }
 
+
 /* step status color */
 
-.run-init{
+.run-init {
     background-color: ghostwhite;
     color: black
 }
 
-.run-pass{
+.run-pass {
     background-color: lightgreen;
     color: black
 }
 
-.run-wait{
+.run-wait {
     background-color: orange;
     color: black
 }
 
-.run-pause{
+.run-pause {
     background-color: yellow;
     color: black
 }
 
-.run-skip{
+.run-skip {
     background-color: gray;
     color: black
 }
 
-.run-next{
+.run-next {
     background-color: orange;
     color: black
 }
 
-.run-fail{
+.run-fail {
     background-color: red;
     color: black
 }
@@ -381,9 +416,8 @@ progress[value] {
     padding: 0;
     margin: 0;
     position: absolute;
-    left:0;
+    left: 0;
     bottom: 0px;
-    
     width: 100%;
     height: 3px;
 }
@@ -391,20 +425,20 @@ progress[value] {
 progress[value]::-webkit-progress-bar {
     background-color: white !important;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25) inset;
-  }
+}
 
-  progress[value]::-webkit-progress-value {
-    background-color: rgb(60, 136, 223);
-  }
+progress[value]::-webkit-progress-value {
+    background-color: var(--color-c3)
+}
 
-.sampleBatchConfigPanel{
+.sampleBatchConfigPanel {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
     align-items: baseline;
     padding: 0;
     margin: 0;
-    width:  100%;
+    width: 100%;
     height: 700px;
     overflow-y: auto;
     position: relative;
@@ -431,8 +465,8 @@ progress[value]::-webkit-progress-bar {
     right: 0;
     overflow-y: auto;
     padding: 20px;
-
 }
+
 .sampleBatchCircleContainer {
     height: 100%;
     position: absolute;
@@ -453,9 +487,9 @@ progress[value]::-webkit-progress-bar {
     width: 100%;
 }
 
-.sampleListItem .batchInfoContent{
+.sampleListItem .batchInfoContent {
     display: block;
-    font-size: 16px;    
+    font-size: 16px;
     margin-left: 20px;
 }
 
@@ -464,7 +498,6 @@ progress[value]::-webkit-progress-bar {
     height: 80%;
 }
 
-
 .sampleBatchCircleToolbar {
     width: 100%;
     display: flex;
@@ -472,6 +505,7 @@ progress[value]::-webkit-progress-bar {
     justify-content: space-around;
     align-items: center;
 }
+
 .goToIndexRow {
     width: 80%;
     margin: 10px 0;
@@ -480,9 +514,11 @@ progress[value]::-webkit-progress-bar {
     justify-content: center;
     align-items: center;
 }
+
 .goToIndexRow input {
     width: 20%;
 }
+
 .goToIndexRow button {
     width: 40%;
     margin: 0 10px;
@@ -500,27 +536,33 @@ progress[value]::-webkit-progress-bar {
     height: 100%;
     position: relative;
 }
+
 .baseCircle {
     stroke: black;
     stroke-width: 1px;
 }
+
 .uut {
     stroke: rgb(95, 93, 93);
     stroke-width: 1px;
 }
+
 .uut:hover {
     opacity: 0.7;
 }
+
 .uutfilled {
     fill: lightgreen;
     stroke: rgb(95, 93, 93);
     stroke-width: 2px;
 }
+
 .uutfilled:hover {
     opacity: 0.7;
 }
+
 .textuut {
-    font-family:Arial, Helvetica, sans-serif;
+    font-family: Arial, Helvetica, sans-serif;
     pointer-events: none;
 }
 
@@ -533,38 +575,48 @@ progress[value]::-webkit-progress-bar {
     padding-left: 5px;
 }
 
-
 .moveBtn {
     background-color: white;
     color: black;
     width: 160px;
 }
 
-.curSample{
+.curSample {
     animation: blinking 2s linear infinite;
 }
 
 @keyframes blinking {
-    0%   { opacity: 0.2;stroke-width: 4px; border-width: 4px;}
-    50% { opacity: 1; stroke-width: 6px;border-width: 6px;}
-    100% { opacity: 0.2; stroke-width: 4px;border-width: 4px;}
-} 
+    0% {
+        opacity: 0.2;
+        stroke-width: 4px;
+        border-width: 4px;
+    }
+    50% {
+        opacity: 1;
+        stroke-width: 6px;
+        border-width: 6px;
+    }
+    100% {
+        opacity: 0.2;
+        stroke-width: 4px;
+        border-width: 4px;
+    }
+}
 
-@media (max-width:1600px){
-#testSeqContainer li .w3-bar-item{
-    width: 100% !important;
-    height: auto !important;
-}
-#testSeqContainer .lopCount {
-    width: 26px !important;
-}
-#testSeqContainer .lopCount-enabled {
-    width: 26px !important;
-}
-#testSeqContainer .lopCount-start-enabled {
-    border-right: 2px solid !important;
-}
-    
+@media (max-width:1600px) {
+    #testSeqContainer li .w3-bar-item {
+        width: 100% !important;
+        height: auto !important;
+    }
+    #testSeqContainer .lopCount {
+        width: 26px !important;
+    }
+    #testSeqContainer .lopCount-enabled {
+        width: 26px !important;
+    }
+    #testSeqContainer .lopCount-start-enabled {
+        border-right: 2px solid !important;
+    }
 }
 
 .js-plotly-plot,
@@ -585,7 +637,7 @@ progress[value]::-webkit-progress-bar {
     width: 100%;
     padding: 5px;
     background-color: transparent;
-    color:#ccc;
+    color: #ccc;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -595,88 +647,107 @@ progress[value]::-webkit-progress-bar {
 .batchReadOnlyForm {
     width: 100%;
     padding: 5px;
-    height:50%;
+    height: 50%;
     max-height: 500px;
     overflow-y: auto;
     background-color: transparent;
-    color:#ccc;
+    color: #ccc;
 }
 
 .batchAccordion {
     background-color: transparent;
     color: #ccc;
     cursor: pointer;
-    padding: 5px ;
+    padding: 5px;
     width: 100%;
     border: none;
     text-align: left;
     outline: none;
     font-size: 15px;
     transition: 0.4s;
-  }
-  
-  .active, .batchAccordion:hover {
+}
+
+.active,
+.batchAccordion:hover {
     background-color: rgb(163, 159, 159);
     color: var(--color-c2)
-  }
-  
-  .batchAccordion:after {
+}
+
+.batchAccordion:after {
     content: '\002B';
     color: #777;
     font-weight: bold;
     float: right;
     margin-left: 5px;
-  }
-  
-  .active:after {
+}
+
+.active:after {
     content: "\2212";
-  }
-  
-  .panel {
+}
+
+.panel {
     padding: 0px 5px;
     background-color: transparent;
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.2s ease-out;
-  }
+}
 
-  .panel label {
+.panel label {
     color: rgb(223, 219, 219);
     font-size: 14px;
     font-weight: bold;
-  }
+}
 
-  .panel p {
+.panel p {
     color: #ccc;
     font-size: 12px;
     margin: 5px 0;
     border: 1px solid var(--color-c3);
     padding: 5px;
     min-height: 30px;
-  }
+}
 
-  .panel i,label {
+.panel i,
+label {
     margin-top: 5px;
-  }
+}
 
-  .teardonwContentContainer {
+.teardonwContentContainer {
     width: 100%;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
     font-size: x-large;
-  }
+}
 
-  .teardonwActionBtnContainer{
-      width: 100%;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-evenly;
-      align-items: center;
-  }
+.teardonwActionBtnContainer {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+}
 
-  .teardonwActionBtnContainer button{
+.teardonwActionBtnContainer button {
     width: 70%;
     margin: 20px 0px;
+}
+
+.runningTime {
+    width: 100%;
+    padding: 5px;
+    margin: 5px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: bold;
+    letter-spacing: 5px;
+    word-spacing: 10px;
+    color: var(--color-c2);
+}
+
+.totoalStepProg {
+    height: 10px !important;
+    position: relative !important;
 }

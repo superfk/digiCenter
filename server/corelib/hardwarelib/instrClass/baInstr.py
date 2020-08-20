@@ -156,3 +156,4 @@ if __name__ == '__main__':
     # ba.close_rs232()
     # ser = serial.Serial('COM3',9600)
     # ser.close()
+    pass

@@ -15,6 +15,7 @@ if (process.env.NODE_ENV === 'development') {
 
 document.title = appName + ' v' + appVer;
 
+
 var moment = require('moment');
 var systime_hook = document.getElementById('systime');
 let tools = require('./assets/shared_tools');

@@ -299,7 +299,7 @@ const createReportViewerWindow = (data, langID = 'en') => {
     slashes: true
   }))
 
-  if (isDev) { reportViewerWindow.removeMenu(); }
+  if (!isDev) { reportViewerWindow.removeMenu(); }
 
   reportViewerWindow.on('closed', () => {
     reportViewerWindow = null
@@ -330,7 +330,7 @@ const createReportDesignerWindow = (data, langID = 'en') => {
     slashes: true
   }))
 
-  if (isDev) { reportDesignerWindow.removeMenu(); }
+  if (!isDev) { reportDesignerWindow.removeMenu(); }
 
   reportDesignerWindow.on('closed', () => {
     reportDesignerWindow = null

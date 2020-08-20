@@ -8,22 +8,17 @@ let ws
 
 var Stimulsoft = require("stimulsoft-reports-js");
 
-Stimulsoft.Base.StiLicense.key =
-  "6vJhGtLLLz2GNviWmUTrhSqnOItdDwjBylQzQcAOiHm03mN0+gfDK1Lbh88KidC50MUN9xADIxmQc8dC" +
-  "8LPhoN7XTOwJGtRN5GNRp4MXQ5jhmJZ0MfzOI5JTNGy/pzOHsBkQkDyjmOYLLv5T0bypmo3RDMUFJKW9" +
-  "6KyeaG0ooJLxNY0GPZmpz0H2LdoR9vZ3hzNI9pI2NJ5fBfs6jDeUspLkjOVrIXj7dcrXUSC/0EXy4W/Y" +
-  "NIgTTfKI/N+gUeNGO891Gyj/9iNQvymhxCdNtRyy5VGDGBSG0WVatVQDpswDxFvqifTHAQ0YWYUYCrgn" +
-  "5frkQqabQPrJvKJJQ6TGd9iDRi15X07I7d8b93cYGYuvLgjJumcEmaFEwK/LL4UkEJmp02EzwTeBhw34" +
-  "vS3dg6l1FsuBC37WEN1m9updsrB1yAwwschLj0s42BCCKrteBUTjfYqhg1T/vFXOfazsdlOrWYrFRiar" +
-  "MyepmSqrMRplCzqX8AOoe8/Vi2H3zH5JrFjygGZp+pvC5Qlot2GGdP17wiww5ycxrFMp3FrWv+kOrEZK" +
-  "AR0HCq68tnlNf+AW";
+Stimulsoft.Base.StiLicense.key = "6vJhGtLLLz2GNviWmUTrhSqnOItdDwjBylQzQcAOiHmu2ExFZfV4X456jKoOffeNxTQJ1EIeZEkqTZHJNsXGhctzPx" + 
+"91G5llbM2R3ilLBE3nZDpSkukMTMN6PGIheMsO8tukhmzubmUpIRDFBrVhsL7WhvAxLhzvXi77tjWcPn6js1jNN0rG" + 
+"zNU8xp1Jy9EiC83KaDOz6r850NZ5F9bSGd3tnAdZLcB1/7tyDq24B+MzpZV4e9yjsAgAMjoCmHOjoCgZmwHyoq14gK" + 
+"GNYiZB/6QkBbd5ZrYYVn9B1yiGLKv82Rb5kGrrGRx0S72qO28p+ijke1mlF9aeWlrjUOStCrMjDAPK+0F4l/asflKW" + 
+"23gFBdK3caRDHiNf9JOSilkLRfTA/tGRTZhx6nuDPkwh4sDytJV17GpC0p03bNNC6OlvsPBgqkuiHqUCBu0oaMnsfO" + 
+"ZMlGHdSTlhI/PFdT3qXL6MpgjdgAVsp4hMwPGQSxpUlhgUj/iAbwdakAszu2eKJh/ybXJ5BoShLwBSVsevt8Ji49kf" + 
+"onSZtCYvW/KpKyMyp4Ahxv4TMBwML7T4iv8S";
 
 
 Stimulsoft.Base.StiFontCollection.addOpentypeFontFile("../assets/css/fonts/Roboto-Black.ttf");
 
-var report = Stimulsoft.Report.StiReport.createNewReport();
-
-var now = moment().format("YYYY-MM-DDTHH:mm:ss.000");
 const export2fileBtn = document.getElementById('export-test-data-to-file');
 const mytable_visible = document.getElementById('report-csv-table-visible');
 const projectField = document.getElementById('project-field');

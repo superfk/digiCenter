@@ -207,7 +207,7 @@ module.exports = {
         let stepParaText = "";
         if (setup_seq.subitem !== undefined) {
             let curstr = `
-            <li class='w3-flat-nephritis' data-stepid=-1>
+            <li class='${editable ? 'w3-flat-nephritis' : ''}' data-stepid=-1>
                 <div class='w3-bar'>
                 <a href="#" class='w3-bar-item'>
                     ${module.exports.genIconByCat(setup_seq.cat, setup_seq.subitem['paras'])}${window.lang_data['seq_sequence_setup']}${stepParaText}
@@ -242,7 +242,7 @@ module.exports = {
         if (teardown_seq.subitem !== undefined) {
             let stepParaText = module.exports.genShortParaText(teardown_seq.cat, teardown_seq.subitem);
             let curstr = `
-            <li class='w3-flat-alizarin' data-stepid=9999>
+            <li class='${editable ? 'w3-flat-alizarin' : ''}' data-stepid=9999>
                 <div class='w3-bar'>
                     <a href="#" class='w3-bar-item'>
                         ${module.exports.genIconByCat(teardown_seq.cat, teardown_seq.subitem['paras'])}${window.lang_data['seq_sequence_teardown']}${stepParaText}
@@ -591,7 +591,7 @@ module.exports = {
         }
         return test_flow;
     },
-    calcApproxTimeAndTemperature: (test_flow, iniTemp = 20, samples=1) => {
+    calcApproxTimeAndTemperature: (test_flow, iniTemp = 20, samples = 1) => {
         let curTemp = iniTemp;
         let xTime = 0.0;
         let cursor = 0;
@@ -644,8 +644,8 @@ module.exports = {
                 cursor += 1;
             } else if (item.cat === 'temperature') {
                 let tarTemp = parseFloat(item.subitem.paras.filter(item => item.name == 'target temperature')[0].value);
-                let slope = item.subitem.paras.filter(item => item.name == 'slope')[0].value;
-                let incre = item.subitem.paras.filter(item => item.name == 'increment')[0].value;
+                let slope = parseFloat(item.subitem.paras.filter(item => item.name == 'slope')[0].value);
+                let incre = parseFloat(item.subitem.paras.filter(item => item.name == 'increment')[0].value);
 
                 // check if in loop
                 curIter = 0
@@ -661,7 +661,7 @@ module.exports = {
                 temperatureArr.push(curTemp)
                 cursor += 1;
             } else if (item.cat === 'hardness') {
-                for(let i=0; i<samples; i++){
+                for (let i = 1; i <= samples; i++) {
                     ann = {
                         x: tools.sec2dt(xTime * 60),
                         y: curTemp,
@@ -674,9 +674,11 @@ module.exports = {
                         ay: -40
                     };
                     markers.push(ann)
-                    let mearSec = item.subitem.paras.filter(item => item.name == 'measuring time')[0].value + 6; // 6s is the approx. moving time
+                    let mearSec = parseFloat(item.subitem.paras.filter(item => item.name == 'measuring time')[0].value) + 11; // 6s is the approx. moving time
+                    let mearCounts = parseInt(item.subitem.paras.filter(item => item.name == 'number of measurement')[0].value); // 6s is the approx. moving time
                     let mearMin = mearSec / 60;
-                    xTime += parseFloat(mearMin);
+                    let totalMearMin = mearMin * mearCounts * 1;
+                    xTime += parseFloat(totalMearMin);
                     timeArr.push(xTime);
                     temperatureArr.push(curTemp)
                 }
