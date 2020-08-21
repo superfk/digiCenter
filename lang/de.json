@@ -90,7 +90,7 @@
   "modal_moving_sample_dialog_title":"Bitte Probe verschieben",
   "modal_moving_sample_retry_btn":"Erneut versuchen",
   "modal_moving_sample_next_btn":"Nächster Schritt",
-  "modal_moving_sample_dialog_text":"<h3>Betätige<strong>Retry<\/strong> Wenn letzter Wert nicht zutreffend ist!<\/h3>\n  <h3>Betätige <strong>Nächster Schritt<\/strong> um an nächster Position zu messen!<\/h3>",
+  "modal_moving_sample_dialog_text":"<h3>Betätige <strong>Erneut versuchen<\/strong> wenn letzter Wert nicht zutreffend ist!<\/h3>\n  <h3>Betätige <strong>Nächster Schritt<\/strong> um an nächster Position zu messen!<\/h3>",
   "modal_moving_sample_sampleIndex":"Proben Index",
   "modal_moving_sample_sampleID":"Proben-ID",
   "modal_moving_sample_mear_data":"Messdaten",

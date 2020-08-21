@@ -95,7 +95,7 @@ function connect() {
             case 1:
               // code block
               $('#copy_pw').off('click', copy2clipboard);
-              var txt = `New password is <b id='rnd_pw'>${data[2]}</b>, Please enter it when next login. <p><button id='copy_pw' class="w3-button w3-border w3-small">Copy</button></p>`;
+              var txt = `New password is <b id='rnd_pw'>${data[2].pw}</b>, Please enter it when next login. <p><button id='copy_pw' class="w3-button w3-border w3-small">Copy</button></p>`;
               $('#rand_pw_indicator').html(txt);
               $('#copy_pw').on('click', copy2clipboard);
               $('#rand_pw_indicator').show();
@@ -130,12 +130,12 @@ function connect() {
         case 'reply_give_new_password':
           if (data[0] === 1) {
             get_user_accounts();
+            ipcRenderer.send('call-report-viewer-window', data[2], window.langID, 'NewPw.mrt');
           } else {
             ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, data[1]);
           }
           break;
         case 'reply_get_user_role_list':
-          console.log(data)
           createRoleTable(data);
           var role_list = data.map(function (obj) {
             return obj.User_Role
@@ -595,6 +595,8 @@ function createRoleTable(tableData) {
     my_item.title = key;
     my_columns.push(my_item);
   });
+  console.log('user role my_columns', my_columns)
+  console.log('user role table', tableData)
 
   table_role_list.destroy();
 
@@ -606,7 +608,7 @@ function createRoleTable(tableData) {
     scrollY: 400,
     scrollCollapse: true,
     paging: false,
-    ordering: false,
+    ordering: true,
     "lengthChange": false,
     "searching": false,
     'select': {

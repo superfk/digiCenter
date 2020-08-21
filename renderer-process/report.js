@@ -8,13 +8,13 @@ let ws
 
 var Stimulsoft = require("stimulsoft-reports-js");
 
-Stimulsoft.Base.StiLicense.key = "6vJhGtLLLz2GNviWmUTrhSqnOItdDwjBylQzQcAOiHmu2ExFZfV4X456jKoOffeNxTQJ1EIeZEkqTZHJNsXGhctzPx" + 
-"91G5llbM2R3ilLBE3nZDpSkukMTMN6PGIheMsO8tukhmzubmUpIRDFBrVhsL7WhvAxLhzvXi77tjWcPn6js1jNN0rG" + 
-"zNU8xp1Jy9EiC83KaDOz6r850NZ5F9bSGd3tnAdZLcB1/7tyDq24B+MzpZV4e9yjsAgAMjoCmHOjoCgZmwHyoq14gK" + 
-"GNYiZB/6QkBbd5ZrYYVn9B1yiGLKv82Rb5kGrrGRx0S72qO28p+ijke1mlF9aeWlrjUOStCrMjDAPK+0F4l/asflKW" + 
-"23gFBdK3caRDHiNf9JOSilkLRfTA/tGRTZhx6nuDPkwh4sDytJV17GpC0p03bNNC6OlvsPBgqkuiHqUCBu0oaMnsfO" + 
-"ZMlGHdSTlhI/PFdT3qXL6MpgjdgAVsp4hMwPGQSxpUlhgUj/iAbwdakAszu2eKJh/ybXJ5BoShLwBSVsevt8Ji49kf" + 
-"onSZtCYvW/KpKyMyp4Ahxv4TMBwML7T4iv8S";
+Stimulsoft.Base.StiLicense.key = "6vJhGtLLLz2GNviWmUTrhSqnOItdDwjBylQzQcAOiHmu2ExFZfV4X456jKoOffeNxTQJ1EIeZEkqTZHJNsXGhctzPx" +
+  "91G5llbM2R3ilLBE3nZDpSkukMTMN6PGIheMsO8tukhmzubmUpIRDFBrVhsL7WhvAxLhzvXi77tjWcPn6js1jNN0rG" +
+  "zNU8xp1Jy9EiC83KaDOz6r850NZ5F9bSGd3tnAdZLcB1/7tyDq24B+MzpZV4e9yjsAgAMjoCmHOjoCgZmwHyoq14gK" +
+  "GNYiZB/6QkBbd5ZrYYVn9B1yiGLKv82Rb5kGrrGRx0S72qO28p+ijke1mlF9aeWlrjUOStCrMjDAPK+0F4l/asflKW" +
+  "23gFBdK3caRDHiNf9JOSilkLRfTA/tGRTZhx6nuDPkwh4sDytJV17GpC0p03bNNC6OlvsPBgqkuiHqUCBu0oaMnsfO" +
+  "ZMlGHdSTlhI/PFdT3qXL6MpgjdgAVsp4hMwPGQSxpUlhgUj/iAbwdakAszu2eKJh/ybXJ5BoShLwBSVsevt8Ji49kf" +
+  "onSZtCYvW/KpKyMyp4Ahxv4TMBwML7T4iv8S";
 
 
 Stimulsoft.Base.StiFontCollection.addOpentypeFontFile("../assets/css/fonts/Roboto-Black.ttf");
@@ -104,15 +104,10 @@ var groupTable = new Tabulator("#groupTableContainer", {
     }
   },
   downloadReady: function (fileContents, blob) {
-    console.log('tabledata', fileContents, 'path', groupDataExportFilename)
     let tableData = fileContents.split("\n");
-    console.log('tableData', tableData)
     const header = tableData[0]
-    console.log('header', header)
     const headerList = header.split(",");
-    console.log('headerList', headerList)
     const contents = tableData.splice(1)
-    console.log('contents', contents)
     const newtableData = contents.map((elm, idx) => {
       const valueList = elm.split(",");
       let singleRowObj = {};
@@ -124,7 +119,6 @@ var groupTable = new Tabulator("#groupTableContainer", {
       })
       return singleRowObj
     })
-    console.log('tabledata', newtableData)
     //fileContents - the unencoded contents of the file
     ws.send(tools.parseCmd('export_test_data_from_client', { 'tabledata': newtableData, 'path': groupDataExportFilename, 'option': ['csv'] }));
     //blob - the blob object for the download
@@ -139,7 +133,7 @@ const translateCol = () => [
   { title: window.lang_data.run_project_title, field: "Project_name", sorter: "string", dir: "asc", print: false },
   { title: window.lang_data.run_batch_title, field: "Batch_name", sorter: "string", dir: "asc", print: false },
   { title: window.lang_data.modal_moving_sample_sampleID, field: "Sample_counter", sorter: "number", dir: "asc" },
-  { title: window.lang_data.main_indicator_temperature, field: "Temperature", sorter: "number" },
+  { title: window.lang_data.main_indicator_temperature + '(℃)', field: "Temperature", sorter: "number" },
   { title: window.lang_data.main_indicator_hard, field: "Hardness_result", sorter: "number" },
 ]
 
@@ -176,7 +170,6 @@ function connect() {
           ws.send(tools.parseCmd('pong', data));
           break;
         case 'reply_log_to_db':
-          console.log(data);
           break;
         case 'reply_query_data_from_db':
           showData(data.res);
@@ -259,19 +252,22 @@ function showData(res) {
   // tools.generateHardnessPlot('hardnessVStemp_plot',onlyOccupySamples.length);
 
   if (typeof res !== 'undefined' && res.length > 0) {
-    setGroupTableData(res);
-    res.forEach(elm => {
-      elm.Hardness_result.toFixed(2);
-      elm.Temperature.toFixed(2);
+    const toFixPrecisionArray = res.map(elm => {
+      let currentRow = { ...elm };
+      currentRow.Hardness_result = currentRow.Hardness_result.toFixed(1);
+      currentRow.Temperature = currentRow.Temperature.toFixed(1);
+      currentRow.Humidity = currentRow.Humidity.toFixed(1);
+      return currentRow
     })
-    console.log(res)
-    createTable(res);
-    let x_val = res.map(a => {
+
+    setGroupTableData(toFixPrecisionArray);
+    createTable(toFixPrecisionArray);
+    let x_val = toFixPrecisionArray.map(a => {
       let dateB = moment(new Date(a.Recordtime)).format('YYYY/MM/DD hh:mm:ss');
       return dateB
     });
-    let h_val = res.map(a => a.Hardness_result);
-    let t_val = res.map(a => a.Temperature);
+    let h_val = toFixPrecisionArray.map(a => a.Hardness_result);
+    let t_val = toFixPrecisionArray.map(a => a.Temperature);
     generateEventPlot(x_val, h_val, t_val)
     repositionChart()
     ipcRenderer.send('completed-indet-progressbar', 'done!');
@@ -331,8 +327,6 @@ exportStart.addEventListener('click', (event) => {
   let tableData = t.data().toArray();
   let fpath = document.getElementById('export-filename').value;
   let expOpt = getExportOptions()
-
-  console.log('tabledata', tableData, 'path', fpath)
   ws.send(tools.parseCmd('export_test_data_from_client', { 'tabledata': tableData, 'path': fpath, 'option': expOpt }));
   groupDataExportFilename = fpath + '_groupData'
   exportGroupTable(groupDataExportFilename)
@@ -344,8 +338,9 @@ function createTable(tableData) {
 
   $.each(tableData[0], function (key, value) {
     var my_item = {};
+    const addUnitKey = key === "Temperature" ? key + '(℃)' : key;
     my_item.data = key;
-    my_item.title = key;
+    my_item.title = addUnitKey;
     my_columns.push(my_item);
   });
 
@@ -410,7 +405,7 @@ function generateEventPlot(xtime, hardnessdata, tempdata) {
     x: xtime,
     y: hardnessdata,
     yaxis: 'y2',
-    mode: 'lines+markers',
+    mode: 'markers',
     marker: { size: 8, color: 'blue' },
     line: {
       dash: 'dot',
@@ -485,7 +480,7 @@ $('#call-viewer').on('click', () => {
 })
 
 function createViewer(data) {
-  ipcRenderer.send('call-report-viewer-window', data, window.langID);
+  ipcRenderer.send('call-report-viewer-window', data, window.langID, 'Report.mrt');
 }
 
 $('#call-designer').on('click', () => {

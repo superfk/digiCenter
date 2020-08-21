@@ -388,7 +388,12 @@ loadSeqBtn.addEventListener('click', () => {
     loadSeqFromServer();
 })
 batchConfirmAndStartBtn.addEventListener('click', () => {
-    immediate_start_test()
+    let atLeastOneSample = batchInfoForSamples.find(elm => elm.status === 'filled')
+    if (atLeastOneSample !== undefined){
+        immediate_start_test()
+    }else{
+        ipcRenderer.send('show-info-alert', window.lang_data.modal_info_title, window.lang_data.please_select_one_batch);
+    }
 })
 
 $('#setupBatchModal').on('click', () => enableKeyDetect = false);
@@ -412,7 +417,9 @@ ipcRenderer.on('continue-batch', (event, resp, args) => {
 })
 
 stopSeqBtn.addEventListener('click', () => {
-    ws.send(tools.parseCmd('stop_seq', ''));
+    if (runningTest){
+        ws.send(tools.parseCmd('stop_seq', ''));
+    }
 })
 
 // **************************************
@@ -956,7 +963,6 @@ $('#sampleBatchConfigForm').on('submit', (e) => {
             sampleColor = existedSample.color;
         }
     }
-    console.log('sampleCounterInBatch', sampleCounterInBatch)
     let counter = 0
     batchInfoForSamples.forEach(elm => {
         if (counter < numSample) {
@@ -1051,15 +1057,13 @@ function createBatchViewList() {
 function batch_confirmed() {
     initMonitorCirclePlot()
     createBatchViewList()
-    let currentSamples = batchInfoForSamples.filter(elm => elm.status === 'filled');
+    const currentSamples = batchInfoForSamples.filter(elm => elm.status === 'filled');
     let sampleSize = 0;
     let curTemp = 20;
     if (currentSamples !== undefined) {
         sampleSize = currentSamples.length;
         curTemp = document.querySelectorAll('#machine_tempr_idct .idct-number')[0].innerText;
     }
-    console.log('sampleSize', sampleSize)
-    console.log('curTemp', curTemp)
     document.getElementById('modal_batch_setup_dialog').style.display = 'none';
     let statsOfSeqs = seqRend.calcApproxTimeAndTemperature(test_flow, parseFloat(curTemp), samples = sampleSize);
     document.getElementById('batchMaxTemperature').innerHTML = statsOfSeqs.stats.maxTemp;
@@ -1112,7 +1116,6 @@ $('#button-run').on('click', () => {
 
 // detect select language
 ipcRenderer.on('trigger_tanslate', (event) => {
-    console.log('[test_flow.setup.para]', test_flow.setup.subitem)
     if (test_flow.setup.subitem !== undefined) {
         $('#testSeqContainer').html(seqRend.refreshSeq(test_flow, false))
     }
@@ -1120,7 +1123,6 @@ ipcRenderer.on('trigger_tanslate', (event) => {
 
 // detect config changed
 ipcRenderer.on('update_config', (event) => {
-    console.log('[config changed detected in run section]')
     ws.send(tools.parseCmd('get_digitest_manual_mode'));
     ws.send(tools.parseCmd('get_digitest_is_rotaion_mode'));
 })

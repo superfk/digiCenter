@@ -1,0 +1,810 @@
+{
+  "ReportGuid": "50c3b6228423da5768a8a01038b82b3b",
+  "ReportName": "Report",
+  "ReportAlias": "Report",
+  "ReportFile": "NewPw.mrt",
+  "ReportCreated": "/Date(1597977323000+0800)/",
+  "ReportChanged": "/Date(1597978325000+0800)/",
+  "EngineVersion": "EngineV2",
+  "CalculationMode": "Interpretation",
+  "ReportUnit": "Centimeters",
+  "PreviewSettings": 268435455,
+  "Styles": {
+    "0": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "ReportTitle",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Report_Title1",
+      "Font": ";14;Bold;",
+      "Border": ";65,65,65;;;;;;solid:Black",
+      "Brush": "solid:",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red"
+    },
+    "1": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "OperationPlacementNestedLevel": "GreaterThanOrEqualTo",
+          "Placement": "ReportTitle",
+          "PlacementNestedLevel": 2,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Report_Title2",
+      "Font": ";10;Bold;",
+      "Border": ";65,65,65;;;;;;solid:Black",
+      "Brush": "solid:",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red"
+    },
+    "2": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "ReportSummary",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Report_Summary1",
+      "Font": ";12;Bold;",
+      "Border": ";65,65,65;;;;;;solid:Black",
+      "Brush": "solid:",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red"
+    },
+    "3": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "OperationPlacementNestedLevel": "GreaterThanOrEqualTo",
+          "Placement": "ReportSummary",
+          "PlacementNestedLevel": 2,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Report_Summary2",
+      "Font": ";10;Bold;",
+      "Border": ";65,65,65;;;;;;solid:Black",
+      "Brush": "solid:",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red"
+    },
+    "4": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement",
+          "Placement": "PageHeader",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Page_Header",
+      "Font": ";10;;",
+      "Border": ";65,65,65;;;;;;solid:Black",
+      "Brush": "solid:",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red"
+    },
+    "5": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement",
+          "Placement": "PageFooter",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Page_Footer",
+      "Font": ";10;;",
+      "Border": ";65,65,65;;;;;;solid:Black",
+      "Brush": "solid:",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red"
+    },
+    "6": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "GroupHeader",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Group_Header1",
+      "Font": ";13;Bold;",
+      "Border": ";65,65,65;;;;;;solid:Black",
+      "Brush": "solid:",
+      "TextBrush": "solid:15,15,15",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "7": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "GroupHeader",
+          "PlacementNestedLevel": 2,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Group_Header2",
+      "Font": ";12;Bold;",
+      "Border": ";65,65,65;;;;;;solid:Black",
+      "Brush": "solid:",
+      "TextBrush": "solid:15,15,15",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "8": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "OperationPlacementNestedLevel": "GreaterThanOrEqualTo",
+          "Placement": "GroupHeader",
+          "PlacementNestedLevel": 3,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Group_Header3",
+      "Font": ";11;Bold;",
+      "Border": ";65,65,65;;;;;;solid:Black",
+      "Brush": "solid:",
+      "TextBrush": "solid:15,15,15",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "9": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "GroupFooter",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Group_Footer1",
+      "Font": ";13;Bold;",
+      "Border": ";65,65,65;;;;;;solid:Black",
+      "Brush": "solid:",
+      "TextBrush": "solid:15,15,15",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "10": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "GroupFooter",
+          "PlacementNestedLevel": 2,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Group_Footer2",
+      "Font": ";12;Bold;",
+      "Border": ";65,65,65;;;;;;solid:Black",
+      "Brush": "solid:",
+      "TextBrush": "solid:15,15,15",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "11": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "GroupFooter",
+          "PlacementNestedLevel": 3,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Group_Footer3",
+      "Font": ";11;Bold;",
+      "Border": ";65,65,65;;;;;;solid:Black",
+      "Brush": "solid:",
+      "TextBrush": "solid:15,15,15",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "12": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "Header",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Header1",
+      "Font": ";;Bold;",
+      "Border": ";65,65,65;;;;;true;solid:Black",
+      "Brush": "solid:165,165,165",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "13": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "Header",
+          "PlacementNestedLevel": 2,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Header2",
+      "Font": ";;Bold;",
+      "Border": ";65,65,65;;;;;true;solid:Black",
+      "Brush": "solid:198,198,198",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "14": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "OperationPlacementNestedLevel": "GreaterThanOrEqualTo",
+          "Placement": "Header",
+          "PlacementNestedLevel": 3,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Header3",
+      "Font": ";;Bold;",
+      "Border": ";65,65,65;;;;;true;solid:Black",
+      "Brush": "solid:231,231,231",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "15": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "Data",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Data1",
+      "Border": ";65,65,65;;;;;true;solid:Black",
+      "Brush": "solid:",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "16": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "Placement, PlacementNestedLevel",
+          "Placement": "DataOddStyle"
+        }
+      },
+      "Name": "Gray 50%_Data1_Odd Style",
+      "Border": ";65,65,65;;;;;true;solid:Black",
+      "Brush": "solid:255,255,255",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "17": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "Placement, PlacementNestedLevel",
+          "Placement": "DataEvenStyle"
+        }
+      },
+      "Name": "Gray 50%_Data1_Even Style",
+      "Border": ";65,65,65;;;;;true;solid:Black",
+      "Brush": "solid:240,240,240",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "18": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "Data",
+          "PlacementNestedLevel": 2,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Data2",
+      "Border": ";65,65,65;;;;;true;solid:Black",
+      "Brush": "solid:",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "19": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "Placement, PlacementNestedLevel",
+          "Placement": "DataOddStyle",
+          "PlacementNestedLevel": 2
+        }
+      },
+      "Name": "Gray 50%_Data2_Odd Style",
+      "Border": ";65,65,65;;;;;true;solid:Black",
+      "Brush": "solid:255,255,255",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "20": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "Placement, PlacementNestedLevel",
+          "Placement": "DataEvenStyle",
+          "PlacementNestedLevel": 2
+        }
+      },
+      "Name": "Gray 50%_Data2_Even Style",
+      "Border": ";65,65,65;;;;;true;solid:Black",
+      "Brush": "solid:250,250,250",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "21": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "OperationPlacementNestedLevel": "GreaterThanOrEqualTo",
+          "Placement": "Data",
+          "PlacementNestedLevel": 3,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Data3",
+      "Border": ";65,65,65;;;;;true;solid:Black",
+      "Brush": "solid:",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "22": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "Placement, PlacementNestedLevel",
+          "OperationPlacementNestedLevel": "GreaterThanOrEqualTo",
+          "Placement": "DataOddStyle",
+          "PlacementNestedLevel": 3
+        }
+      },
+      "Name": "Gray 50%_Data3_Odd Style",
+      "Border": ";65,65,65;;;;;true;solid:Black",
+      "Brush": "solid:255,255,255",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "23": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "Placement, PlacementNestedLevel",
+          "OperationPlacementNestedLevel": "GreaterThanOrEqualTo",
+          "Placement": "DataEvenStyle",
+          "PlacementNestedLevel": 3
+        }
+      },
+      "Name": "Gray 50%_Data3_Even Style",
+      "Border": ";65,65,65;;;;;true;solid:Black",
+      "Brush": "solid:255,255,255",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "24": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "Footer",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Footer1",
+      "Border": ";65,65,65;;;;;true;solid:Black",
+      "Brush": "solid:185,185,185",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "25": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "Footer",
+          "PlacementNestedLevel": 2,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Footer2",
+      "Border": ";65,65,65;;;;;true;solid:Black",
+      "Brush": "solid:218,218,218",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "26": {
+      "Ident": "StiStyle",
+      "CollectionName": "Gray 50%",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "Footer",
+          "PlacementNestedLevel": 3,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Gray 50%_Footer3",
+      "Border": ";65,65,65;;;;;true;solid:Black",
+      "Brush": "solid:251,251,251",
+      "TextBrush": "solid:0,0,0",
+      "NegativeTextBrush": "solid:Red",
+      "AllowUseBorderSidesFromLocation": true
+    }
+  },
+  "Dictionary": {
+    "Resources": {
+      "0": {
+        "Name": "Admin_Admin",
+        "Alias": "Admin_Admin",
+        "Type": "Json",
+        "Image": "QM3qt6YRxcR9+LuOA1frsNYnvxJ6aHCbyJcEWt7T4Nt7nqFmgDGtfUlEinxeMXM94WqmgAGD+/mQt/I="
+      }
+    },
+    "DataSources": {
+      "0": {
+        "Ident": "StiDataTableSource",
+        "Name": "root",
+        "Alias": "root",
+        "Columns": {
+          "0": {
+            "Name": "pw",
+            "Index": -1,
+            "NameInSource": "pw",
+            "Alias": "pw",
+            "Type": "System.String"
+          },
+          "1": {
+            "Name": "role",
+            "Index": -1,
+            "NameInSource": "role",
+            "Alias": "role",
+            "Type": "System.String"
+          },
+          "2": {
+            "Name": "userID",
+            "Index": -1,
+            "NameInSource": "userID",
+            "Alias": "userID",
+            "Type": "System.String"
+          }
+        },
+        "NameInSource": "JSON.root"
+      }
+    },
+    "Databases": {
+      "0": {
+        "Ident": "StiJsonDatabase",
+        "Name": "JSON",
+        "Alias": "JSON",
+        "PathData": "resource://Admin_Admin"
+      }
+    }
+  },
+  "Pages": {
+    "0": {
+      "Ident": "StiPage",
+      "Name": "Page1",
+      "Guid": "72ec8a36f68aa561dfad6eadb915a159",
+      "Interaction": {
+        "Ident": "StiInteraction"
+      },
+      "Border": ";;2;;;;;solid:Black",
+      "Brush": "solid:",
+      "Components": {
+        "0": {
+          "Ident": "StiPanel",
+          "Name": "Panel2",
+          "ClientRectangle": "0.4,3.6,18.2,7.8",
+          "Interaction": {
+            "Ident": "StiInteraction"
+          },
+          "Border": ";105,105,105;;;;;;solid:105,105,105",
+          "Brush": "solid:",
+          "Components": {
+            "0": {
+              "Ident": "StiText",
+              "Name": "Text3",
+              "Guid": "38766eba6c12c1b0ef332c30a2050a99",
+              "ClientRectangle": "0.8,0.8,4.6,1.6",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "User ID:"
+              },
+              "HorAlignment": "Right",
+              "VertAlignment": "Center",
+              "Font": ";18;;",
+              "Border": ";105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "Type": "Expression"
+            },
+            "1": {
+              "Ident": "StiText",
+              "Name": "Text4",
+              "Guid": "57253aa91cebbde464f8da792a07b38a",
+              "ClientRectangle": "0.8,2.8,4.6,1.6",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "Role:"
+              },
+              "HorAlignment": "Right",
+              "VertAlignment": "Center",
+              "Font": ";18;;",
+              "Border": ";105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "Type": "Expression"
+            },
+            "2": {
+              "Ident": "StiText",
+              "Name": "Text5",
+              "Guid": "a6222951e5b16a14f67b46c5d9ede305",
+              "ClientRectangle": "0.8,4.8,4.6,1.6",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "New Password:"
+              },
+              "HorAlignment": "Right",
+              "VertAlignment": "Center",
+              "Font": ";18;;",
+              "Border": ";105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "Type": "Expression"
+            },
+            "3": {
+              "Ident": "StiText",
+              "Name": "Text6",
+              "Guid": "df62a446ef1539b641de5cd074c920c5",
+              "ClientRectangle": "5.6,0.8,11.2,1.6",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "{root.userID}"
+              },
+              "HorAlignment": "Center",
+              "VertAlignment": "Center",
+              "Font": ";18;;",
+              "Border": "Bottom;105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "Type": "DataColumn"
+            },
+            "4": {
+              "Ident": "StiText",
+              "Name": "Text7",
+              "Guid": "efdccfafb0ce067c84650ed4a48ade2d",
+              "ClientRectangle": "5.6,2.8,11.2,1.6",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "{root.role}"
+              },
+              "HorAlignment": "Center",
+              "VertAlignment": "Center",
+              "Font": ";18;;",
+              "Border": "Bottom;105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "Type": "DataColumn"
+            },
+            "5": {
+              "Ident": "StiText",
+              "Name": "Text8",
+              "Guid": "8cd762138a800a7f5011a59e9c215b17",
+              "ClientRectangle": "5.6,4.8,11.2,1.6",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "{root.pw}"
+              },
+              "HorAlignment": "Center",
+              "VertAlignment": "Center",
+              "Font": ";18;;",
+              "Border": "Bottom;105,105,105;;;;;;solid:105,105,105",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "Type": "DataColumn"
+            }
+          }
+        },
+        "1": {
+          "Ident": "StiReportTitleBand",
+          "Name": "ReportTitle",
+          "ClientRectangle": "0,0.4,19.01,1.4",
+          "Interaction": {
+            "Ident": "StiInteraction"
+          },
+          "Border": ";;;;;;;solid:Black",
+          "Brush": "solid:",
+          "Components": {
+            "0": {
+              "Ident": "StiText",
+              "Name": "ReportTitleText",
+              "Guid": "7eb2722a9c69607b605745b7c07b60bc",
+              "ClientRectangle": "0,0,19.01,1.4",
+              "ComponentStyle": "Gray 50%_Report_Title1",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "HorAlignment": "Center",
+              "VertAlignment": "Center",
+              "Font": ";14;Bold;",
+              "Border": ";65,65,65;;;;;;solid:Black",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "Type": "Expression"
+            },
+            "1": {
+              "Ident": "StiImage",
+              "Name": "Image1",
+              "Guid": "c595b212b8222ddb3804c512f1c64d19",
+              "ClientRectangle": "0.2,0.2,3.4,1",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "HorAlignment": "Center",
+              "VertAlignment": "Center",
+              "Border": ";;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "Stretch": true,
+              "AspectRatio": true,
+              "ImageBytes": "data:image/png;base64,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"
+            },
+            "2": {
+              "Ident": "StiText",
+              "Name": "Text1",
+              "Guid": "c8a66c0ca5473bec0fc5dce10ee33eb9",
+              "GrowToHeight": true,
+              "ClientRectangle": "15.6,0.8,3.4,0.6",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "{Time}"
+              },
+              "AutoWidth": true,
+              "HorAlignment": "Center",
+              "VertAlignment": "Center",
+              "Border": ";;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "Type": "SystemVariables"
+            },
+            "3": {
+              "Ident": "StiText",
+              "Name": "Text2",
+              "Guid": "934e4873065416e0ddb8d652e2bc95c0",
+              "ClientRectangle": "6.6,0.2,5.2,1",
+              "Interaction": {
+                "Ident": "StiInteraction"
+              },
+              "Text": {
+                "Value": "New Password"
+              },
+              "HorAlignment": "Center",
+              "VertAlignment": "Center",
+              "Font": ";16;;",
+              "Border": ";;;;;;;solid:0,0,0",
+              "Brush": "solid:",
+              "TextBrush": "solid:0,0,0",
+              "Type": "Expression"
+            }
+          }
+        }
+      },
+      "PageWidth": 21.01,
+      "PageHeight": 29.69,
+      "Watermark": {
+        "TextBrush": "solid:50,0,0,0"
+      },
+      "Margins": {
+        "Left": 1,
+        "Right": 1,
+        "Top": 1,
+        "Bottom": 1
+      }
+    }
+  }
+}

@@ -1,10 +1,10 @@
 {
-  "ReportGuid": "bbe7fcbf1010b29a5158beecd2dc790c",
+  "ReportGuid": "2c57fe0b2aec6a1be2d61b7c972cdc90",
   "ReportName": "Report",
   "ReportAlias": "Report",
   "ReportFile": "Report.mrt",
   "ReportCreated": "/Date(1586821590000+0800)/",
-  "ReportChanged": "/Date(1597890136000+0800)/",
+  "ReportChanged": "/Date(1597973500000+0800)/",
   "EngineVersion": "EngineV2",
   "CalculationMode": "Interpretation",
   "ReportUnit": "Centimeters",
@@ -550,6 +550,543 @@
       "AllowUseBorderSides": false,
       "AllowUseBrush": false,
       "AllowUseTextBrush": false
+    },
+    "29": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "ReportTitle",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Report_Title1",
+      "Font": ";14;Bold;",
+      "Border": ";151,120,92;;;;;;solid:0,0,0",
+      "Brush": "solid:",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0"
+    },
+    "30": {
+      "Ident": "StiChartStyle",
+      "CollectionName": "Chart",
+      "Name": "ChartCustomize",
+      "Border": ";;;;;;;solid:0,0,0",
+      "Brush": "solid:",
+      "BrushType": "Solid",
+      "StyleColors": {
+        "0": "112,173,71",
+        "1": "68,114,196",
+        "2": "255,192,0",
+        "3": "67,104,43",
+        "4": "253,106,55",
+        "5": "153,115,0"
+      },
+      "ChartAreaBrush": "solid:255,255,255",
+      "SeriesLabelsBrush": "solid:255,255,255",
+      "SeriesLabelsBorderColor": "140,140,140",
+      "SeriesShowBorder": true,
+      "LegendBrush": "solid:255,255,255",
+      "InterlacingHorBrush": "solid:10,155,155,155",
+      "InterlacingVertBrush": "solid:10,155,155,155",
+      "GridLinesHorColor": "100,105,105,105",
+      "GridLinesVertColor": "100,105,105,105"
+    },
+    "31": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "OperationPlacementNestedLevel": "GreaterThanOrEqualTo",
+          "Placement": "ReportTitle",
+          "PlacementNestedLevel": 2,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Report_Title2",
+      "Font": ";10;Bold;",
+      "Border": ";151,120,92;;;;;;solid:0,0,0",
+      "Brush": "solid:",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0"
+    },
+    "32": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "ReportSummary",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Report_Summary1",
+      "Font": ";12;Bold;",
+      "Border": ";151,120,92;;;;;;solid:0,0,0",
+      "Brush": "solid:",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0"
+    },
+    "33": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "OperationPlacementNestedLevel": "GreaterThanOrEqualTo",
+          "Placement": "ReportSummary",
+          "PlacementNestedLevel": 2,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Report_Summary2",
+      "Font": ";10;Bold;",
+      "Border": ";151,120,92;;;;;;solid:0,0,0",
+      "Brush": "solid:",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0"
+    },
+    "34": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement",
+          "Placement": "PageHeader",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Page_Header",
+      "Font": ";10;;",
+      "Border": ";151,120,92;;;;;;solid:0,0,0",
+      "Brush": "solid:",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0"
+    },
+    "35": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement",
+          "Placement": "PageFooter",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Page_Footer",
+      "Font": ";10;;",
+      "Border": ";151,120,92;;;;;;solid:0,0,0",
+      "Brush": "solid:",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0"
+    },
+    "36": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "GroupHeader",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Group_Header1",
+      "Font": ";13;Bold;",
+      "Border": ";151,120,92;;;;;;solid:0,0,0",
+      "Brush": "solid:",
+      "TextBrush": "solid:101,70,42",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "37": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "GroupHeader",
+          "PlacementNestedLevel": 2,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Group_Header2",
+      "Font": ";12;Bold;",
+      "Border": ";151,120,92;;;;;;solid:0,0,0",
+      "Brush": "solid:",
+      "TextBrush": "solid:101,70,42",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "38": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "OperationPlacementNestedLevel": "GreaterThanOrEqualTo",
+          "Placement": "GroupHeader",
+          "PlacementNestedLevel": 3,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Group_Header3",
+      "Font": ";11;Bold;",
+      "Border": ";151,120,92;;;;;;solid:0,0,0",
+      "Brush": "solid:",
+      "TextBrush": "solid:101,70,42",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "39": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "GroupFooter",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Group_Footer1",
+      "Font": ";13;Bold;",
+      "Border": ";151,120,92;;;;;;solid:0,0,0",
+      "Brush": "solid:",
+      "TextBrush": "solid:101,70,42",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "40": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "GroupFooter",
+          "PlacementNestedLevel": 2,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Group_Footer2",
+      "Font": ";12;Bold;",
+      "Border": ";151,120,92;;;;;;solid:0,0,0",
+      "Brush": "solid:",
+      "TextBrush": "solid:101,70,42",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "41": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "GroupFooter",
+          "PlacementNestedLevel": 3,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Group_Footer3",
+      "Font": ";11;Bold;",
+      "Border": ";151,120,92;;;;;;solid:0,0,0",
+      "Brush": "solid:",
+      "TextBrush": "solid:101,70,42",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "42": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "Header",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Header1",
+      "Font": ";;Bold;",
+      "Border": ";151,120,92;;;;;true;solid:0,0,0",
+      "Brush": "solid:251,220,192",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "43": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "Header",
+          "PlacementNestedLevel": 2,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Header2",
+      "Font": ";;Bold;",
+      "Border": ";151,120,92;;;;;true;solid:0,0,0",
+      "Brush": "solid:255,253,225",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "44": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "OperationPlacementNestedLevel": "GreaterThanOrEqualTo",
+          "Placement": "Header",
+          "PlacementNestedLevel": 3,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Header3",
+      "Font": ";;Bold;",
+      "Border": ";151,120,92;;;;;true;solid:0,0,0",
+      "Brush": "solid:255,255,255",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "45": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "Data",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Data1",
+      "Border": ";151,120,92;;;;;true;solid:0,0,0",
+      "Brush": "solid:",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "46": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "Placement, PlacementNestedLevel",
+          "Placement": "DataOddStyle"
+        }
+      },
+      "Name": "Chart_Data1_Odd Style",
+      "Border": ";151,120,92;;;;;true;solid:0,0,0",
+      "Brush": "solid:255,255,255",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "47": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "Placement, PlacementNestedLevel",
+          "Placement": "DataEvenStyle"
+        }
+      },
+      "Name": "Chart_Data1_Even Style",
+      "Border": ";151,120,92;;;;;true;solid:0,0,0",
+      "Brush": "solid:255,255,255",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "48": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "Data",
+          "PlacementNestedLevel": 2,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Data2",
+      "Border": ";151,120,92;;;;;true;solid:0,0,0",
+      "Brush": "solid:",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "49": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "Placement, PlacementNestedLevel",
+          "Placement": "DataOddStyle",
+          "PlacementNestedLevel": 2
+        }
+      },
+      "Name": "Chart_Data2_Odd Style",
+      "Border": ";151,120,92;;;;;true;solid:0,0,0",
+      "Brush": "solid:255,255,255",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "50": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "Placement, PlacementNestedLevel",
+          "Placement": "DataEvenStyle",
+          "PlacementNestedLevel": 2
+        }
+      },
+      "Name": "Chart_Data2_Even Style",
+      "Border": ";151,120,92;;;;;true;solid:0,0,0",
+      "Brush": "solid:255,255,255",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "51": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "OperationPlacementNestedLevel": "GreaterThanOrEqualTo",
+          "Placement": "Data",
+          "PlacementNestedLevel": 3,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Data3",
+      "Border": ";151,120,92;;;;;true;solid:0,0,0",
+      "Brush": "solid:",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "52": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "Placement, PlacementNestedLevel",
+          "OperationPlacementNestedLevel": "GreaterThanOrEqualTo",
+          "Placement": "DataOddStyle",
+          "PlacementNestedLevel": 3
+        }
+      },
+      "Name": "Chart_Data3_Odd Style",
+      "Border": ";151,120,92;;;;;true;solid:0,0,0",
+      "Brush": "solid:255,255,255",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "53": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "Placement, PlacementNestedLevel",
+          "OperationPlacementNestedLevel": "GreaterThanOrEqualTo",
+          "Placement": "DataEvenStyle",
+          "PlacementNestedLevel": 3
+        }
+      },
+      "Name": "Chart_Data3_Even Style",
+      "Border": ";151,120,92;;;;;true;solid:0,0,0",
+      "Brush": "solid:255,255,255",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "54": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "Footer",
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Footer1",
+      "Border": ";151,120,92;;;;;true;solid:0,0,0",
+      "Brush": "solid:255,240,212",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "55": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "Footer",
+          "PlacementNestedLevel": 2,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Footer2",
+      "Border": ";151,120,92;;;;;true;solid:0,0,0",
+      "Brush": "solid:255,255,245",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
+    },
+    "56": {
+      "Ident": "StiStyle",
+      "CollectionName": "Chart",
+      "Conditions": {
+        "0": {
+          "Ident": "StiStyleCondition",
+          "Type": "ComponentType, Placement, PlacementNestedLevel",
+          "Placement": "Footer",
+          "PlacementNestedLevel": 3,
+          "ComponentType": "Text, Primitive, Image, CheckBox"
+        }
+      },
+      "Name": "Chart_Footer3",
+      "Border": ";151,120,92;;;;;true;solid:0,0,0",
+      "Brush": "solid:255,255,255",
+      "TextBrush": "solid:51,20,0",
+      "NegativeTextBrush": "solid:255,0,0",
+      "AllowUseBorderSidesFromLocation": true
     }
   },
   "Dictionary": {
@@ -688,8 +1225,7 @@
               "Ident": "StiImage",
               "Name": "Image1",
               "Guid": "37f7b2d9826f7deffa45d6e4ed2846f3",
-              "ClientRectangle": "0.2,0.2,3.2,1",
-              "Locked": true,
+              "ClientRectangle": "0.2,0.2,3.6,1.2",
               "Interaction": {
                 "Ident": "StiInteraction"
               },
@@ -947,7 +1483,7 @@
                 "Ident": "StiInteraction"
               },
               "Text": {
-                "Value": "Temperature"
+                "Value": "Temperature(℃)"
               },
               "HorAlignment": "Center",
               "VertAlignment": "Center",
@@ -957,7 +1493,8 @@
               "TextBrush": "solid:242,242,242",
               "TextOptions": {
                 "WordWrap": true
-              }
+              },
+              "Type": "Expression"
             },
             "2": {
               "Ident": "StiText",
@@ -1201,8 +1738,7 @@
               "Ident": "StiImage",
               "Name": "Image2",
               "Guid": "37f7b2d9826f7deffa45d6e4ed2846f3",
-              "ClientRectangle": "0.2,0.2,3.2,1",
-              "Locked": true,
+              "ClientRectangle": "0.2,0.2,3.6,1.2",
               "Interaction": {
                 "Ident": "StiInteraction"
               },
@@ -1310,14 +1846,14 @@
             "Ident": "StiInteraction"
           },
           "Border": ";;;;;;;solid:Black",
-          "Brush": "solid:255,255,255",
+          "Brush": "solid:",
           "DataSourceName": "Test_Data",
           "EditorType": "Simple",
+          "CustomStyleName": "ChartCustomize",
           "Series": {
             "0": {
               "Ident": "StiScatterLineSeries",
-              "Format": "Number",
-              "SortBy": "Argument",
+              "Format": "Text",
               "ShowShadow": false,
               "SeriesLabels": {
                 "Ident": "StiOutsideEndAxisLabels",
@@ -1326,9 +1862,9 @@
                   "Height": 6
                 },
                 "ValueTypeSeparator": "-",
-                "LabelColor": "95,95,95",
-                "BorderColor": "95,95,95",
-                "Brush": "solid:WhiteSmoke"
+                "LabelColor": "90,90,90",
+                "BorderColor": "140,140,140",
+                "Brush": "solid:255,255,255"
               },
               "TrendLine": {
                 "Ident": "StiTrendLineNone"
@@ -1341,31 +1877,32 @@
                 "Value": "Hardness vs Temperature"
               },
               "Marker": {
-                "Brush": "solid:228,245,255",
-                "BorderColor": "28,45,65"
+                "Brush": "solid:212,255,171",
+                "BorderColor": "12,73,0"
               },
               "LineMarker": {
-                "Brush": "solid:178,195,215",
-                "BorderColor": "0,0,15"
+                "Brush": "solid:162,223,121",
+                "BorderColor": "0,23,0"
               },
-              "LineColor": "128,145,165"
+              "LineColor": "112,173,71",
+              "Lighting": false
             }
           },
           "Area": {
             "Ident": "StiScatterArea",
-            "BorderColor": "95,95,95",
-            "Brush": "gradient:255,255,255::90",
+            "BorderColor": "171,172,173",
+            "Brush": "solid:255,255,255",
             "InterlacingHor": {
-              "InterlacedBrush": "solid:10,145,145,145",
+              "InterlacedBrush": "solid:10,155,155,155",
               "Area": true
             },
             "InterlacingVert": {
-              "InterlacedBrush": "solid:10,145,145,145",
+              "InterlacedBrush": "solid:10,155,155,155",
               "Area": true
             },
             "GridLinesHor": {
-              "Color": "100,95,95,95",
-              "MinorColor": "100,95,95,95",
+              "Color": "100,105,105,105",
+              "MinorColor": "100,105,105,105",
               "Area": true
             },
             "GridLinesHorRight": {
@@ -1373,32 +1910,32 @@
               "Area": true
             },
             "GridLinesVert": {
-              "Color": "100,95,95,95",
-              "MinorColor": "100,95,95,95",
+              "Color": "100,105,105,105",
+              "MinorColor": "100,105,105,105",
               "Area": true
             },
             "YAxis": {
               "Ident": "StiYLeftAxis",
               "StartFromZero": false,
               "Labels": {
-                "Color": "95,95,95"
+                "Color": "140,140,140"
               },
-              "LineColor": "95,95,95",
+              "LineColor": "140,140,140",
               "Title": {
                 "Text": "Hardness",
-                "Color": "95,95,95",
+                "Color": "140,140,140",
                 "Direction": "BottomToTop"
               }
             },
             "YRightAxis": {
               "Ident": "StiYRightAxis",
               "Labels": {
-                "Color": "95,95,95",
+                "Color": "140,140,140",
                 "TextAlignment": "Left"
               },
-              "LineColor": "95,95,95",
+              "LineColor": "140,140,140",
               "Title": {
-                "Color": "95,95,95",
+                "Color": "140,140,140",
                 "Direction": "TopToBottom"
               }
             },
@@ -1406,33 +1943,33 @@
               "Ident": "StiXBottomAxis",
               "StartFromZero": false,
               "Labels": {
-                "Color": "95,95,95"
+                "Color": "140,140,140"
               },
-              "LineColor": "95,95,95",
+              "LineColor": "140,140,140",
               "Title": {
                 "Text": "Temperature(°C)",
-                "Color": "95,95,95"
+                "Color": "140,140,140"
               },
               "ShowEdgeValues": true
             },
             "XTopAxis": {
               "Ident": "StiXTopAxis",
               "Labels": {
-                "Color": "95,95,95"
+                "Color": "140,140,140"
               },
-              "LineColor": "95,95,95",
+              "LineColor": "140,140,140",
               "Title": {
-                "Color": "95,95,95"
+                "Color": "140,140,140"
               }
             }
           },
           "Table": {
-            "GridLineColor": "95,95,95",
+            "GridLineColor": "105,105,105",
             "Header": {
               "Brush": "solid:White"
             },
             "DataCells": {
-              "TextColor": "95,95,95"
+              "TextColor": "140,140,140"
             }
           },
           "SeriesLabels": {
@@ -1445,10 +1982,10 @@
           },
           "Legend": {
             "ShowShadow": false,
-            "BorderColor": "95,95,95",
-            "Brush": "gradient:255,255,255::90",
-            "TitleColor": "95,95,95",
-            "LabelsColor": "95,95,95",
+            "BorderColor": "105,105,105",
+            "Brush": "solid:255,255,255",
+            "TitleColor": "105,105,105",
+            "LabelsColor": "140,140,140",
             "MarkerSize": {
               "Width": 10,
               "Height": 10
@@ -1456,14 +1993,10 @@
             "Size": "0,0"
           },
           "Title": {
-            "Brush": "solid:95,95,95"
+            "Brush": "solid:140,140,140"
           },
           "Style": {
-            "Ident": "StiStyle02"
-          },
-          "Sort": {
-            "0": "ASC",
-            "1": "Temperature"
+            "Ident": "StiCustomStyle"
           }
         },
         "3": {

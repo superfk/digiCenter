@@ -301,16 +301,21 @@ class UserManag(object):
         condition = r" WHERE User_Name = '{}' AND Status < 2".format(userID)
         try:
             self.db.update("UserList", fields,values, condition)
+            exp_json = {}
+            exp_json['pw']= rnd_pw
+            exp_json['role']= role
+            exp_json['userID']= userID
             if pw_export_folder:
-                util.save_password_to_json(pw_export_folder, userID, role, rnd_pw)
+                folder_path = os.path.join(pw_export_folder, 'first_pw')
+                util.save_password_to_json(folder_path, userID, role, rnd_pw)
             self.savelog(self.lang['server_user_rest_pw_ok'], audit=True)
-            return 1, self.lang['server_user_rest_pw_ok'], rnd_pw
+            return 1, self.lang['server_user_rest_pw_ok'], exp_json
         except Exception as e:
             self.savelog('Error: ({})'.format(e))
             return 0, 'Error: ({})'.format(e),""
     
     def get_user_role_list(self):
-        f = ["User_Role"]
+        f = ["User_Role", "User_Level"]
         condition = r" WHERE User_Level < 255 ORDER BY User_Level DESC"
         user_role = self.db.select('UserRoleList',f, condition)
         return user_role

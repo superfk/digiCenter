@@ -389,7 +389,7 @@ class PyServerAPI(object):
         await self.sendMsg(websocket,'reply_deactivate_user',self.userMang.deactivate_user(userID))
 
     async def give_new_password(self, websocket, userID, role):
-        await self.sendMsg(websocket,'reply_give_new_password',self.userMang.give_new_password(userID, role))
+        await self.sendMsg(websocket,'reply_give_new_password',self.userMang.give_new_password(userID, role, self.config['system']['default_export_folder']))
     
     async def get_user_role_list(self, websocket):
         await self.sendMsg(websocket,'reply_get_user_role_list',self.userMang.get_user_role_list())

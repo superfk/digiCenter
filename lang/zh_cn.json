@@ -50,7 +50,7 @@
   "modal_newuser_username":"使用者名称",
   "modal_newuser_userrole":"(选择权限)",
   "modal_newuser_adduser_btn":"新增",
-  "modal_newuserrole_title":"请新增使用者权限后按下Add",
+  "modal_newuserrole_title":"请新增使用者权限后按下'新增'",
   "modal_newuserrole_userrole_title":"使用者权限",
   "modal_newuserrole_userrole_level":"等级",
   "modal_newuserrole_adduser_btn":"新增",

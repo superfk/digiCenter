@@ -1,6 +1,6 @@
 {
     "name": "digiCenter",
-    "version": "0.9.13",
+    "version": "0.9.14",
     "description": "Control center for digi chamber",
     "main": "main.js",
     "scripts": {
@@ -47,6 +47,7 @@
                 "pyserver_dist",
                 "lang",
                 "Report.mrt",
+                "NewPw.mrt",
                 "doc",
                 "Localization"
             ],

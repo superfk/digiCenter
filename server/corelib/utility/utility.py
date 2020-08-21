@@ -70,7 +70,10 @@ def save_password_to_json(folder_path, userID, role, pw):
     exp_pw_path = os.path.join(folder_path, '{}_{}.json'.format(role,userID))
     exp_json = {}
     exp_json['pw']= pw
+    exp_json['role']= role
+    exp_json['userID']= userID
     write2JSON(exp_pw_path,exp_json)
+    return exp_json
 
 def write2JSON(path, data_dict):
     with open(path, 'w', encoding='utf-8') as outfile:

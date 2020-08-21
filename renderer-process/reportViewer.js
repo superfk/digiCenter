@@ -44,7 +44,7 @@ ipcRenderer.on('set-lang', (event, lang) => {
     Stimulsoft.Base.Localization.StiLocalization.cultureName = langName;
 })
 
-ipcRenderer.on('import-data-to-viewer', (event, data) => {
+ipcRenderer.on('import-data-to-viewer', (event, data, reportFileName='Report.mrt') => {
 
     // Create the report viewer with specified options
     viewer = new Stimulsoft.Viewer.StiViewer(options, "StiViewer", false);
@@ -54,7 +54,7 @@ ipcRenderer.on('import-data-to-viewer', (event, data) => {
 
     // Load report from url
     try {
-        report.loadFile(path.join(appRoot, "Report.mrt"));
+        report.loadFile(path.join(appRoot, reportFileName));
         // Assign report to the viewer, the report will be built automatically after rendering the viewer
         viewer.report = report;
 

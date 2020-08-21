@@ -283,7 +283,7 @@ function createProgressBar(title = 'Progress bar', text = '', detail = '') {
 
 }
 
-const createReportViewerWindow = (data, langID = 'en') => {
+const createReportViewerWindow = (data, langID = 'en', reportFileName) => {
   let reportViewerWindow = new BrowserWindow({
     width: 800,
     height: 600,
@@ -308,7 +308,7 @@ const createReportViewerWindow = (data, langID = 'en') => {
   reportViewerWindow.webContents.once('did-finish-load', () => {
     console.log('report localization:', langID)
     reportViewerWindow.webContents.send('set-lang', langID)
-    reportViewerWindow.webContents.send('import-data-to-viewer', data)
+    reportViewerWindow.webContents.send('import-data-to-viewer', data, reportFileName)
   });
 
 }
@@ -338,15 +338,15 @@ const createReportDesignerWindow = (data, langID = 'en') => {
 
   reportDesignerWindow.webContents.once('did-finish-load', () => {
     reportDesignerWindow.webContents.send('set-lang', langID)
-    reportDesignerWindow.webContents.send('import-data-to-designer', data)
+    reportDesignerWindow.webContents.send('import-data-to-designer', data )
 
   });
 
 
 }
 
-ipcMain.on('call-report-viewer-window', (event, data, langID = 'en') => {
-  createReportViewerWindow(data, langID);
+ipcMain.on('call-report-viewer-window', (event, data, langID = 'en', reportFileName) => {
+  createReportViewerWindow(data, langID, reportFileName);
 })
 
 ipcMain.on('call-report-designer-window', (event, data, langID = 'en') => {
