@@ -282,6 +282,7 @@ class TemperatureStep(DigiCenterStep):
         self.tol = 0
         self.slope = 0.0 #K/min -> 1/60 K/s
         self.incre = 0.0
+        self.settlingTime = 0.0 # min
         self.actTarget = 0.0
 
     def set_paras(self,step):
@@ -290,6 +291,7 @@ class TemperatureStep(DigiCenterStep):
         self.tol = float(list(filter(lambda name: name['name'] == 'tolerance', self.paras))[0]['value']) # degree
         self.slope = float(list(filter(lambda name: name['name'] == 'slope', self.paras))[0]['value'])
         self.incre = float(list(filter(lambda name: name['name'] == 'increment', self.paras))[0]['value'])
+        self.settlingTime = float(list(filter(lambda name: name['name'] == 'settling time', self.paras))[0]['value']) * 60 # to second
         self.actTarget = self.targetTemp
     
     def set_gradient_process(self, target, slope):
@@ -333,14 +335,21 @@ class TemperatureStep(DigiCenterStep):
         counter = 0
         loopInterval = 0.5 #second
         sendInterval = 10 #second
-        while curT>UL or curT<LL:
+        startCountSettlingTime = False
+        settlingStartTime = time.time()
+        settlingStartCountdownTime = 0
+        while True:
             if self.stopMsgQueue.qsize()>0:
                 # stop process immediately
                 self.set_result(curT,'FAIL',unit='&#8451', progs=100)
                 break
             # time.sleep(loopInterval)
             time.sleep(loopInterval)
-            prog = round( (abs(curT - initT) / abs(self.actTarget-initT)) * 100, 0)
+            if startCountSettlingTime:
+                tempProgress = 1
+            else:
+                tempProgress = (abs(curT - initT) / abs(self.actTarget-initT))
+            prog = round( tempProgress * 50 + settlingStartCountdownTime/self.settlingTime * 50 , 0)
             if counter*loopInterval >= sendInterval:
                 self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
                 self.resultCallback(self.result)
@@ -363,7 +372,15 @@ class TemperatureStep(DigiCenterStep):
             curT = self.hwDigichamber.get_real_temperature()
             
             if curT<=UL and curT>=LL:
-                break
+                if not startCountSettlingTime:
+                    startCountSettlingTime = True
+                    settlingStartTime = time.time()
+            
+            if startCountSettlingTime:
+                settlingStartCountdownTime = time.time() - settlingStartTime
+                if settlingStartCountdownTime >= self.settlingTime:
+                    break
+
         self.set_result(curT,'PASS',unit='&#8451', progs=100)
         # self.hwDigichamber.set_manual_mode(False)
         return self.result
@@ -543,8 +560,8 @@ class HardnessStep(DigiCenterStep):
                                         progs=100,
                                         batchInfo=smp
                                         )
-                        currentResult = self.result.copy()
-                        self.resultCallback(currentResult)
+                        # currentResult = self.result.copy()
+                        # self.resultCallback(currentResult)
                         break
                     # go to next sample
                     self.set_result(self.singleResult['result'],'MEAR_NEXT', None, 

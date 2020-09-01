@@ -57,9 +57,10 @@ module.exports = {
     genTempPara: function () {
         let paras = [
             new module.exports.NumberPara('target temperature', 20, unit = '&#8451', max = 190, min = -40, readOnly = false, window.lang_data.target_temperature, 'target_temperature'),
-            new module.exports.NumberPara('tolerance', 1, unit = '&#8451', max = 10, min = 0, readOnly = false, window.lang_data.tolerance, 'tolerance'),
-            new module.exports.NumberPara('slope', 4, 'K/min', max = 4, min = -4, readOnly = false, window.lang_data.slope, 'slope'),
-            new module.exports.NumberPara('increment', 0, '&#8451', max = 100, min = -100, readOnly = false, window.lang_data.increment, 'increment')
+            new module.exports.NumberPara('tolerance', 1, unit = '&#8451', max = 10, min = 0.5, readOnly = false, window.lang_data.tolerance, 'tolerance'),
+            new module.exports.NumberPara('slope', 2, 'K/min', max = 4, min = 0, readOnly = false, window.lang_data.slope, 'slope'),
+            new module.exports.NumberPara('increment', 0, '&#8451', max = 100, min = -100, readOnly = false, window.lang_data.increment, 'increment'),
+            new module.exports.NumberPara('settling time', 5, 'min', max = 30, min = 0, readOnly = false, window.lang_data.settling_time, 'settling_time')
         ]
 
         // UIkit.modal('#parasModal').show();
@@ -82,10 +83,23 @@ module.exports = {
         ]
         return module.exports.makeSingleStep('waiting', 'time', paras);
     },
-    genLoopPara: function (alwayIncrLoopColorIdx) {
+    genLoopPara: function (seq) {
         let loopID = Math.floor(Math.random() * 100000000);
-        let loopColor = tools.pick_color_hsl(alwayIncrLoopColorIdx);
-        alwayIncrLoopColorIdx += 1;
+        // find if any loop exsisted
+        const loops = seq.filter(elm => { return elm.cat == 'loop' && elm.subitem.item === 'loop start' })
+        const colors = loops.map(elm => {
+            const color = elm.subitem.paras.find(item => item.name === 'loop color');
+            return color;
+        })
+        let loopColor = 'red';
+        // let loopColor = tools.pick_color_hsl(alwayIncrLoopColorIdx);
+        for (let i = 0; i < 9; i++) {
+            loopColor = tools.pick_color_hsl(i);
+            let hasColor = colors.findIndex(elm => elm.value === loopColor);
+            if (hasColor < 0) {
+                break;
+            }
+        }
         let loop_counts = 1;
         let paras = [
             new module.exports.NumberPara('loop id', loopID, unit = '', max = null, min = 0, readOnly = true, window.lang_data.loopid, 'loopid'),
@@ -324,7 +338,7 @@ module.exports = {
                 let t = item['type'];
                 let ronly = item['readOnly'] ? 'disabled' : '';
                 if (t === 'text') {
-                    c += `<li><label ${module.exports.genParaLangIdentifierText(item)}>${tools.capitalize(module.exports.findLangs(item.langFlag))} ${module.exports.genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='text' ${ronly}></li>`;
+                    c += `<li><label><span ${module.exports.genParaLangIdentifierText(item)}>${tools.capitalize(module.exports.findLangs(item.langFlag))}</span> ${module.exports.genUnit(item['unit'])}</label> <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='text' ${ronly}></li>`;
                 } else if (t === 'number') {
                     let maxValue = item['max'] === null ? '' : `max='${item['max']}'`;
                     let minValue = item['min'] === null ? '' : `min='${item['min']}'`;
@@ -332,11 +346,11 @@ module.exports = {
                     plhValue += "~"
                     plhValue += item['max'] === null ? 'no limit' : `${item['max']}`
                     plhValue = "placeholder='" + plhValue + "'"
-                    c += `<li><label ${module.exports.genParaLangIdentifierText(item)}>${tools.capitalize(module.exports.findLangs(item.langFlag))} ${module.exports.genUnit(item['unit'])}</label>
+                    c += `<li><label><span ${module.exports.genParaLangIdentifierText(item)}>${tools.capitalize(module.exports.findLangs(item.langFlag))}</span> ${module.exports.genUnit(item['unit'])}</label>
                     <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='number' ${maxValue} ${minValue} ${plhValue} ${ronly}></li>`;
 
                 } else if (t === 'bool') {
-                    c += `<li><input class='w3-check w3-border-bottom w3-cell' checked=${item['value']} type='checkbox' ${ronly}><label ${module.exports.genParaLangIdentifierText(item)}> ${tools.capitalize(module.exports.findlangs(item.langflag))} ${module.exports.genUnit(item['unit'])}
+                    c += `<li><input class='w3-check w3-border-bottom w3-cell' checked=${item['value']} type='checkbox' ${ronly}><label><span ${module.exports.genParaLangIdentifierText(item)}> ${tools.capitalize(module.exports.findlangs(item.langflag))}</span> ${module.exports.genUnit(item['unit'])}
                     </label></li>`;
 
                 } else if (t === 'select') {
@@ -352,11 +366,11 @@ module.exports = {
                         }
 
                     })
-                    c += `<li><label ${module.exports.genParaLangIdentifierText(item)}>${tools.capitalize(module.exports.findLangs(item.langFlag))} ${module.exports.genUnit(item['unit'])}</label> 
+                    c += `<li><label><span ${module.exports.genParaLangIdentifierText(item)}>${tools.capitalize(module.exports.findLangs(item.langFlag))}</span> ${module.exports.genUnit(item['unit'])}</label> 
                     <select class="w3-select w3-border" name="option">${opItems}</select></li>`;
                 }
             } else {
-                c += `<li style='font-size:12px;'><label ${module.exports.genParaLangIdentifierText(item)}><b>${tools.capitalize(module.exports.findLangs(item.langFlag))} ${module.exports.genUnit(item['unit'])}</b></label>: ${item['value']}</li>`;
+                c += `<li style='font-size:12px;'><label><span ${module.exports.genParaLangIdentifierText(item)}>${tools.capitalize(module.exports.findLangs(item.langFlag))}</span> ${module.exports.genUnit(item['unit'])}</label>: ${item['value']}</li>`;
             }
 
         });
@@ -395,8 +409,9 @@ module.exports = {
             let tTolPara = paras.filter(item => item.name == 'tolerance')[0];
             let slopePara = paras.filter(item => item.name == 'slope')[0];
             let increPara = paras.filter(item => item.name == 'increment')[0];
+            let settlingTimePara = paras.filter(item => item.name == 'settling time')[0];
             mainText = `target:${tTempPara.value}${tTempPara.unit}, tol: ${tTolPara.value}${tTolPara.unit} slope:${slopePara.value} ${slopePara.unit}, 
-            incre:${increPara.value} ${increPara.unit}`;
+            incre:${increPara.value} ${increPara.unit}, st:${settlingTimePara.value} ${settlingTimePara.unit}`;
         } else if (cat === 'hardness') {
             // let methodPara = paras.filter(item=>item.name=='method')[0];
             // let modePara = paras.filter(item=>item.name=='mode')[0];
@@ -411,11 +426,11 @@ module.exports = {
             if (item == 'loop start') {
                 let loopPara = paras.filter(item => item.name == 'loop id')[0];
                 let loopCountPara = paras.filter(item => item.name == 'loop counts')[0];
-                mainText = `loop start, id:${loopPara.value}, counts:${loopCountPara.value}`;
+                mainText = `loop start, ID:${loopPara.value}, counts:${loopCountPara.value}`;
             } else {
                 let loopPara = paras.filter(item => item.name == 'loop id')[0];
                 let loopStop = paras.filter(item => item.name == 'stop on')[0];
-                mainText = `loop end, id:${loopPara.value}, stop on: loopCount=${loopStop.value}`;
+                mainText = `loop end, ID:${loopPara.value}, stop on: loopCount=${loopStop.value}`;
             }
         } else if (cat === 'subprog') {
             let pathPara = paras.filter(item => item.name == 'path')[0];
@@ -646,6 +661,7 @@ module.exports = {
                 let tarTemp = parseFloat(item.subitem.paras.filter(item => item.name == 'target temperature')[0].value);
                 let slope = parseFloat(item.subitem.paras.filter(item => item.name == 'slope')[0].value);
                 let incre = parseFloat(item.subitem.paras.filter(item => item.name == 'increment')[0].value);
+                let stTime = parseFloat(item.subitem.paras.filter(item => item.name == 'settling time')[0].value);
 
                 // check if in loop
                 curIter = 0
@@ -656,6 +672,11 @@ module.exports = {
                 tarTemp = tarTemp + incre * curIter;
                 let xMin = Math.abs((tarTemp - curTemp) / slope);
                 xTime += xMin
+                curTemp = tarTemp;
+                timeArr.push(xTime)
+                temperatureArr.push(curTemp)
+                // add settling time
+                xTime += stTime
                 curTemp = tarTemp;
                 timeArr.push(xTime)
                 temperatureArr.push(curTemp)

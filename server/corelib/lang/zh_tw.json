@@ -263,5 +263,10 @@
   "error_happen_go_teardown_header":"執行流程結束程序?",
   "teardown_error_title":"發生錯誤! 是否要執行流程結束程序(加熱程序)",
   "teardown_go_btn":"執行流程結束程序",
-  "teardown_cancel_btn":"停止流程"
+  "teardown_cancel_btn":"停止流程",
+  "settling_time":"穩定時間",
+  "lower_letter_hard":"硬度",
+  "lower_letter_temperature":"溫度",
+  "lower_letter_humidity":"濕度",
+  "lower_letter_time":"時間"
 }

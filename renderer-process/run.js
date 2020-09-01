@@ -1,7 +1,8 @@
-const { ipcRenderer } = require("electron");
+const { ipcRenderer, shell } = require("electron");
 let tools = require('../assets/shared_tools');
 let seqRend = require('../assets/seq_render_lib');
 let ws
+const path = require('path');
 
 // **************************************
 // variable define
@@ -92,9 +93,26 @@ const plotMargin = { t: 80, r: 100, l: 50, b: 60, pad: 4 };
 const config = {
     displaylogo: false,
     modeBarButtonsToRemove: ['lasso2d', 'select2d', 'pan2d', 'zoom2d', 'hoverClosestCartesian', 'hoverCompareCartesian', 'toggleSpikelines'],
-    responsive: true
+    responsive: true,
+    toImageButtonOptions: {
+        format: 'png', // one of png, svg, jpeg, webp
+        filename: 'custom_image',
+        height: 600,
+        width: 800,
+        scale: 1 // Multiply title/legend/axis/canvas sizes by this factor
+    },
+    modeBarButtonsToAdd: [
+        {
+            name: 'download data',
+            icon: Plotly.Icons.disk,
+            direction: 'up',
+            click: function (gd) {
+                console.log(gd)
+                console.log(gd.data)
+                ws.send(tools.parseCmd('download_event_chart_data', gd.data));
+            }
+        }],
 };
-let enableKeyDetect = false;
 
 const run_status_classes = 'run-init run-pass run-wait run-skip run-next run-fail run-pause'
 
@@ -114,7 +132,6 @@ generateEventPlot()
 tools.generateHardnessPlot('hardness_graph', 0)
 
 
-
 // **************************************
 // generate graph functions
 // **************************************
@@ -125,7 +142,7 @@ function generateEventPlot() {
     var trace1 = {
         // x: h_data_x,
         type: "scattergl",
-        name: 'temperature',
+        name: `${window.lang_data.lower_letter_temperature}`,
         x: [],
         y: [],
         mode: 'lines',
@@ -139,7 +156,7 @@ function generateEventPlot() {
     var trace2 = {
         // x: h_data_x,
         type: "scattergl",
-        name: 'hardness',
+        name: `${window.lang_data.lower_letter_hard}`,
         x: [],
         y: [],
         yaxis: 'y2',
@@ -156,19 +173,19 @@ function generateEventPlot() {
 
     var layout = {
         xaxis: {
-            title: 'Time(H:M:S)',
+            title: `${window.lang_data.lower_letter_time}(H:M:S)`,
             zeroline: false,
             showline: true,
             type: 'date',
             tickformat: '%H:%M:%S'
         },
         yaxis: {
-            title: 'Temperature(℃)',
+            title: `${window.lang_data.temperature}(℃)`,
             zeroline: false,
             showline: true
         },
         yaxis2: {
-            title: 'Hardness',
+            title: `${window.lang_data.hard}`,
             titlefont: { color: 'rgb(148, 103, 189)' },
             tickfont: { color: 'rgb(148, 103, 189)' },
             overlaying: 'y',
@@ -202,6 +219,25 @@ function repositionChart() {
 
 }
 
+function reTranslateRuntimeChart() {
+    var update = {
+            xaxis: {
+                title: `${window.lang_data.lower_letter_time}(H:M:S)`,
+            },
+            yaxis: {
+                title: `${window.lang_data.lower_letter_temperature}(℃)`,
+            },
+            yaxis2: {
+                title: `${window.lang_data.lower_letter_hard}`,
+                overlaying: 'y',
+                side: 'right',
+                range: [0, 100]
+            },
+    };
+    tools.plotly_reTranlateChart('hardness_graph');
+    Plotly.relayout('event_graph', update);
+}
+
 function genrateBatchHistory(batchRecords) {
     $('#batchHistoryTable').DataTable().destroy();
 
@@ -227,7 +263,7 @@ function genrateBatchHistory(batchRecords) {
         ]
     }).draw();
 
-    $('#batchHistoryTable tbody').on('click', 'tr', function() {
+    $('#batchHistoryTable tbody').on('click', 'tr', function () {
 
     });
 
@@ -336,6 +372,15 @@ function connect() {
                 case 'end_of_test':
                     endOfTest(data)
                     break;
+                case 'reply_download_event_chart_data':
+                    if (data.resp_code == 1) {
+                        const downloadPath = data.path;
+                        const fileLink = `<input value="${downloadPath}" style="width:100%; outline:none; border:none;overflow-x:auto;">`;
+                        ipcRenderer.send('show-info-alert', data.title, `${data.res}<hr>${fileLink}`);
+                    } else if (data.resp_code == 0) {
+                        ipcRenderer.send('show-warning-alert', data.title, data.res);
+                    }
+                    break;
                 case 'reply_server_error':
                     ipcRenderer.send('show-server-error', data.error);
                     runningTest = false
@@ -351,14 +396,14 @@ function connect() {
 
     });
 
-    ws.onclose = function(e) {
+    ws.onclose = function (e) {
         console.log('Socket is closed. Reconnect will be attempted in 1 second.', e.reason);
-        setTimeout(function() {
+        setTimeout(function () {
             connect();
         }, 1000);
     };
 
-    ws.onerror = function(err) {
+    ws.onerror = function (err) {
         console.error('Socket encountered error: ', err.message, 'Closing socket');
         ws.close();
     };
@@ -389,9 +434,9 @@ loadSeqBtn.addEventListener('click', () => {
 })
 batchConfirmAndStartBtn.addEventListener('click', () => {
     let atLeastOneSample = batchInfoForSamples.find(elm => elm.status === 'filled')
-    if (atLeastOneSample !== undefined){
+    if (atLeastOneSample !== undefined) {
         immediate_start_test()
-    }else{
+    } else {
         ipcRenderer.send('show-info-alert', window.lang_data.modal_info_title, window.lang_data.please_select_one_batch);
     }
 })
@@ -417,7 +462,7 @@ ipcRenderer.on('continue-batch', (event, resp, args) => {
 })
 
 stopSeqBtn.addEventListener('click', () => {
-    if (runningTest){
+    if (runningTest) {
         ws.send(tools.parseCmd('stop_seq', ''));
     }
 })
@@ -640,7 +685,7 @@ function updateSingleStep(res) {
     curResult.html(value + unit)
     curstep.removeClass(run_status_classes)
     updateStepByCat(res);
-    if (result == 'PASS') { curstep.addClass('run-pass'); } else if (result == 'WAITING') { curstep.addClass('run-wait'); } else if (result == 'UPDATE_PROGRESS_ONLY') { curstep.addClass('run-wait'); } else if (result == 'PAUSE') { curstep.addClass('run-pause'); } else if (result == 'SKIP') { curstep.addClass('run-skip'); } else if (result == 'MEAR_NEXT') { curstep.addClass('run-next'); } else if (result == 'UPDATE_CURRENT_SAMPLEINDEX') {} else { curstep.addClass('run-fail'); }
+    if (result == 'PASS') { curstep.addClass('run-pass'); } else if (result == 'WAITING') { curstep.addClass('run-wait'); } else if (result == 'UPDATE_PROGRESS_ONLY') { curstep.addClass('run-wait'); } else if (result == 'PAUSE') { curstep.addClass('run-pause'); } else if (result == 'SKIP') { curstep.addClass('run-skip'); } else if (result == 'MEAR_NEXT') { curstep.addClass('run-next'); } else if (result == 'UPDATE_CURRENT_SAMPLEINDEX') { } else { curstep.addClass('run-fail'); }
 
 }
 
@@ -913,7 +958,7 @@ function plotList() {
 function setSampleOccupy(index = 0, batchInfo = {}, color = 'white') {
     let spcCirlce = batchInfoForSamples.find(elm => elm.id === index)
     spcCirlce.status = 'filled'
-    spcCirlce.batchInfo = {...batchInfo }
+    spcCirlce.batchInfo = { ...batchInfo }
     spcCirlce.color = color
     batchInfoForSamples.splice(index, 1, spcCirlce)
 }
@@ -975,17 +1020,17 @@ $('#sampleBatchConfigForm').on('submit', (e) => {
                 }
             } else if (elm.status === 'empty') {
                 curBatchinfo.sampleId = sampleCounterInBatch
-                setSampleOccupy(elm.id, {...curBatchinfo }, sampleColor)
+                setSampleOccupy(elm.id, { ...curBatchinfo }, sampleColor)
                 sampleCounterInBatch += 1
                 counter += 1
             }
         }
     })
     if (isNewBatch) {
-        batches.push({...curBatchinfo })
+        batches.push({ ...curBatchinfo })
         batchCounter += 1
     } else {
-        batches.splice(existedBatchIndex, 1, {...curBatchinfo })
+        batches.splice(existedBatchIndex, 1, { ...curBatchinfo })
     }
     refreshSeqsInAllSamples(seqPath)
 
@@ -1042,7 +1087,7 @@ function createBatchViewList() {
     var i;
 
     for (i = 0; i < acc.length; i++) {
-        acc[i].addEventListener("click", function() {
+        acc[i].addEventListener("click", function () {
             this.classList.toggle("active");
             var panel = this.nextElementSibling;
             if (panel.style.maxHeight) {
@@ -1108,17 +1153,19 @@ function updateDigiTestModeCallback() {
 }
 
 $('#button-run').on('click', () => {
-    if (runningTest) {} else {
+    if (runningTest) { } else {
         updateDigiTestModeCallback()
     }
 })
 
 
 // detect select language
-ipcRenderer.on('trigger_tanslate', (event) => {
+ipcRenderer.on('trigger_tanslate_to_run_page', (event) => {
     if (test_flow.setup.subitem !== undefined) {
-        $('#testSeqContainer').html(seqRend.refreshSeq(test_flow, false))
+        $('#testSeqContainer').html(seqRend.refreshSeq(test_flow, false));
     }
+    reTranslateRuntimeChart();
+    console.log('triggerTranslation on run page')
 })
 
 // detect config changed
@@ -1142,5 +1189,7 @@ function updateStatusIndicator(hard = null, temp = null, hum = null) {
 
 // init after system initialized
 ipcRenderer.on('system-inited', (event) => {
-    init()
+    init();
+    reTranslateRuntimeChart();
 })
+

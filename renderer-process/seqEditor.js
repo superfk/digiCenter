@@ -111,7 +111,7 @@ function generateTempTimePlot(xarr = [], yarr = []) {
     var trace1 = {
         // x: h_data_x,
         type: "scattergl",
-        name: 'temperature',
+        name: `${window.lang_data.lower_letter_temperature}`,
         x: minToFormatedTime,
         y: yarr,
         mode: 'lines+markers',
@@ -128,12 +128,12 @@ function generateTempTimePlot(xarr = [], yarr = []) {
         xaxis: {
             type: 'date',
             tickformat: '%H:%M:%S',
-            title: 'Time(H:M:S)',
+            title: `${window.lang_data.lower_letter_time}(H:M:S)`,
             zeroline: false,
             showline: true,
         },
         yaxis: {
-            title: 'Temperature(℃)'
+            title: `${window.lang_data.lower_letter_temperature}(℃)`
         },
         showlegend: false,
         legend: { "orientation": "h", x: 0, xanchor: 'left', y: 1.2, yanchor: 'top' },
@@ -167,6 +167,18 @@ function repositionChart() {
 
     Plotly.relayout('tempTime_graph', update);
 
+}
+
+function reTranslateTempTimeChart() {
+    var update = {
+        xaxis: {
+            title: `${window.lang_data.lower_letter_time}(H:M:S)`,
+        },
+        yaxis: {
+            title: `${window.lang_data.lower_letter_temperature}(℃)`
+        },
+    };
+    Plotly.relayout('tempTime_graph', update);
 }
 
 $(window).resize((e) => {
@@ -303,7 +315,7 @@ waitBox.addEventListener('click', () => {
 })
 
 loopBox.addEventListener('click', () => {
-    let { start, end } = seqRend.genLoopPara(alwayIncrLoopColorIdx);
+    let { start, end } = seqRend.genLoopPara(test_flow.main);
     appendSeq(start);
     appendSeq(end);
 })
@@ -448,7 +460,9 @@ applyParaBtn.addEventListener('click', () => {
 })
 
 // detect select language
-ipcRenderer.on('trigger_tanslate', (event) => {
+ipcRenderer.on('trigger_tanslate_to_edit_page', (event) => {
     seqContainer.innerHTML = seqRend.refreshSeq(test_flow, true);
     makeSortable();
+    reTranslateTempTimeChart();
+    console.log('triggerTranslation on edit page')
 })

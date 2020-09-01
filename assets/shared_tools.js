@@ -12,7 +12,7 @@ module.exports = {
     return "hsla(" + ~~(360 * Math.random()) + "," + "100%," + "50%,1)"
   },
   pick_color_hsl: function (alwayIncrLoopColorIdx = 0) {
-    let colorArr = ['red', 'blue', 'green', 'orange', 'brown', 'sienna', 'blueviolet', 'darkcyan', 'hotpink'];
+    let colorArr = ['#3498db', '#1abc9c', '#9b59b6', '#f1c40f', '#e74c3c', '#34495e', '#17c0eb', '#67e6dc', '#ffb8b8'];
     let ouputColor = colorArr[alwayIncrLoopColorIdx % colorArr.length];
     alwayIncrLoopColorIdx += 1
     return ouputColor
@@ -58,12 +58,12 @@ module.exports = {
 
     var layout = {
       xaxis: {
-        title: 'Temperature(℃)',
+        title: `${window.lang_data.lower_letter_temperature}(℃)`,
         zeroline: false,
         showline: true
       },
       yaxis: {
-        title: 'hardness',
+        title: `${window.lang_data.lower_letter_hard}`,
         range: [0, 100],
         zeroline: false,
         showline: true
@@ -77,7 +77,17 @@ module.exports = {
 
     Plotly.newPlot(domElement, data, layout, config);
   },
-
+  plotly_reTranlateChart: function (domElement) {
+    var update = {
+      xaxis: {
+        title: `${window.lang_data.lower_letter_temperature}(℃)`,
+      },
+      yaxis: {
+        title: `${window.lang_data.lower_letter_hard}`,
+      }
+    };
+    Plotly.relayout(domElement, update);
+  },
   plotly_addNewDataToPlot: function (locationID, xval, yval, y2val = null, sampleId = 0) {
     if (y2val == null) {
       Plotly.extendTraces(locationID, { x: [[xval]], y: [[yval]] }, [sampleId])

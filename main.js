@@ -511,7 +511,8 @@ ipcMain.on('login-changed', (event) => {
   mainWindow.webContents.send('refresh_user_accounts');
 })
 ipcMain.on('trigger_tanslate', (event) => {
-  mainWindow.webContents.send('trigger_tanslate');
+  mainWindow.webContents.send('trigger_tanslate_to_edit_page');
+  mainWindow.webContents.send('trigger_tanslate_to_run_page');
 })
 
 

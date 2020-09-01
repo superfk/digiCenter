@@ -69,7 +69,8 @@
   height: 70%;
   max-height: 500px;
   padding: 10px 10px 10px 10px;
-  /* border: 1px solid lightsteelblue; */
+  margin-top: 10px;
+  border-bottom: 1px solid lightsteelblue;
 }
 
 .mainSeqContainer > li > a{

@@ -1,6 +1,7 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, shell } = require('electron');
 const { app } = require('electron').remote;
 const appRoot = require('electron-root-path').rootPath;
+const path = require('path');
 
 let appVer = '';
 let appName = 'digiCenter';
@@ -467,3 +468,13 @@ var checkkeypressFirstLogin = function (e) {
     confirm_first_login();
   }
 }
+
+$('#event-data-link').on('click', (e) => {
+  e.preventDefault();
+  // Open a local file in the default app
+  let fpath = $("#event-data-link").attr("href");
+  console.log(fpath)
+  let foldername = path.dirname(fpath);
+  console.log(foldername)
+  shell.showItemInFolder(fpath);
+})

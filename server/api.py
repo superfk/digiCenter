@@ -236,6 +236,8 @@ class PyServerAPI(object):
                     await self.export_test_data_from_client(websocket,tabledata,path,option)
                 elif cmd == 'query_data_from_db':
                     await self.query_data_from_db(websocket,data)
+                elif cmd == 'download_event_chart_data':
+                    await self.download_event_chart_data(websocket, data)
                 elif cmd == 'get_digitest_is_rotaion_mode':
                     await self.get_digitest_is_rotaion_mode(websocket)
                 elif cmd == 'close_all':
@@ -618,6 +620,25 @@ class PyServerAPI(object):
             txt = self.lang_data['server_export_NG_reason']
             title = self.lang_data['server_export_NG_title']
             await self.sendMsg(websocket,'reply_export_test_data_from_client',{'resp_code': 0, 'title':title, 'res':txt})
+
+    async def download_event_chart_data(self, websocket, data):
+        try:
+            export_folder = self.config['system']['default_export_folder']
+            eventChartDataFolder = os.path.join(export_folder, 'event_chart_data')
+            util.newPathIfNotExist(eventChartDataFolder)
+            currertTime = datetime.datetime.now().strftime('%Y%m%d-%H%M%S.%f')
+            eventChartDataFilepath = os.path.join(eventChartDataFolder, currertTime+'.json')
+            util.write2JSON(eventChartDataFilepath, data)
+            txt = self.lang_data['server_export_ok_reason']
+            title = self.lang_data['server_export_ok_title']
+            await self.sendMsg(websocket,'reply_download_event_chart_data', {'resp_code': 1, 'title':title, 'res':txt, 'path':eventChartDataFilepath})
+        except:
+            err_msg = traceback.format_exc()
+            self.lg.debug('export Event Chart Data error!')
+            self.lg.debug(err_msg)
+            txt = self.lang_data['server_export_NG_reason']
+            title = self.lang_data['server_export_NG_title']
+            await self.sendMsg(websocket,'reply_download_event_chart_data',{'resp_code': 0, 'title':title, 'res':txt, 'path':''})
 
     async def query_data_from_db(self, websocket, filters):
         condition = r"WHERE "
