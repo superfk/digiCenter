@@ -43,7 +43,12 @@ class DigiChamber(object):
         time.sleep(delay_sec)
         data = self.s.recv(buffer)
         data = data.split(DELIM)
-        return data
+        if len(data)==1:
+            if int(data[0]) in [-8, -6]:
+                return data[0], None
+            return 0, data[0]
+        else:
+            return data
     
     def parsing_data(self, data):
         global CR, DELIM
@@ -300,6 +305,8 @@ class DigiChamber(object):
     def get_real_humidity(self, roundTo=1):
         cmd = self.create_cmd('11004', ['2'])
         respid, value = self.send_and_get(cmd)
+        if respid in [-8,-6]:
+            value = 0
         value = round(float(value),roundTo)
         return value
     
@@ -559,33 +566,49 @@ class DummyChamber(DigiChamber):
 
         
 if __name__ == '__main__':
-    dc = DigiChamber(ip='169.254.206.212')
+    dc = DigiChamber(ip='192.168.0.100')
     dc.connect()
     print('system info')
     print(dc.get_chamber_info())
     print('')
-    dc.set_manual_mode(True)
-    target = 40
-    dc.set_setPoint(target)
-    print('get setpoint: {}'.format(dc.get_setPoint()))
-    print('')
-    ctrl_var_info = dc.get_control_variables_info()
-    print(ctrl_var_info)
-    print('')
-    data = []
-    while True:
-        value = dc.get_real_temperature()
-        print('curretn temp: {}'.format(value))
-        print('get real setpoint: {}'.format(dc.get_real_control_variable_value()))
-        print('')
-        time.sleep(0.5)
-        data.append(value)
-        if value >= target:
-            break
+    ret = dc.get_real_humidity()
+    print(ret)
+    ret = dc.get_control_values_info()
+    print(ret)
+    ret = dc.get_gradient_up()
+    print(ret)
+    ret = dc.get_gradient_down()
+    print(ret)
+    ret = dc.get_mear_values_info()
+    print(ret)
+    ret = dc.get_real_control_variable_value()
+    print(ret)
+    ret = dc.get_real_temperature()
+    print(ret)
+    ret = dc.get_setPoint()
+    print(ret)
+    # dc.set_manual_mode(True)
+    # target = 30
+    # dc.set_setPoint(target)
+    # print('get setpoint: {}'.format(dc.get_setPoint()))
+    # print('')
+    # ctrl_var_info = dc.get_control_variables_info()
+    # print(ctrl_var_info)
+    # print('')
+    # data = []
+    # while True:
+    #     value = dc.get_real_temperature()
+    #     print('curretn temp: {}'.format(value))
+    #     print('get real setpoint: {}'.format(dc.get_real_control_variable_value()))
+    #     print('')
+    #     time.sleep(0.5)
+    #     data.append(value)
+    #     if value >= target:
+    #         break
     
-    dc.set_manual_mode(False)
+    # dc.set_manual_mode(False)
     dc.close()
-    plt.plot(data)
-    plt.show()
+    # plt.plot(data)
+    # plt.show()
 
 

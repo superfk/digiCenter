@@ -206,6 +206,8 @@ class TeardownStep(DigiCenterStep):
         super().set_paras(step)
         self.safeTemp = float(list(filter(lambda name: name['name'] == 'safe temperature', self.paras))[0]['value'])
         self.waitMinute = float(list(filter(lambda name: name['name'] == 'waiting time', self.paras))[0]['value'])
+        if self.waitMinute == 0:
+            self.waitMinute = 0.001 * 60
 
     @DigiCenterStep.deco
     def do(self):
@@ -243,9 +245,6 @@ class TeardownStep(DigiCenterStep):
                 self.hwDigichamber.set_dummy_act_temp(curT)
                 ## END   ###################################################
                 curT = self.hwDigichamber.get_real_temperature()
-                # prog = round( (abs(curT - initT) / abs(target-initT)) * 100, 0)
-                # self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
-                # self.resultCallback(self.result)
                 if (curT<=UL and curT>=LL) or startWait:
                     startWait = True
                     countTime = time.time() - initTime
@@ -292,6 +291,8 @@ class TemperatureStep(DigiCenterStep):
         self.slope = float(list(filter(lambda name: name['name'] == 'slope', self.paras))[0]['value'])
         self.incre = float(list(filter(lambda name: name['name'] == 'increment', self.paras))[0]['value'])
         self.settlingTime = float(list(filter(lambda name: name['name'] == 'settling time', self.paras))[0]['value']) * 60 # to second
+        if self.settlingTime==0:
+            self.settlingTime=0.001
         self.actTarget = self.targetTemp
     
     def set_gradient_process(self, target, slope):
@@ -348,7 +349,10 @@ class TemperatureStep(DigiCenterStep):
             if startCountSettlingTime:
                 tempProgress = 1
             else:
-                tempProgress = (abs(curT - initT) / abs(self.actTarget-initT))
+                diffT = abs(self.actTarget-initT)
+                if diffT == 0:
+                    diffT = 0.00001
+                tempProgress = (abs(curT - initT) / diffT)
             prog = round( tempProgress * 50 + settlingStartCountdownTime/self.settlingTime * 50 , 0)
             if counter*loopInterval >= sendInterval:
                 self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
@@ -620,6 +624,8 @@ class WaitingStep(DigiCenterStep):
     @DigiCenterStep.deco
     def do(self):
         targetTime = self.condTime*60.0
+        if targetTime == 0:
+            targetTime = 0.001
         countdownTime = 0
         startTime = time.time()
         counter = 0

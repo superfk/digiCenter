@@ -87,6 +87,7 @@ function connect() {
           createUserAccountTable(data);
           break;
         case 'reply_add_new_user':
+          console.log(data)
           switch (data[0]) {
             case 0:
               ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, data[1])
@@ -95,7 +96,7 @@ function connect() {
             case 1:
               // code block
               $('#copy_pw').off('click', copy2clipboard);
-              var txt = `New password is <b id='rnd_pw'>${data[2].pw}</b>, Please enter it when next login. <p><button id='copy_pw' class="w3-button w3-border w3-small">Copy</button></p>`;
+              var txt = `New password is <b id='rnd_pw'>${data[2]}</b>, Please enter it when next login. <p><button id='copy_pw' class="w3-button w3-border w3-small">Copy</button></p>`;
               $('#rand_pw_indicator').html(txt);
               $('#copy_pw').on('click', copy2clipboard);
               $('#rand_pw_indicator').show();

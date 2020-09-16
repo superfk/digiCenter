@@ -41,9 +41,10 @@ class DigiChamberProduct(pd_product.Product):
         self.in_test_mode = False
         self.force_manual_mode = False
         self.sysConfig = None
-        self._executor = ThreadPoolExecutor(10)
         self.stopMsgQueue = None
         self.pauseQueue = None
+        self.digiChamberError = False
+        self.digiTestError = False
     
     def set_sysConfig(self, sysConfig):
         self.sysConfig = sysConfig
@@ -364,7 +365,7 @@ class DigiChamberProduct(pd_product.Product):
                     humInfo['value']=None 
             except Exception as e:
                 err_msg = traceback.format_exc()
-                self.log_to_db_func('digiChamber get temperature error: {}'.format(err_msg), 'info', False)
+                # self.log_to_db_func('digiChamber get temperature error: {}'.format(err_msg), 'info', False)
             finally:
                 try:
                     if self.digiTest.connected:
@@ -380,7 +381,7 @@ class DigiChamberProduct(pd_product.Product):
                         dtInfo['value']= None
                 except Exception as e:
                     err_msg = traceback.format_exc()
-                    self.log_to_db_func('digitest get value error: {}'.format(err_msg), 'info', False)
+                    # self.log_to_db_func('digitest get value error: {}'.format(err_msg), 'info', False)
                 finally:
                     status = {'dt':dtInfo,'temp':tempInfo, 'hum':humInfo}
                     #self.sendCommunicateCallback('update_cur_status',status)
@@ -468,6 +469,7 @@ class DigiChamberProduct(pd_product.Product):
         try:
             self.digiTest = obj_digitest
             conn = self.digiTest.open_rs232(COM, timeout=5)
+            self.digiTest.config(debug=False, wait_cmd = True)
             self.digiTest.setRotation()
             dev_name = self.digiTest.get_dev_name()
             dev_sw_version = self.digiTest.get_dev_software_version()

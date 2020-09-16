@@ -167,7 +167,7 @@ function connect() {
             ipcRenderer.send('show-alert-alert', 'Alert', data.res + '\n' + data.reason);
           } else {
             clearInterval(monitorValue);
-            monitorValue = setInterval(monitorFunction, 1000)
+            monitorValue = setInterval(monitorFunction, 3000)
             ipcRenderer.send('system-inited');
           }
           break;
@@ -469,12 +469,3 @@ var checkkeypressFirstLogin = function (e) {
   }
 }
 
-$('#event-data-link').on('click', (e) => {
-  e.preventDefault();
-  // Open a local file in the default app
-  let fpath = $("#event-data-link").attr("href");
-  console.log(fpath)
-  let foldername = path.dirname(fpath);
-  console.log(foldername)
-  shell.showItemInFolder(fpath);
-})

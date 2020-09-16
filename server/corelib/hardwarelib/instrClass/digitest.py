@@ -600,7 +600,7 @@ def main():
 def test_rotation():
     ba = Digitest()
    
-    ba.open_rs232("COM5")
+    ba.open_rs232("COM3")
     print(ba.isConnectRotation())
 
     ret = ba.get_ms_method()
@@ -640,7 +640,7 @@ def test_rotation():
 def go_to_sample(N=0, n=0):
     ba = Digitest()
    
-    ba.open_rs232("COM5")
+    ba.open_rs232("COM3")
     print(ba.isConnectRotation())
 
     ret = ba.get_ms_method()
@@ -690,14 +690,30 @@ def mearsure():
 
 def test():
     ba = DummyDigitest()
-    ba.open_rs232("COM5")
+    ba.open_rs232("COM3")
     ba.setRotation()
     ba.set_rotation_home()
     for i in range(75):
         ret = ba.set_rotation_pos((i // 3)+1, (i % 3)+1)
         print(ret)
 
+def onsite():
+    ba = Digitest()
+    ba.open_rs232("COM3")
+    ret = ba.get_rotation_info()
+    print(ret)
+    ba.set_remote(False)
+    ba.close_rs232()
+
+def onsite_motion():
+    ba = Digitest()
+    ba.open_rs232("COM3")
+    ret = ba.get_rotation_info()
+    print(ret)
+    ba.set_remote(False)
+    ba.close_rs232()
+
 if __name__ == '__main__':
     # test_rotation_single_mear()
     # test_rotation_graph_mear()
-    mearsure()
+    onsite_motion()

@@ -89,7 +89,7 @@ class BaInstr(object):
 
     
     def open_rs232(self, port=None, baudrate=9600, bytesize=serial.EIGHTBITS, parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=10):
-        self.device = serial.Serial(port=port, baudrate=baudrate, bytesize=bytesize, parity=parity, stopbits=stopbits, timeout=timeout, write_timeout=3)
+        self.device = serial.Serial(port=port, baudrate=baudrate, bytesize=bytesize, parity=parity, stopbits=stopbits, timeout=timeout, write_timeout=3, rtscts=True, dsrdtr=True)
         if self.device:
             self.connected = True
         else:

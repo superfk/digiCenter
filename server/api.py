@@ -492,9 +492,10 @@ class PyServerAPI(object):
             statusCode_digitest = self.productProcess.init_digitest_controller(self.digiTest,COM)
             if statusCode_digitest > 0:
                 self.lg.debug('digiTest init OK')
-                self.get_digitest_is_rotaion_mode(websocket)
+                await self.get_digitest_is_rotaion_mode(websocket)
             await self.sendMsg(websocket,'reply_init_hw',{'resp_code':1, 'res':self.lang_data['server_hw_init_ok']})
             await self.sendMsg(websocket,'reply_init_hw_status',{'digitest':statusCode_digitest, 'digichamber': statusCode_digiChambner})
+            self.productProcess.in_test_mode = False
         except Exception as e:
             err_msg = traceback.format_exc()
             self.lg.debug('error during excetipn handling in init_hw')
