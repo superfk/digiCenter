@@ -9,3 +9,4 @@ builds
 /db_autoupdate/build
 /db_autoupdate/dist
 /db_autoupdate/venv
+venv
