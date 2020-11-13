@@ -615,7 +615,10 @@ function createRoleTable(tableData) {
     'select': {
       'style': 'single'
     },
-    rowReorder: true
+    rowReorder: true,
+    columnDefs: [
+      { "targets": 1, "visible": false }
+    ]
   });
 
   table_role_list.draw();
@@ -750,18 +753,18 @@ $('#apply_change_user_fnc').on('click', function () {
 // add new role box
 $('#add_new_role_btn').on('click', function () {
 
-  $('#new-role-level').val(1);
+  // $('#new-role-level').val(1);
   $('#new-user-role-modal').show();
   $("#new-role-name").focus().select();
-
 
 });
 
 $('#new-role-add-btn').on('click', function () {
 
   let new_role_val = $("#new-role-name").val();
-  let new_role_level = $('#new-role-level').val();
-  ws.send(tools.parseCmd('add_role', { 'level': new_role_level, 'role': new_role_val }));
+  // let new_role_level = $('#new-role-level').val();
+  // ws.send(tools.parseCmd('add_role', { 'level': new_role_level, 'role': new_role_val }));
+  ws.send(tools.parseCmd('add_role', { 'level': 10, 'role': new_role_val }));
   $('#new-user-role-modal').hide();
 
 });

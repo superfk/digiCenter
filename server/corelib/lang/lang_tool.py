@@ -130,7 +130,7 @@ def writeAllToJson(source):
     print(lang_names)
     for ln in lang_names:
         print(df[ln])
-        jfile = '{}.json'.format(ln)
+        jfile = 'C:\\digiCenter\\lang\\{}.json'.format(ln)
         with open(jfile, 'w', encoding='utf-8-sig') as file:
             df[ln].to_json(file, force_ascii=False, orient='index',indent=2)
 
@@ -157,7 +157,7 @@ if __name__ == '__main__':
     langset = ['en','de','zh_tw']
     # lg = TimeRotateLogger('syslog', 'M', 5)
     # writeSingleToExcel('de')
-    writeAllToJson(source='all_lang_V1.9.xlsx')
+    writeAllToJson(source='all_lang_V2.0.xlsx')
     data = load_json_lang_from_json('','zh_cn')
     logger.debug(data)
     # data = str(data).encode("utf8").decode("utf8", "ignore")

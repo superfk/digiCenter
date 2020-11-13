@@ -77,12 +77,12 @@ class PyServerAPI(object):
     async def register(self,websocket):
         self.users.add(websocket)
         self.lg.debug('new user connected: {}'.format(websocket))
-        self.local_log_to_db('new user connected: {}'.format(websocket))
+        # self.local_log_to_db('new user connected: {}'.format(websocket))
 
     async def unregister(self,websocket):
         self.users.remove(websocket)
         self.lg.debug('user disconnected: {}'.format(websocket))
-        self.local_log_to_db('new user connected: {}'.format(websocket))
+        # self.local_log_to_db('new user connected: {}'.format(websocket))
 
     async def handler(self,websocket, path):
         # register(websocket) sends user_event() to websocket
@@ -227,6 +227,8 @@ class PyServerAPI(object):
                         await self.continues_batch(websocket,project, batch, notes, seq_name, numSamples)
                 elif cmd == 'query_batch_history':
                     await self.query_batch_history(websocket)
+                elif cmd == 'pause_seq':
+                    self.pause_seq()
                 elif cmd == 'stop_seq':
                     self.stop_seq()
                 elif cmd == 'export_test_data_from_client':
@@ -358,12 +360,13 @@ class PyServerAPI(object):
         if not self.db.connect('DigiChamber'):
             res['result']=0
             res['resp']='database connection error'
-            self.lg.debug(res['resp'])
+            self.lg(res['resp'])
             await self.sendMsg(websocket,cmd='result_of_backendinit',data=res)
         else:
             res['result']=1
             res['resp']='database connection ok'
-            self.lg.debug(res['resp'])
+            self.local_log_to_db('Application Start')
+            self.local_log_to_db(res['resp'])
             self.userMang.db = self.db
             self.userMang.set_log_to_db_func(self.local_log_to_db)
             self.productProcess.db = self.db
@@ -448,21 +451,18 @@ class PyServerAPI(object):
         """Connnect to DigiChamber"""
         ip = self.config['system']['machine_ip']
         port = self.config['system']['machine_port']
-        self.lg.debug("conntecting to machine with ip {}, port {}".format(ip,port))
+        self.local_log_to_db("conntecting to machine with ip {}, port {}".format(ip,port))
         try:
             if self.digiChamber.connected:
                 await self.sendMsg(websocket,"connection already established")
             else:
                 self.digiChamber = DigiChamber(ip,port)
                 self.digiChamber.connect()
+                self.local_log_to_db("conntected to temperature chamber with ip {}, port {}".format(ip,port))
                 await self.sendMsg(websocket,"connection ok")
         except:
-            try:
-                self.digiChamber = DigiChamber(ip,port)
-                self.digiChamber.connect()
-                await self.sendMsg(websocket,"connection ok")
-            except:
-                await self.sendMsg(websocket,"connection failed")
+            self.local_log_to_db("connection to temperature chamber with ip {}, port {} failed".format(ip,port))
+            await self.sendMsg(websocket,"connection failed")
     
     async def run_cmd(self, websocket,data):
         respObj = {'error':False,'res':None}
@@ -488,10 +488,10 @@ class PyServerAPI(object):
                 self.digiTest = Digitest()
             statusCode_digiChambner = self.productProcess.init_digiChamber_controller(self.digiChamber)
             if statusCode_digiChambner > 0:
-                self.lg.debug('digiChamber init OK')
+                self.local_log_to_db("connection to temperature chamber with ip {}, port {} OK".format(ip,port))
             statusCode_digitest = self.productProcess.init_digitest_controller(self.digiTest,COM)
             if statusCode_digitest > 0:
-                self.lg.debug('digiTest init OK')
+                self.local_log_to_db("connection to digiTest with COM {} OK".format(COM))
                 await self.get_digitest_is_rotaion_mode(websocket)
             await self.sendMsg(websocket,'reply_init_hw',{'resp_code':1, 'res':self.lang_data['server_hw_init_ok']})
             await self.sendMsg(websocket,'reply_init_hw_status',{'digitest':statusCode_digitest, 'digichamber': statusCode_digiChambner})
@@ -512,7 +512,12 @@ class PyServerAPI(object):
         # asyncio.run_coroutine_threadsafe(self.productProcess.run_seq(websocket,batchInfoForSamples), self.testLoop)
         # asyncio.create_task(self.productProcess.run_seq(websocket,batchInfoForSamples))
 
+    def pause_seq(self):
+        self.local_log_to_db('execute pause seq')
+        self.productProcess.set_test_pause()
+
     def stop_seq(self):
+        self.local_log_to_db('execute stop seq')
         self.lg.debug('execute stop seq')
         self.productProcess.set_test_stop()
 
@@ -531,6 +536,7 @@ class PyServerAPI(object):
             now = curtime.strftime(r"%Y/%m/%d %H:%M:%S.%f")
             self.batch = BatchInfo(project, batch, curtime, notes, seq_name, numOfSample)
             self.productProcess.setBatchInfo(self.batch)
+            self.local_log_to_db(f"batch {batch} created!")
             values = [project, batch, now, notes, seq_name, numOfSample]
             self.db.insert('Batch_data', fields, values)
             txt = self.lang_data['server_reply_batch_created_reason'].format(batch)
@@ -663,25 +669,29 @@ class PyServerAPI(object):
         await self.sendMsg(websocket,'get_digitest_is_rotaion_mode',isRotationMode)
 
     async def close_all(self, websocket):
+        self.local_log_to_db("Start close application processes..")
         try:
-            self.db.close()
-            self.lg.debug('close database ok')
-        except Exception as e:
-            self.lg.debug('close database error!')
-            self.lg.debug(e)
-        try:
+            self.local_log_to_db("Closing temperature chamber")
             self.productProcess.close_digiChamber_controller()
             self.digiChamber=None
-            self.lg.debug('close digichamber ok')
+            self.local_log_to_db("Close digichamber ok")
         except Exception as e:
             self.lg.debug('close digichamber error!')
             self.lg.debug(e)
         try:
+            self.local_log_to_db("Closing digiTest")
             self.productProcess.close_digitest_controller()
             self.digiTest = None
-            self.lg.debug('close digiTest ok')
+            self.local_log_to_db("Closing digiTest ok")
         except Exception as e:
             self.lg.debug('close digiTest error!')
+            self.lg.debug(e)
+        try:
+            self.local_log_to_db('Application End')
+            self.db.close()
+            self.lg.debug('close database ok')
+        except Exception as e:
+            self.lg.debug('close database error!')
             self.lg.debug(e)
         finally:
             await self.sendMsg(websocket,'reply_close_all')

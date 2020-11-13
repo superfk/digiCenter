@@ -146,6 +146,7 @@ class Digitest(BaInstr):
     
     def get_single_value(self, dummyTemp=0, immediate=False):
         ret = self.write_and_read('GET','MS_VALUE')
+        print(f'ret: {ret}')
         try:
             mearValue = float(ret)
             return 1, mearValue
@@ -662,9 +663,14 @@ def mearsure():
 
     def mear(ba):
         ba.start_mear()
+        counter = 0
         while True:
             statusCode, value = ba.get_single_value()
-            print('final resp of step {}: {}'.format(i, value))
+            print('final resp of step {}: {}, statusCode: {}'.format(i, value, statusCode))
+            if counter == 5:
+                ba.stop_mear()
+                break
+            counter += 1
             if statusCode == 1:
                 return value
             elif statusCode < 0:
@@ -674,11 +680,11 @@ def mearsure():
                 time.sleep(0.1)
 
     
-    ba.open_rs232("COM3")
+    ba.open_rs232("COM5")
 
     ret = ba.get_ms_method()
     print(ret)
-    ba.config(debug=True,wait_cmd = False)
+    ba.config(debug=False,wait_cmd = True)
     ba.set_remote(True)
     ba.set_std_mode()
     duration_s = 1
@@ -716,4 +722,4 @@ def onsite_motion():
 if __name__ == '__main__':
     # test_rotation_single_mear()
     # test_rotation_graph_mear()
-    onsite_motion()
+    mearsure()

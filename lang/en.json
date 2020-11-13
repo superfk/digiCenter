@@ -59,7 +59,7 @@
   "seqEditor_toolbox_title":"Toolbox",
   "seqEditor_toolbox_temperature":"Temperature",
   "seqEditor_toolbox_hard":"Hardness",
-  "seqEditor_toolbox_wait":"Waiting",
+  "seqEditor_toolbox_wait":"Conditioning Time",
   "seqEditor_toolbox_loop":"Loop",
   "seqEditor_toolbox_subprog":"SubProg",
   "seqEditor_toolbox_export":"Export",
@@ -223,7 +223,7 @@
   "seq_enable":"Enable",
   "seq_delete":"Delete",
   "open_teach_pos_pdf":"Click me to open guide of teaching position",
-  "side_posteach":"MearPos Guide",
+  "side_posteach":"Define Testing Locations",
   "run_stauts_monitor_title":"Sample Monitor",
   "run_open_sampleSetupList_btn":"Test Setup",
   "modal_batch_setup_dialog_title":"Test Setup",
@@ -253,7 +253,7 @@
   "loop_counts":"loop counts",
   "loop_color":"loop color",
   "stop on":"stop on",
-  "waiting_time":"waiting time",
+  "waiting_time":"conditioning time",
   "safe_temperature":"safe temperature",
   "digitest_distance_too_big":"DigiTest Error. Distance too big, please check sample.",
   "rotation_table_move_fail":"RotationTableMoveError. Please check motor.",
@@ -269,5 +269,9 @@
   "lower_letter_temperature":"temperature",
   "lower_letter_humidity":"humidity",
   "lower_letter_time":"time",
-  "param_modify_ok":"parameters changed successfully!"
+  "param_modify_ok":"parameters changed successfully!",
+  "run_pause_btn":"Pause",
+  "run_resume_btn":"Resume",
+  "wait_for_resume_header":"Wating for resume",
+  "wait_for_resume_title":"Please click resume button to continue test"
 }

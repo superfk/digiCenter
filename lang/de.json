@@ -59,7 +59,7 @@
   "seqEditor_toolbox_title":"Toolbox",
   "seqEditor_toolbox_temperature":"Temperatur",
   "seqEditor_toolbox_hard":"Härte",
-  "seqEditor_toolbox_wait":"Bitte warten",
+  "seqEditor_toolbox_wait":"Wartezeit",
   "seqEditor_toolbox_loop":"Schleife",
   "seqEditor_toolbox_subprog":"Unterprogramm",
   "seqEditor_toolbox_export":"Exportieren",
@@ -223,7 +223,7 @@
   "seq_enable":"Freigeben",
   "seq_delete":"Löschen",
   "open_teach_pos_pdf":"Klicken Sie auf mich, um den Leitfaden für die Lehrposition zu öffnen",
-  "side_posteach":"MearPos Guide",
+  "side_posteach":"Testorte definieren",
   "run_stauts_monitor_title":"Probe-Monitor",
   "run_open_sampleSetupList_btn":"Versuchsaufbau",
   "modal_batch_setup_dialog_title":"Versuchsaufbau",
@@ -248,7 +248,7 @@
   "measuring_time":"Messzeit",
   "number_of_measurement":"Anzahl der Messungen",
   "numerical_method":"numerische Methode",
-  "conditioning_time":"Konditionierungszeit",
+  "conditioning_time":"Wartezeit",
   "loopid":"Schleifen ID",
   "loop_counts":"Schleifenzählungen",
   "loop_color":"Schleifen Farbe",
@@ -269,5 +269,9 @@
   "lower_letter_temperature":"temperatur",
   "lower_letter_humidity":"feuchtigkeit",
   "lower_letter_time":"zeit",
-  "param_modify_ok":"Parameter erfolgreich geändert!"
+  "param_modify_ok":"Parameter erfolgreich geändert!",
+  "run_pause_btn":"Auszeit",
+  "run_resume_btn":"Fortsetzen",
+  "wait_for_resume_header":"Wating für Lebenslauf",
+  "wait_for_resume_title":"Bitte klicken Sie auf Wiederaufnahme-Taste Test fortzusetzen"
 }

@@ -33,6 +33,7 @@ class DigiCenterStep(object):
         self.batchinfo = None
         self.batchInfoForSamples = None
         self.stopMsgQueue = None
+        self.interuptQueue = None
         self.pauseQueue = None
         self.lg = None
         self.force_manual_mode = False
@@ -172,8 +173,31 @@ class DigiCenterStep(object):
     def isInterrupted(self):
         return self.stopMsgQueue.qsize()>0
 
-    def wait_for_continue(self):
+    def isPauseed(self):
+        try:
+            ret = self.pauseQueue.get_nowait()
+            if ret == 'pause':
+                self.pauseQueue.task_done()
+                return True
+            else:
+                return False
+        except:
+            return False
+
+    def checkPauseProcess(self):
+        ret = self.isPauseed()
+        if ret:
+            self.wait_for_resume_from_pause()
+
+    def wait_for_resume_from_pause(self):
         retStatus = self.pauseQueue.get()
+        self.pauseQueue.task_done()
+        self.commCallback('reply_resume_from_break', '')
+        return retStatus
+
+    def wait_for_continue(self):
+        retStatus = self.interuptQueue.get()
+        self.interuptQueue.task_done()
         return retStatus
 
     def set_error_occurred(self, error=False, detail=''):
@@ -259,6 +283,7 @@ class TeardownStep(DigiCenterStep):
                     self.resultCallback(self.result)
                     initTime = time.time()
                 time.sleep(1)
+                self.checkPauseProcess()
         try:
             self.hwDigichamber.set_manual_mode(False)
             self.commCallback('update_machine_status',{'dt':None,'temp':{'status':1, 'value':None}, 'hum':{'status':1, 'value':None}})
@@ -384,6 +409,16 @@ class TemperatureStep(DigiCenterStep):
                 settlingStartCountdownTime = time.time() - settlingStartTime
                 if settlingStartCountdownTime >= self.settlingTime:
                     break
+            # pause process
+            ret = self.isPauseed()
+            if ret:
+                self.hwDigichamber.set_gradient_up(0)
+                self.hwDigichamber.set_gradient_down(0)
+                self.hwDigichamber.set_setPoint(curT)
+                self.hwDigichamber.set_manual_mode(True)
+                self.wait_for_resume_from_pause()
+                curT = self.hwDigichamber.get_real_temperature()
+                self.set_gradient_process(self.actTarget,self.slope)
 
         self.set_result(curT,'PASS',unit='&#8451', progs=100)
         # self.hwDigichamber.set_manual_mode(False)
@@ -460,6 +495,17 @@ class HardnessStep(DigiCenterStep):
                 self.resultCallback(self.result)
                 # time.sleep(0.5)
                 time.sleep(0.5)
+                
+            if self.isInterrupted():
+                self.hwDigitest.stop_mear()
+                self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
+                return 'Stop', 0
+
+            # pause process
+            ret = self.isPauseed()
+            if ret:
+                self.hwDigitest.stop_mear()
+                self.wait_for_resume_from_pause()
 
     def go_next_measurment_process(self,currentSample,currentPosition):
         sampleIndex = currentSample['id']
@@ -525,6 +571,7 @@ class HardnessStep(DigiCenterStep):
                 sampleIndexInBatch = smp['batchInfo']['sampleId']
                 
                 # move
+                self.checkPauseProcess()
                 status = self.go_next_measurment_process(smp, n)
                 if status == 'move_fail':
                     self.set_result(round(0.0,1),'ERROR_STOP', eventName='move_fail',hardness_dataset=self.singleResult, progs=100)
@@ -534,6 +581,8 @@ class HardnessStep(DigiCenterStep):
                 currentResult = self.result.copy()
                 self.resultCallback(self.result)
 
+                self.checkPauseProcess()
+
                 # mearsure
                 self.hwDigitest.config(debug=False, wait_cmd = False)
                 statusMsg, output_data = self.mear_process(smp)
@@ -542,6 +591,8 @@ class HardnessStep(DigiCenterStep):
                 if statusMsg == 'ERROR_STOP':
                     self.lg.debug('[output_data] {}'.format(output_data))
                     self.set_result(None,'ERROR_STOP',eventName='distance_too_big', hardness_dataset=self.singleResult, progs=100, batchInfo=smp)
+                    return self.result
+                elif statusMsg == 'Stop':
                     return self.result
 
                 # record data
@@ -576,6 +627,9 @@ class HardnessStep(DigiCenterStep):
                     currentResult = self.result.copy()
                     self.resultCallback(currentResult)
                     break
+
+                self.checkPauseProcess()
+            
         self.commCallback('update_machine_status',{'dt':{'status':1, 'value':None},'temp':None, 'hum':None})
         return self.result
 
@@ -631,16 +685,18 @@ class WaitingStep(DigiCenterStep):
         counter = 0
         loopInterval = 0.5 #second
         sendInterval = 10 #second
+        additionTimeToAdd = []
         # do time control
-        while countdownTime<targetTime:
+        while countdownTime< targetTime:
             if self.stopMsgQueue.qsize()>0:
                 # stop process immediately
                 break
             # time.sleep(0.27)
             time.sleep(0.27)
             endTime = time.time()
-            countdownTime = endTime - startTime
+            countdownTime = endTime - startTime - sum(additionTimeToAdd)
             prog = round( countdownTime / targetTime * 100, 0)
+
             if counter*loopInterval >= sendInterval:
                 self.set_result(round(countdownTime,1),'WAITING',unit='s', progs=prog)
                 self.resultCallback(self.result)
@@ -649,6 +705,14 @@ class WaitingStep(DigiCenterStep):
                 self.set_result(round(countdownTime,1),'UPDATE_PROGRESS_ONLY',unit='s', progs=prog)
                 self.resultCallback(self.result)
                 counter += 1
+            
+            timeBeforePause = time.time()
+            self.checkPauseProcess()
+            timeAfterPause = time.time()
+            pauseTime = timeAfterPause - timeBeforePause
+            if pauseTime > 1:
+                additionTimeToAdd.append(pauseTime)
+
         self.set_result(round(countdownTime,1),'PASS',unit='s', progs=100)
         return self.result
 

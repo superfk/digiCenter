@@ -42,7 +42,7 @@ class DigiChamberProduct(pd_product.Product):
         self.force_manual_mode = False
         self.sysConfig = None
         self.stopMsgQueue = None
-        self.pauseQueue = None
+        self.interuptQueue = None
         self.digiChamberError = False
         self.digiTestError = False
     
@@ -211,6 +211,7 @@ class DigiChamberProduct(pd_product.Product):
             self.ws = websocket
             self.errorMsg = None
             self.stopMsgQueue = queue.Queue()
+            self.interuptQueue = queue.Queue()
             self.pauseQueue = queue.Queue()
             startTime = time.time()
             totalStepsCounts = len(self.stepsClass)
@@ -225,6 +226,7 @@ class DigiChamberProduct(pd_product.Product):
                     s.set_result_callback(self.sendResultCallback)
                     s.set_communicate_callback(self.sendCommunicateCallback)
                     s.stopMsgQueue = self.stopMsgQueue
+                    s.interuptQueue = self.interuptQueue
                     s.pauseQueue = self.pauseQueue
                     s.set_batchinfo(self.batchInfo)
                     s.set_batchInfoForSamples(batchInfoForSamples)
@@ -248,7 +250,7 @@ class DigiChamberProduct(pd_product.Product):
                     if cursor >= totalStepsCounts or self.testStop:
                         break
                     # continuous process
-                    self.log_to_db_func('current cursor: {}'.format(cursor), 'info', False)
+                    # self.log_to_db_func('current cursor: {}'.format(cursor), 'info', False)
                     # get payload step
                     step = self.stepsClass[cursor]
 
@@ -258,7 +260,8 @@ class DigiChamberProduct(pd_product.Product):
                     # do step
                     testResult = step.do()
                     # testResult = await step.do()
-                    self.log_to_db_func('output of testResult: {}'.format(testResult), 'info', True)
+                    # self.log_to_db_func('output of testResult: {}'.format(testResult), 'info', True)
+                    self.lg.debug('output of testResult: {}'.format(testResult),)
 
                     # handle result
                     if testResult['status'] in ['PASS','FAIL','SKIP','MEAR_NEXT']:
@@ -303,7 +306,7 @@ class DigiChamberProduct(pd_product.Product):
 
         finally:
             try:
-                self.pauseQueue.task_done()
+                self.interuptQueue.task_done()
             except:
                 pass
             if self.interruptStop:
@@ -413,7 +416,7 @@ class DigiChamberProduct(pd_product.Product):
         asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,'update_step_result',result), self.parentLoop)
         # asyncio.create_task(self.socketCallback(self.ws,'update_step_result',result))
     
-    def sendCommunicateCallback(self,cmd, data):
+    def sendCommunicateCallback(self,cmd, data=''):
         # await self.socketCallback(self.ws,cmd,data)
         asyncio.run_coroutine_threadsafe(self.socketCallback(self.ws,cmd,data), self.parentLoop)
         # asyncio.create_task(self.socketCallback(self.ws,cmd,data))
@@ -426,23 +429,29 @@ class DigiChamberProduct(pd_product.Product):
         
     def continuous_mear(self,status):
         if status == 'retry':
-            self.pauseQueue.put('retry')
+            self.interuptQueue.put('retry')
         elif status == 'continue':
-            self.pauseQueue.put('continue')
+            self.interuptQueue.put('continue')
         elif status == 'run_teardown':
-            self.pauseQueue.put('run_teardown')
+            self.interuptQueue.put('run_teardown')
+        elif status == 'resume':
+            self.pauseQueue.put('resume')
         elif status == 'stop':
-            self.pauseQueue.put('stop')
+            self.interuptQueue.put('stop')
     
     def set_normal_test_stop(self):
         self.testStop=True
-        self.pauseQueue.put('stop')
+        self.interuptQueue.put('stop')
+
+    def set_test_pause(self):
+        self.pauseQueue.put('pause')
 
     def set_test_stop(self):
         self.testStop=True
         self.interruptStop=True
         self.stopMsgQueue.put(True)
-        self.pauseQueue.put('stop')
+        self.interuptQueue.put('stop')
+        self.pauseQueue.put('resume')
     
     def init_digiChamber_controller(self,obj_digiChmaber):
         try:

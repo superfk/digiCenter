@@ -20,6 +20,9 @@ module.exports = {
   sec2dt: function (seconds) {
     return new Date(seconds * 1000).toISOString()
   },
+  sec2HMS: function (seconds) {
+    return new Date(seconds * 1000).toISOString().substr(11,8)
+  },
   capitalize: (s) => {
     if (typeof s !== 'string') return ''
     return s.charAt(0).toUpperCase() + s.slice(1)

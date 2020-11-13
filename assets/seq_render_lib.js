@@ -170,8 +170,8 @@ module.exports = {
                 default:
 
             }
-            // titles.push(`Step ${i+1} :: ${tools.capitalize(cat)} :: ${tools.capitalize(subitem['item'])}`);
-            titles.push(`${window.lang_data['seq_step']} ${i + 1} :: ${tools.capitalize(window.lang_data[catByLang])}`);
+            // titles.push(`Step ${i+1} : ${tools.capitalize(cat)} : ${tools.capitalize(subitem['item'])}`);
+            titles.push(`${window.lang_data['seq_step']} ${i + 1} : ${tools.capitalize(window.lang_data[catByLang])}`);
         }
 
         return titles;
@@ -418,7 +418,7 @@ module.exports = {
             let mtPara = paras.filter(item => item.name == 'measuring time')[0];
             let nomearPara = paras.filter(item => item.name == 'number of measurement')[0];
             let nummethodPara = paras.filter(item => item.name == 'numerical method')[0];
-            mainText = `mearTime:${mtPara.value}${mtPara.unit}, mearCounts:${nomearPara.value}, ${nummethodPara.value} `;
+            mainText = `time:${mtPara.value}${mtPara.unit}, counts:${nomearPara.value}, ${nummethodPara.value} `;
         } else if (cat === 'waiting') {
             let cdtPara = paras.filter(item => item.name == 'conditioning time')[0];
             mainText = `conditioningTime:${cdtPara.value} ${cdtPara.unit}`;

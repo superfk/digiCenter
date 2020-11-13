@@ -16,13 +16,17 @@
                                 data-lang='run_open_sampleSetupList_btn' data-lang_type='innertext'>Test Setup</span>
                         </button>
 
-                        <button id='batchConfirmAndStart' tabindex="-1" data-auth='start_test'
-                            class="w3-button w3-block w3-green "><i class="fas fa-play w3-medium w3-margin-right"></i>
+                        <button id='batchConfirmAndStart' tabindex="-1" data-auth='start_test' class="w3-button w3-block w3-green ">
+                            <i class="fas fa-play w3-medium w3-margin-right"></i>
                             <span data-lang='run_start_btn' data-lang_type='innertext'>Start</span></button>
 
-                        <button id='stop_test' tabindex="-1" data-auth='stop_test' class="w3-button w3-block  w3-red"><i
-                                class="fas fa-stop-circle w3-medium w3-margin-right"></i><span data-lang='run_stop_btn'
-                                data-lang_type='innertext'></span></button>
+                        <button id='pause_test' tabindex="-1" data-auth='start_test' class="w3-button w3-block w3-yellow">
+                            <i class="fas fa-pause w3-medium w3-margin-right"></i>
+                            <span data-lang='run_pause_btn' data-lang_type='innertext'>Pause</span></button>
+
+                        <button id='stop_test' tabindex="-1" data-auth='stop_test' class="w3-button w3-block  w3-red">
+                            <i class="fas fa-stop-circle w3-medium w3-margin-right"></i>
+                            <span data-lang='run_stop_btn' data-lang_type='innertext'>Stop</span></button>
                     </div>
                     <hr>
                     <div id='seqStats' class='seqStatsContainer'>
@@ -363,6 +367,23 @@
                     <button id='cancelTeardown' class="w3-button w3-red" data-lang='teardown_cancel_btn'
                         data-lang_type='innertext'><i class="far fa-stop-circle"></i><span
                             data-lang='teardown_cancel_btn' data-lang_type='innertext'>Stop</span></button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Showing Pause Modal -->
+    <div id="modal_wait_for_resume_dialog" class="w3-modal" style='z-index:30'>
+        <div class="w3-modal-content w3-animate-opacity w3-card-4">
+            <div class="w3-container w3-yellow">
+                <h2 data-lang='wait_for_resume_header' data-lang_type='innertext' style="margin-top: 1rem">
+                    Wating for resume</h2>
+            </div>
+            <div class="w3-container w3-center resumeContentContainer">
+                <h2 data-lang='wait_for_resume_title' data-lang_type='innertext'>
+                    Please click resume button to continue test</h2>
+                <div class="resumeActionBtnContainer">
+                    <button id='resume_btn' class="w3-button w3-green"><span data-lang='run_resume_btn' data-lang_type='innertext'>Resume</span></button>
                 </div>
             </div>
         </div>

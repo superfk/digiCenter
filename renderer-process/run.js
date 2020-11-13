@@ -22,6 +22,8 @@ let sampleSetupDialog = document.getElementById('modal_batch_setup_dialog');
 let sampleBatchListContainer = document.getElementById('sampleBatchListContainer')
 let sampleBatchCircleContainer = document.getElementById('sampleBatchCircleContainer')
 let batchConfirmAndStartBtn = document.getElementById('batchConfirmAndStart');
+let pauseSeqBtn = document.getElementById('pause_test');
+let resumeSeqBtn = document.getElementById('resume_btn');
 let stopSeqBtn = document.getElementById('stop_test');
 let loadSeqBtn = document.getElementById('open_test_seq');
 const batchViewList = document.getElementById('batchViewList')
@@ -107,8 +109,6 @@ const config = {
             icon: Plotly.Icons.disk,
             direction: 'up',
             click: function (gd) {
-                console.log(gd)
-                console.log(gd.data)
                 ws.send(tools.parseCmd('download_event_chart_data', gd.data));
             }
         }],
@@ -123,6 +123,7 @@ let machine_humi_idct = document.querySelectorAll('#machine_hum_idct  .idct-numb
 let forceManualMode = false;
 let digitestIsRotationMode = false;
 let runningTest = false;
+let pauseTest = false;
 let currentTestApproxTimeInSec = 0;
 
 // **************************************
@@ -173,19 +174,19 @@ function generateEventPlot() {
 
     var layout = {
         xaxis: {
-            title: `${window.lang_data.lower_letter_time}(H:M:S)`,
+            title: window.lang_data.lower_letter_time === undefined ? 'time(H:M:S)' : `${window.lang_data.lower_letter_time}(H:M:S)`,
             zeroline: false,
             showline: true,
             type: 'date',
             tickformat: '%H:%M:%S'
         },
         yaxis: {
-            title: `${window.lang_data.temperature}(℃)`,
+            title: window.lang_data.temperature === undefined ? 'temperature(℃)' : `${window.lang_data.temperature}(℃)`,
             zeroline: false,
             showline: true
         },
         yaxis2: {
-            title: `${window.lang_data.hard}`,
+            title: window.lang_data.hard === undefined ? 'hardness' : `${window.lang_data.hard}`,
             titlefont: { color: 'rgb(148, 103, 189)' },
             tickfont: { color: 'rgb(148, 103, 189)' },
             overlaying: 'y',
@@ -221,18 +222,18 @@ function repositionChart() {
 
 function reTranslateRuntimeChart() {
     var update = {
-            xaxis: {
-                title: `${window.lang_data.lower_letter_time}(H:M:S)`,
-            },
-            yaxis: {
-                title: `${window.lang_data.lower_letter_temperature}(℃)`,
-            },
-            yaxis2: {
-                title: `${window.lang_data.lower_letter_hard}`,
-                overlaying: 'y',
-                side: 'right',
-                range: [0, 100]
-            },
+        xaxis: {
+            title: `${window.lang_data.lower_letter_time}(H:M:S)`,
+        },
+        yaxis: {
+            title: `${window.lang_data.lower_letter_temperature}(℃)`,
+        },
+        yaxis2: {
+            title: `${window.lang_data.lower_letter_hard}`,
+            overlaying: 'y',
+            side: 'right',
+            range: [0, 100]
+        },
     };
     tools.plotly_reTranlateChart('hardness_graph');
     Plotly.relayout('event_graph', update);
@@ -305,7 +306,8 @@ function connect() {
                 case 'reply_init_hw':
                     console.log('reply_init_hw')
                     if (data.resp_code == 1) {
-                        runningTest = false
+                        runningTest = false;
+                        pauseTest = false;
                         batchSelector_enable();
                     } else {
                         ipcRenderer.send('show-alert-alert', window.lang_data.modal_alert_title, data.res + '\n' + data.reason);
@@ -372,6 +374,11 @@ function connect() {
                 case 'end_of_test':
                     endOfTest(data)
                     break;
+                case 'reply_resume_from_break':
+                    pauseTest = false;
+                    call_wait_for_resume_dialog(false)
+                    // $(pauseSeqBtn).html(window.lang_data.run_pause_btn);
+                    break;
                 case 'reply_download_event_chart_data':
                     if (data.resp_code == 1) {
                         const downloadPath = data.path;
@@ -381,9 +388,11 @@ function connect() {
                         ipcRenderer.send('show-warning-alert', data.title, data.res);
                     }
                     break;
+
                 case 'reply_server_error':
                     ipcRenderer.send('show-server-error', data.error);
-                    runningTest = false
+                    runningTest = false;
+                    pauseTest = false;
                     break;
                 default:
                     console.log('Not found this cmd' + cmd)
@@ -391,7 +400,8 @@ function connect() {
             }
         } catch (e) {
             console.error(e)
-            runningTest = false
+            runningTest = false;
+            pauseTest = false;
         }
 
     });
@@ -461,6 +471,34 @@ ipcRenderer.on('continue-batch', (event, resp, args) => {
     }
 })
 
+function call_wait_for_resume_dialog(show=true) {
+    let dialog = document.getElementById('modal_wait_for_resume_dialog');
+    if(show){
+        dialog.style.display = 'block';
+    }else{
+        dialog.style.display = 'none';
+    }
+}
+
+pauseSeqBtn.addEventListener('click', () => {
+    if (runningTest) {
+        if (!pauseTest) {
+            ws.send(tools.parseCmd('pause_seq', ''));
+            // $(pauseSeqBtn).html(window.lang_data.run_resume_btn);
+            pauseTest = true;
+            call_wait_for_resume_dialog(true);
+        } else {
+            // ws.send(tools.parseCmd('continue_seq', 'resume'));
+        }
+    }
+})
+resumeSeqBtn.addEventListener('click', () => {
+    if (runningTest) {
+        if (pauseTest) {
+            ws.send(tools.parseCmd('continue_seq', 'resume'));
+        }
+    }
+})
 stopSeqBtn.addEventListener('click', () => {
     if (runningTest) {
         ws.send(tools.parseCmd('stop_seq', ''));
@@ -626,7 +664,8 @@ function selectedHistoryBatch() {
 
 function immediate_start_test() {
     // start test
-    runningTest = true
+    runningTest = true;
+    pauseTest = false;
     ws.send(tools.parseCmd('run_cmd', tools.parseCmd('load_seq', { path: loadSeqPathObj.path })));
     ipcRenderer.send('toggle_monitor', !runningTest);
     batchSetupBtn_disable()
@@ -667,22 +706,15 @@ function markCurrentSample(sampldIdx) {
 
 function updateSingleStep(res) {
     let stepid = res.stepid;
-    let stepname = res.name;
-    let value = res.value;
-    let unit = res.unit;
     let result = res.status;
-    let timestamp = res.timestamp;
     let actTemp = res.actTemp;
     let actHumi = res.actHum;
 
     let curstep = $('#testSeqContainer').find(`[data-stepid='${stepid}']`);
-    let curResult = $(curstep).find('.stepResult');
     // update actTemp
     tools.updateNumIndicator(machine_temp_idct, actTemp, 1)
     tools.updateNumIndicator(machine_humi_idct, actHumi, 1)
 
-    // update value in step
-    curResult.html(value + unit)
     curstep.removeClass(run_status_classes)
     updateStepByCat(res);
     if (result == 'PASS') { curstep.addClass('run-pass'); } else if (result == 'WAITING') { curstep.addClass('run-wait'); } else if (result == 'UPDATE_PROGRESS_ONLY') { curstep.addClass('run-wait'); } else if (result == 'PAUSE') { curstep.addClass('run-pause'); } else if (result == 'SKIP') { curstep.addClass('run-skip'); } else if (result == 'MEAR_NEXT') { curstep.addClass('run-next'); } else if (result == 'UPDATE_CURRENT_SAMPLEINDEX') { } else { curstep.addClass('run-fail'); }
@@ -707,18 +739,22 @@ function updateStepByCat(res) {
     let actTemp = res.actTemp;
     let eventName = res.eventName;
     let progs = res.prograss;
+    let unit = res.unit;
 
     let curstep = $('#testSeqContainer').find(`[data-stepid='${stepid}']`);
+    let curResult = $(curstep).find('.stepResult');
     let curProgs = $(curstep).find('.stepProg');
 
     switch (stepname) {
         case 'ramp':
+            curResult.html(value + unit)
             if (result !== 'UPDATE_PROGRESS_ONLY') {
                 tools.plotly_addNewDataToPlot('event_graph', tools.sec2dt(relTime), actTemp)
             }
             curProgs.val(progs);
             break;
         case 'measure':
+            curResult.html(value + unit)
             if (result == 'PASS') {
                 // logdata(res)
                 curProgs.val(progs);
@@ -744,6 +780,7 @@ function updateStepByCat(res) {
             // updateValue('hardness_graph', value);
             break;
         case 'time':
+            curResult.html(tools.sec2HMS(value))
             if (result !== 'UPDATE_PROGRESS_ONLY') {
                 tools.plotly_addNewDataToPlot('event_graph', tools.sec2dt(relTime), actTemp)
             }
@@ -751,6 +788,11 @@ function updateStepByCat(res) {
             break;
 
         case 'teardown':
+            if (unit === 's') {
+                curResult.html(tools.sec2HMS(value))
+            } else {
+                curResult.html(value + unit)
+            }
             // updateValue('actualTempGauge', actTemp);
             tools.plotly_addNewDataToPlot('event_graph', tools.sec2dt(relTime), actTemp)
             curProgs.val(progs);
@@ -846,7 +888,8 @@ function endOfTest(res) {
     } else {
         ipcRenderer.send('show-warning-alert', title, reason);
     }
-    runningTest = false
+    runningTest = false;
+    pauseTest = false;
     ipcRenderer.send('toggle_monitor', !runningTest);
 }
 

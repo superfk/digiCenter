@@ -135,8 +135,9 @@ function connect() {
           role = data[3];
           fn_list = data[4];
           first = data[5];
+          userForDisplay = data[6];
           hasLogin = false
-          current_login_user.innerHTML = user;
+          current_login_user.innerHTML = userForDisplay;
           current_login_role.innerHTML = '(' + role + ")";
           changeLoginColor(false);
           changeLoginAuth(fn_list);

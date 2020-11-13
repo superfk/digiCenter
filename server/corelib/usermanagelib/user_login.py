@@ -142,7 +142,8 @@ class UserManag(object):
 
     def log_out(self):
         fn_list=list()
-        user = self.lang['head_login_username']
+        user = 'Guest'
+        userForDisplay = self.lang['head_login_username']
         role = 'Guest'
         first=False
         self.user = User(user, role, level=0, enabled=True)
@@ -162,7 +163,7 @@ class UserManag(object):
         login_ok = False
         reason = "Guest logout"
         self.savelog(reason,audit=True)
-        return login_ok, reason, user, role, fn_list, first
+        return login_ok, reason, user, role, fn_list, first, userForDisplay
 
     def get_user_account_list(self):
         fields = ['User_Name', 'User_Role', 'Status', 'First_login', 'Creation_Date', 'Expired_Date']
