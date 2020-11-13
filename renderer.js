@@ -2,6 +2,7 @@ const { ipcRenderer, shell } = require('electron');
 const { app } = require('electron').remote;
 const appRoot = require('electron-root-path').rootPath;
 const path = require('path');
+const notify = require('bootstrap-notify');
 
 let appVer = '';
 let appName = 'digiCenter';
@@ -468,4 +469,3 @@ var checkkeypressFirstLogin = function (e) {
     confirm_first_login();
   }
 }
-

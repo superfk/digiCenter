@@ -268,5 +268,6 @@
   "lower_letter_hard":"hardness",
   "lower_letter_temperature":"temperature",
   "lower_letter_humidity":"humidity",
-  "lower_letter_time":"time"
+  "lower_letter_time":"time",
+  "param_modify_ok":"parameters changed successfully!"
 }

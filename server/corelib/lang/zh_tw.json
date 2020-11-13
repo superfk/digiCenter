@@ -268,5 +268,6 @@
   "lower_letter_hard":"硬度",
   "lower_letter_temperature":"溫度",
   "lower_letter_humidity":"濕度",
-  "lower_letter_time":"時間"
+  "lower_letter_time":"時間",
+  "param_modify_ok":"參數修改成功"
 }

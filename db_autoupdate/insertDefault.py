@@ -5,26 +5,25 @@ from cryptography.fernet import Fernet
 
 
 class DB():
-    def __init__(self, server_name, username="",password=""):
+    def __init__(self, server_name, dbName, username="",password=""):
         self.server_name = server_name
+        self.db_name = dbName
         self.username = username
         self.password = password
         self.coxn = None
         self.connected = False
         self.cursor = None
     
-    def connect(self, db_name):
+    def connect(self):
         """ Connection String should be: 'DRIVER={ODBC Driver 13 for SQL Server};
         SERVER=SHAWNNB\SQLEXPRESS;DATABASE=HDA150;UID=BareissAdmin;PWD=BaAdmin'  """
-
         try:
-            conn_str = r"DRIVER={ODBC Driver 11 for SQL Server};SERVER="+ self.server_name + ";DATABASE="+db_name+";UID="+ self.username+";PWD="+self.password+""
+            conn_str = r"DRIVER={ODBC Driver 11 for SQL Server};SERVER="+ self.server_name + ";DATABASE="+self.db_name+";UID="+ self.username+";PWD="+self.password+""
             self.coxn = pyodbc.connect(conn_str)
+            self.coxn.autocommit = True
             self.cursor = self.coxn.cursor()
             self.connected = True
         except:
-            error_msg = traceback.format_exc()
-            print(error_msg)
             self.connected = False
         return self.connected
     
@@ -44,14 +43,14 @@ class DB():
 
     def drop_table(self, table):
         '''DROP TABLE table'''
-        exe_str = r"DROP TABLE {}".format(table)
+        exe_str = r"DROP TABLE {};".format(table)
         self.cursor.execute(exe_str) 
         self.coxn.commit()
 
-    def select(self, table, fields="*", condition="", types=[]):
+    def select(self, table, fields="*", condition=""):
         """Sample select query"""
         fileds_str = ','.join(map(str, fields))
-        exe_str = r"SELECT {} FROM {} {}".format(fileds_str, table, condition)
+        exe_str = r"SELECT {} FROM {} {};".format(fileds_str, table, condition)
         # get columns type in this query table
         col = dict()
         cols = self.cursor.columns(table=table)
@@ -77,14 +76,17 @@ class DB():
             fmt_all_row.append(fmt_single_row)
             
         #final_result = [json.dumps(dict(zip(fields,row)), default=str) for row in rows]
-        
+        self.coxn.commit()
         return fmt_all_row
 
     def insert(self, table, fields, data):
         '''Sample insert query'''
         fileds_str = ','.join(map(str, fields))
+        # values = ["'{}'".format(x) if type(x) is str else x for x in data]
+        # data_str = ','.join(map(str, values))
         para_str = ','.join(map(str, '?'*len(data)))
-        exe_str = r"""INSERT INTO {} ({}) VALUES ({})""".format(table, fileds_str, para_str)
+        # print(data_str)
+        exe_str = r"""INSERT INTO {} ({}) VALUES ({});""".format(table, fileds_str, para_str)
         # "insert into products(id, name) values (?, ?)", 'pyodbc', 'awesome library'
         self.cursor.execute(exe_str, data)
         self.coxn.commit()
@@ -96,26 +98,45 @@ class DB():
         for col in fields:
             pairs.append("{}=?".format(col))
         data_str = ','.join(map(str, pairs))
-        exe_str = r"""UPDATE {} SET {} {}""".format(table, data_str, condition)
+        exe_str = r"""UPDATE {} SET {} {};""".format(table, data_str, condition)
         self.cursor.execute(exe_str, data)
         self.coxn.commit()
     
     def delete(self, table, condition):
         '''DELETE FROM Table_Name WHERE condition'''
-        exe_str = r"DELETE FROM {} {}".format(table, condition)
+        exe_str = r"DELETE FROM {} {};".format(table, condition)
         self.cursor.execute(exe_str)
         self.coxn.commit()
 
-    def execute(self, sql):
+    def execute(self, sql, data=None, to_dict=False, dict_field=[], autoDateToString=False):
+        '''return empty list if no result'''
         exe_str = sql
-        self.cursor.execute(exe_str)
-        rows =self.cursor.fetchall()
+        if exe_str[-1] != ';':
+            exe_str = exe_str+';'
+
+        if data:
+            self.cursor.execute(exe_str,data)
+        else:
+            self.cursor.execute(exe_str)
+        try:
+            rows =self.cursor.fetchall()
+        except:
+            rows = None
         self.coxn.commit()
         fmt_all_row = []
-        for row in rows:
-            fmt_all_row.append([x for x in row])
+        if rows:
+            for row in rows:
+                if to_dict:
+                    single_row_dict = {}
+                    for k,v in zip(dict_field,row):
+                        if autoDateToString and type(v) is datetime.datetime:
+                            v = v.strftime('%Y-%m-%d %H:%M:%S')
+                        single_row_dict[k] = v
+                    fmt_all_row.append(single_row_dict)
+                else:
+                    fmt_all_row.append([x for x in row])
         return fmt_all_row
-    
+
     def close(self):
         self.cursor.close()
         self.coxn.close()
@@ -207,8 +228,10 @@ def encrypt_password(pw):
     return cipher_text
 
 def main():
-    db = DB(r"(localDB)\BareissLocalDB", 'BareissAdmin', 'BaAdmin')
-    ok = db.connect('DigiChamber')
+    # for SQL Server
+    db = DB(r"(localDB)\BareissLocalDB", "DigiChamber", 'BareissAdmin', 'BaAdmin')
+    ok = db.connect()
+
     print('connection status: {}'.format(ok))
     if ok:
         # insert Function List

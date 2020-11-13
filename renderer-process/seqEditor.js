@@ -456,6 +456,7 @@ applyParaBtn.addEventListener('click', () => {
         seqRend.sortSeq('seqContainer', test_flow.setup, test_flow.main, test_flow.teardown, true);
         makeSortable();
         updateTempTimeChart();
+        ipcRenderer.send('show-info-alert',window.lang_data.modal_info_title, window.lang_data.param_modify_ok);
     }
 })
 
