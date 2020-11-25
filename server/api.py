@@ -581,6 +581,10 @@ class PyServerAPI(object):
         h_result = testResult['value']
         temp_result = testResult['actTemp']
         hum_result = testResult['actHum']
+        if temp_result is None:
+            temp_result = 0
+        if hum_result is None:
+            hum_result = 0
         raw = testResult['hardness_dataset']['dataset']
         raw = json.dumps(raw)
         math_method = testResult['hardness_dataset']['method']

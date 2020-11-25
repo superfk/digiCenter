@@ -8,7 +8,7 @@ const path = require('path');
 // variable define
 // **************************************
 
-let defaultSeqPath = null;
+let defaultSeqPath = '';
 let batchForm = document.getElementById('batchInfoForm');
 let sampleBatchConfigForm = document.getElementById('sampleBatchConfigForm');
 let batchNew = document.getElementById('new_a_batch');
@@ -515,6 +515,8 @@ function init() {
     ws.send(tools.parseCmd('run_cmd', tools.parseCmd('get_default_seq_path')));
     ws.send(tools.parseCmd('get_digitest_manual_mode'));
     ws.send(tools.parseCmd('get_digitest_is_rotaion_mode'));
+    stopBtn_disable();
+    pauseBtn_disable();
 }
 
 function switchStatusMonitorPanel() {
@@ -589,7 +591,13 @@ function stopBtn_disable() {
 function stopBtn_enable() {
     $(stopSeqBtn).removeClass('btnEnable btnDisable').addClass('btnEnable');
 }
+function pauseBtn_disable() {
+    $(pauseSeqBtn).removeClass('btnEnable btnDisable').addClass('btnDisable');
+}
 
+function pauseBtn_enable() {
+    $(pauseSeqBtn).removeClass('btnEnable btnDisable').addClass('btnEnable');
+}
 function updateServerSeqFolder(path) {
     defaultSeqPath = path;
 }
@@ -671,6 +679,7 @@ function immediate_start_test() {
     batchSetupBtn_disable()
     batchConfirmAndStartBtn_disable();
     stopBtn_enable();
+    pauseBtn_enable();
     $('main> nav .nav-item a').removeClass('btnEnable btnDisable').addClass('btnDisable');
     $('.lang-flags').removeClass('btnEnable btnDisable').addClass('btnDisable');
     $('#testSeqContainer li').removeClass(run_status_classes).addClass('run-init');
@@ -881,6 +890,7 @@ function endOfTest(res) {
     batchConfirmAndStartBtn_enable();
     batchSetupBtn_enable();
     stopBtn_disable();
+    pauseBtn_disable();
     $('main> nav .nav-item a').removeClass('btnEnable btnDisable').addClass('btnEnable');
     $('.lang-flags').removeClass('btnEnable btnDisable').addClass('btnEnable');
     if (!interrupted) {
@@ -1153,7 +1163,7 @@ function batch_confirmed() {
         curTemp = document.querySelectorAll('#machine_tempr_idct .idct-number')[0].innerText;
     }
     document.getElementById('modal_batch_setup_dialog').style.display = 'none';
-    let statsOfSeqs = seqRend.calcApproxTimeAndTemperature(test_flow, parseFloat(curTemp), samples = sampleSize);
+    let statsOfSeqs = seqRend.calcApproxTimeAndTemperature(test_flow, curTemp, samples = sampleSize);
     document.getElementById('batchMaxTemperature').innerHTML = statsOfSeqs.stats.maxTemp;
     document.getElementById('batchMinTemperature').innerHTML = statsOfSeqs.stats.mintemp;
     currentTestApproxTimeInSec = statsOfSeqs.stats.overallTime * 60;

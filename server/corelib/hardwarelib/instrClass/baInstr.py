@@ -60,8 +60,7 @@ class BaInstr(object):
             return None
     
     def write_and_read(self, cmd, para, value=None, timeout=5):
-        pooling_time = 0.25 #second
-        max_wait_count = int(timeout // pooling_time)
+        pooling_time = 0.1 #second
         counter = 0
         while True:
             combined_cmd = self.make_cmd(cmd, para, value)
@@ -76,7 +75,7 @@ class BaInstr(object):
                 print("parsing resp: {}".format(resp))
             if resp:
                 if resp['value'] == '"DEVICE BUSY"':
-                    time.sleep(pooling_time)
+                    # time.sleep(pooling_time)
                     counter += 1
                     if not self.wait_cmd:
                         return None

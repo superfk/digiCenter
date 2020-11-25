@@ -222,19 +222,22 @@ function updatefoot(msg, color = 'w3-red') {
 }
 
 // show modal event
-ipcRenderer.on('show-info-alert', (event, title, msg) => {
+ipcRenderer.on('show-info-alert', (event, title, msg, position='100px') => {
   document.getElementById("modal_info_message_title").innerHTML = title;
   document.getElementById("modal_info_message_text").innerHTML = msg;
+  document.getElementById("modal_warning_message").style.paddingTop = position;
   document.getElementById("modal_info_message").style.display = "block";
 })
-ipcRenderer.on('show-warning-alert', (event, title, msg) => {
+ipcRenderer.on('show-warning-alert', (event, title, msg, position='100px') => {
   document.getElementById("modal_warning_message_title").innerHTML = title;
   document.getElementById("modal_warning_message_text").innerHTML = msg;
+  document.getElementById("modal_warning_message").style.paddingTop = position;
   document.getElementById("modal_warning_message").style.display = "block";
 })
-ipcRenderer.on('show-alert-alert', (event, title, msg) => {
+ipcRenderer.on('show-alert-alert', (event, title, msg, position='100px') => {
   document.getElementById("modal_alert_message_title").innerHTML = title;
   document.getElementById("modal_alert_message_text").innerHTML = msg;
+  document.getElementById("modal_warning_message").style.paddingTop = position;
   document.getElementById("modal_alert_message").style.display = "block";
 })
 

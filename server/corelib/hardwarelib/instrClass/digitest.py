@@ -12,7 +12,6 @@ for i in range(indentLevel):
     DB_DIR = os.path.split(DB_DIR)[0]
 sys.path.append(os.path.normpath(os.path.join(PACKAGE_PARENT,SCRIPT_DIR)))
 sys.path.append(os.path.normpath(DB_DIR))
-print(sys.path)
 from baInstr import BaInstr
 import random
 
@@ -146,14 +145,18 @@ class Digitest(BaInstr):
     
     def get_single_value(self, dummyTemp=0, immediate=False):
         ret = self.write_and_read('GET','MS_VALUE')
-        print(f'ret: {ret}')
+        # print(f'ret: {ret}')
         try:
-            mearValue = float(ret)
-            return 1, mearValue
+            if ret == '0.0':
+                return 1, None
+            return 1, float(ret)
         except:
             if ret == 'FINISHED':
                 try:
                     data = self.readline_only()
+                    # print(f'data: {data}')
+                    if data == '0.0':
+                        return 1, None
                     return 1, float(data)
                 except:
                     return -1, None
@@ -666,25 +669,26 @@ def mearsure():
         counter = 0
         while True:
             statusCode, value = ba.get_single_value()
-            print('final resp of step {}: {}, statusCode: {}'.format(i, value, statusCode))
-            if counter == 5:
-                ba.stop_mear()
-                break
+            print('final resp of step {}: {}, statusCode: {}'.format(counter, value, statusCode))
             counter += 1
+            if counter == 5:
+                print('press stop')
+                ba.stop_mear()
+                pass
             if statusCode == 1:
                 return value
             elif statusCode < 0:
                 print('distance too big when measuring')
                 return None
             else:
-                time.sleep(0.1)
+                time.sleep(0.5)
 
     
     ba.open_rs232("COM5")
 
     ret = ba.get_ms_method()
     print(ret)
-    ba.config(debug=False,wait_cmd = True)
+    ba.config(debug=False,wait_cmd = False)
     ba.set_remote(True)
     ba.set_std_mode()
     duration_s = 1

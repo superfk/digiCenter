@@ -184,7 +184,7 @@ class DigiChamberProduct(pd_product.Product):
             stepObj.set_digitest_hw_control(self.digiTest)
             self.stepsClass.append(stepObj)
             self.lg.debug('created steps class')
-            self.lg.debug(self.stepsClass)
+            # self.lg.debug(self.stepsClass)
             return True
         else:
             return False
@@ -238,14 +238,15 @@ class DigiChamberProduct(pd_product.Product):
                 while True:
                     # check hw connection
                     if not self.dChamb.connected or not self.digiTest.connected:
-                        self.set_test_stop()
-                        if not self.digiTest.connected:
-                            self.errorMsg = self.lang_data['digitest_disconnect_msg']
-                            self.log_to_db_func('digitest_disconnected', 'error', False)
-                        else:
-                            self.errorMsg = self.lang_data['digichamber_disconnect_msg']
-                            self.log_to_db_func('digichamber_disconnected', 'error', False)
-                        break
+                        pass
+                        # self.set_test_stop()
+                        # if not self.digiTest.connected:
+                        #     self.errorMsg = self.lang_data['digitest_disconnect_msg']
+                        #     self.log_to_db_func('digitest_disconnected', 'error', False)
+                        # else:
+                        #     self.errorMsg = self.lang_data['digichamber_disconnect_msg']
+                        #     self.log_to_db_func('digichamber_disconnected', 'error', False)
+                        # break
                     # check whether stop this loop
                     if cursor >= totalStepsCounts or self.testStop:
                         break
@@ -305,6 +306,12 @@ class DigiChamberProduct(pd_product.Product):
             self.set_test_stop()
 
         finally:
+            if not self.digiTest.connected:
+                self.errorMsg = self.lang_data['digitest_disconnect_msg']
+                self.log_to_db_func('digitest_disconnected', 'error', False)
+            else:
+                self.errorMsg = self.lang_data['digichamber_disconnect_msg']
+                self.log_to_db_func('digichamber_disconnected', 'error', False)
             try:
                 self.interuptQueue.task_done()
             except:

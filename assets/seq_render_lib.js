@@ -607,7 +607,8 @@ module.exports = {
         return test_flow;
     },
     calcApproxTimeAndTemperature: (test_flow, iniTemp = 20, samples = 1) => {
-        let curTemp = iniTemp;
+        let digiChamberDisconnected = iniTemp === '--';
+        let curTemp = digiChamberDisconnected ? 0 :  parseFloat(iniTemp);
         let xTime = 0.0;
         let cursor = 0;
         let loopArr = []; // [{id:313, iter:0, counts:0}]
@@ -658,28 +659,32 @@ module.exports = {
                 temperatureArr.push(curTemp)
                 cursor += 1;
             } else if (item.cat === 'temperature') {
-                let tarTemp = parseFloat(item.subitem.paras.filter(item => item.name == 'target temperature')[0].value);
-                let slope = parseFloat(item.subitem.paras.filter(item => item.name == 'slope')[0].value);
-                let incre = parseFloat(item.subitem.paras.filter(item => item.name == 'increment')[0].value);
-                let stTime = parseFloat(item.subitem.paras.filter(item => item.name == 'settling time')[0].value);
+                if (digiChamberDisconnected) {
 
-                // check if in loop
-                curIter = 0
-                if (loopArr.length > 0) {
-                    let curLoop = loopArr.slice(-1)[0];
-                    curIter = curLoop.iter;
+                } else {
+                    let tarTemp = parseFloat(item.subitem.paras.filter(item => item.name == 'target temperature')[0].value);
+                    let slope = parseFloat(item.subitem.paras.filter(item => item.name == 'slope')[0].value);
+                    let incre = parseFloat(item.subitem.paras.filter(item => item.name == 'increment')[0].value);
+                    let stTime = parseFloat(item.subitem.paras.filter(item => item.name == 'settling time')[0].value);
+
+                    // check if in loop
+                    curIter = 0
+                    if (loopArr.length > 0) {
+                        let curLoop = loopArr.slice(-1)[0];
+                        curIter = curLoop.iter;
+                    }
+                    tarTemp = tarTemp + incre * curIter;
+                    let xMin = Math.abs((tarTemp - curTemp) / slope);
+                    xTime += xMin;
+                    curTemp = tarTemp;
+                    timeArr.push(xTime);
+                    temperatureArr.push(curTemp);
+                    // add settling time
+                    xTime += stTime;
+                    curTemp = tarTemp;
+                    timeArr.push(xTime);
+                    temperatureArr.push(curTemp);
                 }
-                tarTemp = tarTemp + incre * curIter;
-                let xMin = Math.abs((tarTemp - curTemp) / slope);
-                xTime += xMin
-                curTemp = tarTemp;
-                timeArr.push(xTime)
-                temperatureArr.push(curTemp)
-                // add settling time
-                xTime += stTime
-                curTemp = tarTemp;
-                timeArr.push(xTime)
-                temperatureArr.push(curTemp)
                 cursor += 1;
             } else if (item.cat === 'hardness') {
                 for (let i = 1; i <= samples; i++) {
@@ -734,8 +739,8 @@ module.exports = {
             'markers': markers,
             stats: {
                 'overallTime': parseFloat(overallTime.toFixed(1)),
-                'maxTemp': parseFloat(maxTemp.toFixed(1)),
-                'mintemp': parseFloat(minTemp.toFixed(1))
+                'maxTemp': digiChamberDisconnected ? '--' : parseFloat(maxTemp.toFixed(1)),
+                'mintemp': digiChamberDisconnected ? '--' : parseFloat(minTemp.toFixed(1))
             }
         }
     }

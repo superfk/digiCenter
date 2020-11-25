@@ -22,7 +22,7 @@ class DigiChamber(object):
     def connect(self):
         self.connected=False
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.settimeout(3)
+        self.s.settimeout(0.5)
         self.s.connect((self.ip, self.port))
         self.connected=True
         return self.connected

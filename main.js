@@ -449,18 +449,18 @@ ipcMain.on('save_log', (event, msg, type = 'info', audit = 0) => {
 })
 
 // show info dialog
-ipcMain.on('show-info-alert', (event, title, msg) => {
-  mainWindow.webContents.send('show-info-alert', title, msg);
+ipcMain.on('show-info-alert', (event, title, msg, position='100px') => {
+  mainWindow.webContents.send('show-info-alert', title, msg, position);
 })
 
 // show warning dialog
-ipcMain.on('show-warning-alert', (event, title, msg) => {
-  mainWindow.webContents.send('show-warning-alert', title, msg);
+ipcMain.on('show-warning-alert', (event, title, msg, position='100px') => {
+  mainWindow.webContents.send('show-warning-alert', title, msg, position);
 })
 
 // show alert dialog
-ipcMain.on('show-alert-alert', (event, title, msg) => {
-  mainWindow.webContents.send('show-alert-alert', title, msg);
+ipcMain.on('show-alert-alert', (event, title, msg, position='100px') => {
+  mainWindow.webContents.send('show-alert-alert', title, msg, position);
 })
 
 // show internal error dialog
@@ -472,7 +472,6 @@ ipcMain.on('show-server-error', (event, msg) => {
 ipcMain.on('show-login', (event) => {
   let code = `document.getElementById("modal_login").style.display="block";`;
   mainWindow.webContents.executeJavaScript(code);
-
 })
 
 // show file export dialog

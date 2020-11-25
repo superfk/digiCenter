@@ -1,6 +1,7 @@
 
 import asyncio
 from datetime import datetime
+from logging import fatal
 from queue import Empty
 import time
 import random
@@ -40,6 +41,7 @@ class DigiCenterStep(object):
         self.sysConfig = None
         self.errorOccurred = False
         self.errorDetail = ''
+        self.paused = False
         
 
     def initResult(self):
@@ -178,22 +180,38 @@ class DigiCenterStep(object):
             ret = self.pauseQueue.get_nowait()
             if ret == 'pause':
                 self.pauseQueue.task_done()
+                self.paused = True
                 return True
+            elif ret == 'resume':
+                self.pauseQueue.task_done()
+                self.paused = False
+                self.commCallback('reply_resume_from_break', '')
+                return False
             else:
                 return False
         except:
-            return False
+            return self.paused
 
     def checkPauseProcess(self):
         ret = self.isPauseed()
         if ret:
             self.wait_for_resume_from_pause()
 
-    def wait_for_resume_from_pause(self):
-        retStatus = self.pauseQueue.get()
-        self.pauseQueue.task_done()
-        self.commCallback('reply_resume_from_break', '')
-        return retStatus
+    def wait_for_resume_from_pause(self, timeout=None):
+        try:
+            if self.paused:
+                retStatus = self.pauseQueue.get(timeout=timeout)
+                if retStatus == 'resume':
+                    self.pauseQueue.task_done()
+                    self.paused = False
+                    self.commCallback('reply_resume_from_break', '')
+                    return True
+                else:
+                    return False
+            else:
+                return True
+        except Empty:
+            return False
 
     def wait_for_continue(self):
         retStatus = self.interuptQueue.get()
@@ -213,11 +231,14 @@ class SetupStep(DigiCenterStep):
     
     @DigiCenterStep.deco
     def do(self):
-        self.hwDigitest.config(debug=False, wait_cmd = True)
-        if self.hwDigitest.isConnectRotation():
-            if not self.force_manual_mode:
-                # self.hwDigitest.set_rotation_home()
-                pass
+        try:
+            self.hwDigitest.config(debug=False, wait_cmd = True)
+            if self.hwDigitest.isConnectRotation():
+                if not self.force_manual_mode:
+                    # self.hwDigitest.set_rotation_home()
+                    pass
+        except:
+            pass
         self.set_result('PASS','PASS')
         return self.result
 
@@ -242,48 +263,54 @@ class TeardownStep(DigiCenterStep):
             self.lg.debug('wait for user chose if needs to run teardown step')
             retStatus = self.wait_for_continue()
         if retStatus == 'run_teardown' or retStatus == 'normal':
-            # to set the temperature to safe range
-            self.hwDigichamber.set_gradient_up(0)
-            self.hwDigichamber.set_gradient_down(0)
-            target = self.safeTemp
-            tol = 5 # degree
-            UL = target + tol
-            LL = target - tol
-            self.hwDigichamber.set_setPoint(target)
-            self.commCallback('update_gauge_ref',target)
-            self.hwDigichamber.set_manual_mode(True)
-            curT = self.hwDigichamber.get_real_temperature()
-            initT = curT
-            initTime = time.time()
-            startWait = False
-            while True:
-                if self.isInterrupted():
-                    # stop process immediately
-                    break
-                ## START ##########only for simulation of chamber###########
-                if (target-curT)<0:
-                    signSlope = -1*60
-                else:
-                    signSlope = 60
-                curT = curT + signSlope/60*1 + random.random()*0.002
-                self.hwDigichamber.set_dummy_act_temp(curT)
-                ## END   ###################################################
+            try:
+                # to set the temperature to safe range
+                self.hwDigichamber.set_gradient_up(0)
+                self.hwDigichamber.set_gradient_down(0)
+                target = self.safeTemp
+                tol = 5 # degree
+                UL = target + tol
+                LL = target - tol
+                self.hwDigichamber.set_setPoint(target)
+                self.commCallback('update_gauge_ref',target)
+                self.hwDigichamber.set_manual_mode(True)
                 curT = self.hwDigichamber.get_real_temperature()
-                if (curT<=UL and curT>=LL) or startWait:
-                    startWait = True
-                    countTime = time.time() - initTime
-                    if countTime >= self.waitMinute*60:
+                initT = curT
+                initTime = time.time()
+                startWait = False
+                while True:
+                    if self.isInterrupted():
+                        # stop process immediately
                         break
-                    prog = round( countTime / (self.waitMinute*60) * 100 * 0.5, 0) + 50
-                    self.set_result(countTime,'WAITING',unit='s', progs=prog)
-                    self.resultCallback(self.result)
-                else:
-                    prog = round( (abs(curT - initT) / abs(target-initT)) * 100 * 0.5, 0)
-                    self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
-                    self.resultCallback(self.result)
-                    initTime = time.time()
-                time.sleep(1)
-                self.checkPauseProcess()
+                    ## START ##########only for simulation of chamber###########
+                    if (target-curT)<0:
+                        signSlope = -1*60
+                    else:
+                        signSlope = 60
+                    curT = curT + signSlope/60*1 + random.random()*0.002
+                    self.hwDigichamber.set_dummy_act_temp(curT)
+                    ## END   ###################################################
+                    curT = self.hwDigichamber.get_real_temperature()
+                    if (curT<=UL and curT>=LL) or startWait:
+                        startWait = True
+                        countTime = time.time() - initTime
+                        if countTime >= self.waitMinute*60:
+                            break
+                        prog = round( countTime / (self.waitMinute*60) * 100 * 0.5, 0) + 50
+                        self.set_result(countTime,'WAITING',unit='s', progs=prog)
+                        self.resultCallback(self.result)
+                    else:
+                        prog = round( (abs(curT - initT) / abs(target-initT)) * 100 * 0.5, 0)
+                        self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
+                        self.resultCallback(self.result)
+                        initTime = time.time()
+                    time.sleep(1)
+                    # pause process
+                    ret = self.isPauseed()
+                    if ret:
+                        resumed = self.wait_for_resume_from_pause(timeout=0.1)
+            except:
+                self.lg.debug('teardown process error, possible reason is digiChamber disconnected')
         try:
             self.hwDigichamber.set_manual_mode(False)
             self.commCallback('update_machine_status',{'dt':None,'temp':{'status':1, 'value':None}, 'hum':{'status':1, 'value':None}})
@@ -297,6 +324,10 @@ class TeardownStep(DigiCenterStep):
             self.lg.debug('set manual mode for digiTest failed')
         finally:
             self.set_result('PASS','PASS',progs=100)
+            # pause process
+            ret = self.isPauseed()
+            if ret:
+                resumed = self.wait_for_resume_from_pause()
         return self.result
 
 class TemperatureStep(DigiCenterStep):
@@ -341,88 +372,89 @@ class TemperatureStep(DigiCenterStep):
     @DigiCenterStep.deco
     def do(self):
         # set start temperature
-        curT = self.hwDigichamber.get_real_temperature()
-        initT = curT
-        self.update_actTarget()
-        self.set_gradient_process(self.actTarget,self.slope)
-
-        # set manual mode on
-        self.hwDigichamber.set_manual_mode(True)
-        self.commCallback('update_machine_status',{'dt':None,'temp':{'status':2, 'value':None}, 'hum':{'status':2, 'value':None}})
-
-        # set options
-        self.set_temperature_imporve_options()
-
-        # update new target ref to client
-        self.commCallback('update_gauge_ref',self.actTarget)
-
-        UL = self.actTarget + self.tol
-        LL = self.actTarget - self.tol
-        counter = 0
-        loopInterval = 0.5 #second
-        sendInterval = 10 #second
-        startCountSettlingTime = False
-        settlingStartTime = time.time()
-        settlingStartCountdownTime = 0
-        while True:
-            if self.stopMsgQueue.qsize()>0:
-                # stop process immediately
-                self.set_result(curT,'FAIL',unit='&#8451', progs=100)
-                break
-            # time.sleep(loopInterval)
-            time.sleep(loopInterval)
-            if startCountSettlingTime:
-                tempProgress = 1
-            else:
-                diffT = abs(self.actTarget-initT)
-                if diffT == 0:
-                    diffT = 0.00001
-                tempProgress = (abs(curT - initT) / diffT)
-            prog = round( tempProgress * 50 + settlingStartCountdownTime/self.settlingTime * 50 , 0)
-            if counter*loopInterval >= sendInterval:
-                self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
-                self.resultCallback(self.result)
-                counter = 0
-            else:
-                self.set_result(curT,'UPDATE_PROGRESS_ONLY',unit='&#8451', progs=prog)
-                self.resultCallback(self.result)
-                counter += 1
-            # yield self.result
-            if (self.actTarget-curT)<0:
-                signSlope = -self.slope
-            else:
-                signSlope = self.slope
-            ## START ##########only for simulation of chamber###########
-            
-            curT = curT + signSlope/60*1 + random.random()*0.002
-            
-            self.hwDigichamber.set_dummy_act_temp(curT)
-            ## END   ###################################################
+        try:
             curT = self.hwDigichamber.get_real_temperature()
-            
-            if curT<=UL and curT>=LL:
-                if not startCountSettlingTime:
-                    startCountSettlingTime = True
-                    settlingStartTime = time.time()
-            
-            if startCountSettlingTime:
-                settlingStartCountdownTime = time.time() - settlingStartTime
-                if settlingStartCountdownTime >= self.settlingTime:
+            initT = curT
+            self.update_actTarget()
+            self.set_gradient_process(self.actTarget,self.slope)
+
+            # set manual mode on
+            self.hwDigichamber.set_manual_mode(True)
+            self.commCallback('update_machine_status',{'dt':None,'temp':{'status':2, 'value':None}, 'hum':{'status':2, 'value':None}})
+
+            # set options
+            self.set_temperature_imporve_options()
+
+            # update new target ref to client
+            self.commCallback('update_gauge_ref',self.actTarget)
+
+            UL = self.actTarget + self.tol
+            LL = self.actTarget - self.tol
+            counter = 0
+            loopInterval = 0.5 #second
+            sendInterval = 10 #second
+            startCountSettlingTime = False
+            settlingStartTime = time.time()
+            settlingStartCountdownTime = 0
+            while True:
+                if self.stopMsgQueue.qsize()>0:
+                    # stop process immediately
+                    self.set_result(curT,'FAIL',unit='&#8451', progs=100)
                     break
+                # time.sleep(loopInterval)
+                time.sleep(loopInterval)
+                if startCountSettlingTime:
+                    tempProgress = 1
+                else:
+                    diffT = abs(self.actTarget-initT)
+                    if diffT == 0:
+                        diffT = 0.00001
+                    tempProgress = (abs(curT - initT) / diffT)
+                prog = round( tempProgress * 50 + settlingStartCountdownTime/self.settlingTime * 50 , 0)
+                if counter*loopInterval >= sendInterval:
+                    self.set_result(curT,'WAITING',unit='&#8451', progs=prog)
+                    self.resultCallback(self.result)
+                    counter = 0
+                else:
+                    self.set_result(curT,'UPDATE_PROGRESS_ONLY',unit='&#8451', progs=prog)
+                    self.resultCallback(self.result)
+                    counter += 1
+                # yield self.result
+                if (self.actTarget-curT)<0:
+                    signSlope = -self.slope
+                else:
+                    signSlope = self.slope
+                ## START ##########only for simulation of chamber###########
+                
+                curT = curT + signSlope/60*1 + random.random()*0.002
+                
+                self.hwDigichamber.set_dummy_act_temp(curT)
+                ## END   ###################################################
+                curT = self.hwDigichamber.get_real_temperature()
+                
+                if curT<=UL and curT>=LL:
+                    if not startCountSettlingTime:
+                        startCountSettlingTime = True
+                        settlingStartTime = time.time()
+                
+                if startCountSettlingTime:
+                    settlingStartCountdownTime = time.time() - settlingStartTime
+                    if settlingStartCountdownTime >= self.settlingTime:
+                        self.set_result(curT,'PASS',unit='&#8451', progs=100)
+                        break
+                
+                # pause process
+                ret = self.isPauseed()
+                if ret:
+                    resumed = self.wait_for_resume_from_pause(timeout=0.1)
+        except:
+            self.set_result(0.0,'FAIL',unit='&#8451', progs=100)
+        finally:
             # pause process
             ret = self.isPauseed()
             if ret:
-                self.hwDigichamber.set_gradient_up(0)
-                self.hwDigichamber.set_gradient_down(0)
-                self.hwDigichamber.set_setPoint(curT)
-                self.hwDigichamber.set_manual_mode(True)
-                self.wait_for_resume_from_pause()
-                curT = self.hwDigichamber.get_real_temperature()
-                self.set_gradient_process(self.actTarget,self.slope)
-
-        self.set_result(curT,'PASS',unit='&#8451', progs=100)
-        # self.hwDigichamber.set_manual_mode(False)
-        return self.result
+                resumed = self.wait_for_resume_from_pause()
+            return self.result
 
     def update_actTarget(self):
         incre = self.loopIter*self.incre
@@ -475,6 +507,7 @@ class HardnessStep(DigiCenterStep):
             except:
                 pass
             statusCode, h_data = self.hwDigitest.get_single_value(curT)
+            print(f"during measuring process: {statusCode}, {h_data}")
             endTime = time.time()
             countdownTime = endTime - startTime
             prog = round( countdownTime / (self.mearTime+20) * 100, 0)
@@ -483,18 +516,20 @@ class HardnessStep(DigiCenterStep):
                     self.lg.debug('Error: DISTANCE_TOO_BIG when measuring')
                     h_data = 0.0
                     return 'ERROR_STOP', h_data
-                output_data = round(h_data,1)
-                self.commCallback('only_update_hardness_indicator',output_data)
-                self.commCallback('update_machine_status',{'dt':{'status':1, 'value':output_data},'temp':None, 'hum':None})
-                self.set_result(None,'WAITING',hardness_dataset=self.singleResult, progs=100, batchInfo=currentSample)
-                self.resultCallback(self.result)
-                return 'OK', output_data
+                if statusCode == 1 and h_data is None:
+                    self.lg.debug('Ignore first value when recover from Pause process')
+                else:
+                    output_data = round(h_data,1)
+                    self.commCallback('only_update_hardness_indicator',output_data)
+                    self.commCallback('update_machine_status',{'dt':{'status':1, 'value':output_data},'temp':None, 'hum':None})
+                    self.set_result(None,'WAITING',hardness_dataset=self.singleResult, progs=100, batchInfo=currentSample)
+                    self.resultCallback(self.result)
+                    return 'OK', output_data
             else:
                 self.commCallback('update_machine_status',{'dt':{'status':2, 'value':None},'temp':None, 'hum':None})
                 self.set_result(None,'WAITING',hardness_dataset=self.singleResult, progs=prog, batchInfo=currentSample)
                 self.resultCallback(self.result)
-                # time.sleep(0.5)
-                time.sleep(0.5)
+                time.sleep(0.25)
                 
             if self.isInterrupted():
                 self.hwDigitest.stop_mear()
@@ -506,6 +541,8 @@ class HardnessStep(DigiCenterStep):
             if ret:
                 self.hwDigitest.stop_mear()
                 self.wait_for_resume_from_pause()
+                self.hwDigitest.start_mear_direct()
+                
 
     def go_next_measurment_process(self,currentSample,currentPosition):
         sampleIndex = currentSample['id']
@@ -545,91 +582,94 @@ class HardnessStep(DigiCenterStep):
                 return 'move_fail'
 
     @DigiCenterStep.deco
-    def do(self):            
-        # config
-        self.config_digitest()
-        # rotate on next position sample
-        # self.lg.debug('rotate to first sample with position')
-        # move_completed, response = self.hwDigitest.set_rotation_pos(1,1)
-        # mear
-        for smp in self.batchInfoForSamples:
-            self.lg.debug('####### current sample ######')
-            # {'id': 0, 'status': 'filled', 'batchInfo': {'project': '0729', 'batch': '2', 'notes': '', 'seq_name': 'C:\\data_exports\\seq_files\\singletest.seq', 'numSample': 4, 'sampleId': 0}, 'color': 'red'}
-            # {'id': 1, 'status': 'filled', 'batchInfo': {'project': '0729', 'batch': '2', 'notes': '', 'seq_name': 'C:\\data_exports\\seq_files\\singletest.seq', 'numSample': 4, 'sampleId': 1}, 'color': 'red'}
-            # {'id': 2, 'status': 'filled', 'batchInfo': {'project': '0729', 'batch': '2', 'notes': '', 'seq_name': 'C:\\data_exports\\seq_files\\singletest.seq', 'numSample': 4, 'sampleId': 2}, 'color': 'red'}
-            # {'id': 3, 'status': 'filled', 'batchInfo': {'project': '0729', 'batch': '2', 'notes': '', 'seq_name': 'C:\\data_exports\\seq_files\\singletest.seq', 'numSample': 4, 'sampleId': 3}, 'color': 'red'}
-            self.lg.debug('{}'.format(smp))
-            self.lg.debug('####### current sample ######')
-            self.reset_result()
-            n = 1
-            while True:
-                if self.isInterrupted():
-                    self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
-                    return self.result
+    def do(self):
+        try:            
+            # config
+            self.config_digitest()
+            # rotate on next position sample
+            # self.lg.debug('rotate to first sample with position')
+            # move_completed, response = self.hwDigitest.set_rotation_pos(1,1)
+            # mear
+            for smp in self.batchInfoForSamples:
+                self.lg.debug('####### current sample ######')
+                # {'id': 0, 'status': 'filled', 'batchInfo': {'project': '0729', 'batch': '2', 'notes': '', 'seq_name': 'C:\\data_exports\\seq_files\\singletest.seq', 'numSample': 4, 'sampleId': 0}, 'color': 'red'}
+                # {'id': 1, 'status': 'filled', 'batchInfo': {'project': '0729', 'batch': '2', 'notes': '', 'seq_name': 'C:\\data_exports\\seq_files\\singletest.seq', 'numSample': 4, 'sampleId': 1}, 'color': 'red'}
+                # {'id': 2, 'status': 'filled', 'batchInfo': {'project': '0729', 'batch': '2', 'notes': '', 'seq_name': 'C:\\data_exports\\seq_files\\singletest.seq', 'numSample': 4, 'sampleId': 2}, 'color': 'red'}
+                # {'id': 3, 'status': 'filled', 'batchInfo': {'project': '0729', 'batch': '2', 'notes': '', 'seq_name': 'C:\\data_exports\\seq_files\\singletest.seq', 'numSample': 4, 'sampleId': 3}, 'color': 'red'}
+                self.lg.debug('{}'.format(smp))
+                self.lg.debug('####### current sample ######')
+                self.reset_result()
+                n = 1
+                while True:
+                    if self.isInterrupted():
+                        self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
+                        return self.result
 
-                sampleIndex = smp['id']
-                sampleIndexInBatch = smp['batchInfo']['sampleId']
-                
-                # move
-                self.checkPauseProcess()
-                status = self.go_next_measurment_process(smp, n)
-                if status == 'move_fail':
-                    self.set_result(round(0.0,1),'ERROR_STOP', eventName='move_fail',hardness_dataset=self.singleResult, progs=100)
-                    return self.result
-                # update current sample highlight
-                self.set_result(None,'UPDATE_CURRENT_SAMPLEINDEX',hardness_dataset=self.singleResult, progs=0, batchInfo=smp)
-                currentResult = self.result.copy()
-                self.resultCallback(self.result)
-
-                self.checkPauseProcess()
-
-                # mearsure
-                self.hwDigitest.config(debug=False, wait_cmd = False)
-                statusMsg, output_data = self.mear_process(smp)
-                self.hwDigitest.config(debug=False, wait_cmd = True)
-                self.lg.debug('[statusMsg, output_data] {}, {}'.format(statusMsg, output_data))
-                if statusMsg == 'ERROR_STOP':
-                    self.lg.debug('[output_data] {}'.format(output_data))
-                    self.set_result(None,'ERROR_STOP',eventName='distance_too_big', hardness_dataset=self.singleResult, progs=100, batchInfo=smp)
-                    return self.result
-                elif statusMsg == 'Stop':
-                    return self.result
-
-                # record data
-                if output_data is not None:
-                    self.add_data(output_data,sampleIndexInBatch)
-                    self.lg.debug('[self.singleResult] {}'.format(self.singleResult))
-                    n += 1
-                
-                # check mearsure done or not
-                if self.singleResult['done']:
+                    sampleIndex = smp['id']
+                    sampleIndexInBatch = smp['batchInfo']['sampleId']
                     
-                    self.lg.debug('self.singleResult is done? {}'.format(self.singleResult['done']))
-                    # all points in current sample done
-                    if sampleIndex >= len(self.batchInfoForSamples)-1:
-                        self.lg.debug('sampleIndex >= len(self.batchInfoForSamples)-1: {}'.format(sampleIndex >= len(self.batchInfoForSamples)-1))
-                        # finishd all samples
-                        self.set_result(self.singleResult['result'],'PASS', 
-                                        eventName=r'{}'.format(sampleIndex), 
-                                        hardness_dataset=self.singleResult, 
-                                        progs=100,
-                                        batchInfo=smp
-                                        )
-                        # currentResult = self.result.copy()
-                        # self.resultCallback(currentResult)
-                        break
-                    # go to next sample
-                    self.set_result(self.singleResult['result'],'MEAR_NEXT', None, 
-                                    eventName=r'{}'.format(sampleIndex), 
-                                    hardness_dataset=self.singleResult,
-                                    progs=100,
-                                    batchInfo=smp)
+                    # move
+                    self.checkPauseProcess()
+                    status = self.go_next_measurment_process(smp, n)
+                    if status == 'move_fail':
+                        self.set_result(round(0.0,1),'ERROR_STOP', eventName='move_fail',hardness_dataset=self.singleResult, progs=100)
+                        return self.result
+                    # update current sample highlight
+                    self.set_result(None,'UPDATE_CURRENT_SAMPLEINDEX',hardness_dataset=self.singleResult, progs=0, batchInfo=smp)
                     currentResult = self.result.copy()
-                    self.resultCallback(currentResult)
-                    break
+                    self.resultCallback(self.result)
 
-                self.checkPauseProcess()
-            
+                    self.checkPauseProcess()
+
+                    # mearsure
+                    self.hwDigitest.config(debug=False, wait_cmd = False)
+                    statusMsg, output_data = self.mear_process(smp)
+                    self.hwDigitest.config(debug=False, wait_cmd = True)
+                    self.lg.debug('[statusMsg, output_data] {}, {}'.format(statusMsg, output_data))
+                    if statusMsg == 'ERROR_STOP':
+                        self.lg.debug('[output_data] {}'.format(output_data))
+                        self.set_result(None,'ERROR_STOP',eventName='distance_too_big', hardness_dataset=self.singleResult, progs=100, batchInfo=smp)
+                        return self.result
+                    elif statusMsg == 'Stop':
+                        return self.result
+
+                    # record data
+                    if output_data is not None:
+                        self.add_data(output_data,sampleIndexInBatch)
+                        self.lg.debug('[self.singleResult] {}'.format(self.singleResult))
+                        n += 1
+                    
+                    # check mearsure done or not
+                    if self.singleResult['done']:
+                        
+                        self.lg.debug('self.singleResult is done? {}'.format(self.singleResult['done']))
+                        # all points in current sample done
+                        if sampleIndex >= len(self.batchInfoForSamples)-1:
+                            self.lg.debug('sampleIndex >= len(self.batchInfoForSamples)-1: {}'.format(sampleIndex >= len(self.batchInfoForSamples)-1))
+                            # finishd all samples
+                            self.set_result(self.singleResult['result'],'PASS', 
+                                            eventName=r'{}'.format(sampleIndex), 
+                                            hardness_dataset=self.singleResult, 
+                                            progs=100,
+                                            batchInfo=smp
+                                            )
+                            # currentResult = self.result.copy()
+                            # self.resultCallback(currentResult)
+                            break
+                        # go to next sample
+                        self.set_result(self.singleResult['result'],'MEAR_NEXT', None, 
+                                        eventName=r'{}'.format(sampleIndex), 
+                                        hardness_dataset=self.singleResult,
+                                        progs=100,
+                                        batchInfo=smp)
+                        currentResult = self.result.copy()
+                        self.resultCallback(currentResult)
+                        break
+
+                    self.checkPauseProcess()
+        except:
+            self.lg.debug('measurement process error, possible reason is digiTest disconnected')
+            self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
         self.commCallback('update_machine_status',{'dt':{'status':1, 'value':None},'temp':None, 'hum':None})
         return self.result
 
@@ -694,7 +734,8 @@ class WaitingStep(DigiCenterStep):
             # time.sleep(0.27)
             time.sleep(0.27)
             endTime = time.time()
-            countdownTime = endTime - startTime - sum(additionTimeToAdd)
+            # countdownTime = endTime - startTime - sum(additionTimeToAdd)
+            countdownTime = endTime - startTime
             prog = round( countdownTime / targetTime * 100, 0)
 
             if counter*loopInterval >= sendInterval:
@@ -706,14 +747,16 @@ class WaitingStep(DigiCenterStep):
                 self.resultCallback(self.result)
                 counter += 1
             
-            timeBeforePause = time.time()
-            self.checkPauseProcess()
-            timeAfterPause = time.time()
-            pauseTime = timeAfterPause - timeBeforePause
-            if pauseTime > 1:
-                additionTimeToAdd.append(pauseTime)
+            # pause process
+            ret = self.isPauseed()
+            if ret:
+                resumed = self.wait_for_resume_from_pause(timeout=0.1)
 
         self.set_result(round(countdownTime,1),'PASS',unit='s', progs=100)
+        # pause process
+        ret = self.isPauseed()
+        if ret:
+            resumed = self.wait_for_resume_from_pause()
         return self.result
 
 
