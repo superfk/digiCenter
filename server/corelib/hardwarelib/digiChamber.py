@@ -45,7 +45,7 @@ class DigiChamber(object):
         data = data.split(DELIM)
         if len(data)==1:
             if int(data[0]) in [-8, -6]:
-                return data[0], None
+                return int(data[0]), None
             return 0, data[0]
         else:
             return data

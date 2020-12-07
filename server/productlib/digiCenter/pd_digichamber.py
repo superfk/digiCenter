@@ -309,7 +309,7 @@ class DigiChamberProduct(pd_product.Product):
             if not self.digiTest.connected:
                 self.errorMsg = self.lang_data['digitest_disconnect_msg']
                 self.log_to_db_func('digitest_disconnected', 'error', False)
-            else:
+            if not self.dChamb.connected:
                 self.errorMsg = self.lang_data['digichamber_disconnect_msg']
                 self.log_to_db_func('digichamber_disconnected', 'error', False)
             try:
