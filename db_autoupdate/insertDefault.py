@@ -2,7 +2,40 @@ import pyodbc
 import traceback
 import csv
 from cryptography.fernet import Fernet
+import pkgutil
+import datetime
+import csv_files
 
+def progressBar(iterable, prefix='', suffix='', decimals=1, length=100, fill='█', printEnd="\r"):
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    total = len(iterable)
+    # Progress Bar Printing Function
+
+    def printProgressBar(iteration):
+        percent = ("{0:." + str(decimals) + "f}").format(100 *
+                                                         (iteration / float(total)))
+        filledLength = int(length * iteration // total)
+        bar = fill * filledLength + '-' * (length - filledLength)
+        print(f'\r{prefix} |{bar}| {percent}% {suffix}', end=printEnd)
+    # Initial Call
+    printProgressBar(0)
+    # Update Progress Bar
+    for i, item in enumerate(iterable):
+        yield item
+        printProgressBar(i + 1)
+    # Print New Line on Complete
+    print()
 
 class DB():
     def __init__(self, server_name, dbName, username="",password=""):
@@ -150,11 +183,13 @@ class DB():
         return fields
 
 def read_csv(filepath):
-    with open(filepath, newline='') as csvfile:
-        contents = csv.reader(csvfile, delimiter=',')
-        lines = []
-        for row in contents:
-            lines.append(row)
+    help_bin = pkgutil.get_data( 'csv_files', filepath )
+    csvContents = help_bin.decode('UTF-8', 'ignore')
+    lines = []
+    csvLines = csvContents.splitlines()
+    contents = csv.reader(csvLines, delimiter=',')
+    for row in contents:
+        lines.append(row)
     return lines
 
 def valueFormatter(valueList, formatList):
@@ -177,49 +212,68 @@ def makeCondition(conditionFields,valueList):
     conditionStr = "WHERE " + conditions
     return conditionStr
 
-def bulkInsert(db, tablename, fields, dataList, datatype, fromIndex=0):
-    print('\nstart insert or update data to table {}'.format(tablename)) 
+def bulkInsert(db, tablename, fields, dataList, datatype, fromIndex=0, conditionFields=[], debug=False):
+    # tablename = tablename.lower()
+    # fields = [x.lower() for x in fields]
+    print('\nstart insert or update data to table {}'.format(tablename))
     insertCounter = 0
     updateCounter = 0
-    for r in dataList:
+    for r in progressBar(dataList, prefix='Progress:', suffix='Complete', length=50):
         valueList = r[fromIndex:]
         fmtValue = valueFormatter(valueList, datatype)
         condition = makeCondition(fields, fmtValue)
-        print(condition)
-        ret = db.select(tablename, fields, condition)
-        if len(ret)==0:
-            db.insert(tablename,fields, valueList)
-            insertCounter += 1
+        if len(conditionFields) > 0:
+            condValues = []
+            for f, v in zip(fields, fmtValue):
+                if f in conditionFields:
+                    condValues.append(v)
+            serchCondition = makeCondition(conditionFields, condValues)
         else:
-            db.update(tablename,fields, valueList,condition)
-            updateCounter += 1
+            serchCondition = condition
+        if debug:
+            print('')
+            print(f'fields: {fields}')
+            print(f'fmtValue: {fmtValue}')
+            print(f'serchCondition: {serchCondition}')
 
-    print('{} of rows inserted'.format(insertCounter)) 
-    print('{} of rows updated'.format(updateCounter)) 
+        ret = db.select(tablename, fields, serchCondition)
+        if len(ret) == 0:
+            try:
+                db.insert(tablename, fields, fmtValue)
+                insertCounter += 1
+            except Exception as e:
+                print(e)
+        else:
+            try:
+                db.update(tablename, fields, fmtValue, serchCondition)
+                updateCounter += 1
+            except Exception as e:
+                print(e)
+    return insertCounter, updateCounter
 
 def insertFunctionList(db):
-    allContents = read_csv(r'.\functionlist_default.csv')
+    allContents = read_csv(r'functionlist_default.csv')
     onlyContents = allContents[1:]
     datatype = ['string', 'int', 'int']
-    bulkInsert(db,'FunctionList',['Functions','Tree_index','Display_order'], onlyContents, datatype, 1)
+    return bulkInsert(db,'FunctionList',['Functions','Tree_index','Display_order'], onlyContents, datatype, 1)
 
 def insertUserList(db):
-    allContents = read_csv(r'.\user_list_default.csv')
+    allContents = read_csv(r'user_list_default.csv')
     onlyContents = allContents[1:]
     datatype = ['string','string','string','string','string', 'int', 'int']
-    bulkInsert(db,'UserList',['User_Name','PW','User_Role', 'Creation_Date', 'Expired_Date','Status', 'First_login'], onlyContents, datatype, 1 )
+    return bulkInsert(db,'UserList',['User_Name','PW','User_Role', 'Creation_Date', 'Expired_Date','Status', 'First_login'], onlyContents, datatype, 1 )
 
 def insertUserRoleList(db):
-    allContents = read_csv(r'.\user_role_list_default.csv')
+    allContents = read_csv(r'user_role_list_default.csv')
     onlyContents = allContents[1:]
     datatype = ['string', 'int']
-    bulkInsert(db,'UserRoleList',['User_Role', 'User_Level'], onlyContents, datatype, 1 )
+    return bulkInsert(db,'UserRoleList',['User_Role', 'User_Level'], onlyContents, datatype, 1 )
 
 def insertUserPermissionList(db):
-    allContents = read_csv(r'.\user_permission_default.csv')
+    allContents = read_csv(r'user_permission_default.csv')
     onlyContents = allContents[1:]
     datatype = ['string', 'string','int', 'int']
-    bulkInsert(db,'UserPermission',['User_Role', 'Functions', 'Enabled', 'Visibled'], onlyContents, datatype, 1 )
+    return bulkInsert(db,'UserPermission',['User_Role', 'Functions', 'Enabled', 'Visibled'], onlyContents, datatype, 1 )
 
 def encrypt_password(pw):
     key = b'mASnZzVxJLLGLIe1H_y_tzl2cu7wzUf7l091-4SPTBo='
@@ -234,16 +288,26 @@ def main():
 
     print('connection status: {}'.format(ok))
     if ok:
-        # insert Function List
-        insertFunctionList(db)     
-        # insert user_list_default
-        insertUserList(db)
-        # insert user role list
-        insertUserRoleList(db)
-        # insert user permission list
-        insertUserPermissionList(db)
+        funcs = [
+            insertFunctionList,
+            insertUserList,
+            insertUserRoleList,
+            insertUserPermissionList
+        ]
+        totalInsert = 0
+        totalUpdate = 0
+        for f in funcs:
+            inserted, updated = f(db)
+            totalInsert += inserted
+            totalUpdate += updated
 
-        db.close()
+        print('')
+        print('[Completed Insert Default Values]')
+        print('{} of rows inserted'.format(totalInsert))
+        print('{} of rows updated'.format(totalUpdate))
+
+    db.close()
+        
 
 
 if __name__=="__main__":

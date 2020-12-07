@@ -2,8 +2,8 @@
 
 block_cipher = None
 added_files = [
-    ( 'functionlist_default.csv', 'csv' ),
-]
+         ( 'csv_files', 'csv_files' )
+         ]
 
 a = Analysis(['insertDefault.py'],
              pathex=[],
