@@ -1,7 +1,7 @@
 
 import asyncio
 from datetime import datetime
-from logging import fatal
+from logging import fatal, raiseExceptions
 from queue import Empty
 import time
 import random
@@ -144,8 +144,12 @@ class DigiCenterStep(object):
         self.result['hardness_dataset'] = hardness_dataset
         self.result['category'] = self.category
         try:
-            self.result['actTemp'] = self.hwDigichamber.get_real_temperature()
-            self.result['actHum'] = self.hwDigichamber.get_real_humidity()
+            if self.hwDigichamber.connected:
+                self.result['actTemp'] = self.hwDigichamber.get_real_temperature()
+                self.result['actHum'] = self.hwDigichamber.get_real_humidity()
+            else:
+                self.result['actTemp'] = None
+                self.result['actHum'] = None
         except:
             self.result['actTemp'] = None
             self.result['actHum'] = None
@@ -430,7 +434,18 @@ class TemperatureStep(DigiCenterStep):
                 
                 self.hwDigichamber.set_dummy_act_temp(curT)
                 ## END   ###################################################
-                curT = self.hwDigichamber.get_real_temperature()
+                try:
+                    curT = self.hwDigichamber.get_real_temperature()
+                except:
+                    self.lg.debug("[Chamber disconnet suddenly, executing recovery process...]")
+                    recoveryOK = self.hwDigichamber.recovery()
+                    if recoveryOK:
+                        self.lg.debug("[Chamber recover OK]")
+                        curT = self.hwDigichamber.get_real_temperature()
+                        self.lg.debug(f"[Chamber get temperature value after recovery: {curT}]")
+                    else:
+                        self.lg.debug(f"[Chamber recover Failed]")
+                        raise ConnectionError
                 
                 if curT<=UL and curT>=LL:
                     if not startCountSettlingTime:
@@ -448,7 +463,10 @@ class TemperatureStep(DigiCenterStep):
                 if ret:
                     resumed = self.wait_for_resume_from_pause(timeout=0.1)
         except:
-            self.set_result(0.0,'FAIL',unit='&#8451', progs=100)
+            err_msg = traceback.format_exc()
+            self.lg.debug('[Erro Occured in Temperature Step!]')
+            self.lg.debug(err_msg)
+            self.set_result(0.0,'ERROR_STOP',eventName='digiChamber_connection_error',unit='&#8451', progs=100)
         finally:
             # pause process
             ret = self.isPauseed()
@@ -503,7 +521,10 @@ class HardnessStep(DigiCenterStep):
             # get value
             try:
                 # only for demo mode
-                curT = self.hwDigichamber.get_real_temperature()           
+                if self.hwDigichamber.connected:
+                    curT = self.hwDigichamber.get_real_temperature()
+                else:
+                    curT = 0.0         
             except:
                 pass
             statusCode, h_data = self.hwDigitest.get_single_value(curT)
@@ -668,8 +689,10 @@ class HardnessStep(DigiCenterStep):
 
                     self.checkPauseProcess()
         except:
-            self.lg.debug('measurement process error, possible reason is digiTest disconnected')
-            self.set_result(round(0.0,1),'FAIL',hardness_dataset=self.singleResult, progs=100)
+            err_msg = traceback.format_exc()
+            self.lg.debug('[Erro Occured in Hardness Step!]')
+            self.lg.debug(err_msg)
+            self.set_result(round(0.0,1),'ERROR_STOP',eventName='digitest_connection_error', hardness_dataset=self.singleResult, progs=100)
         self.commCallback('update_machine_status',{'dt':{'status':1, 'value':None},'temp':None, 'hum':None})
         return self.result
 

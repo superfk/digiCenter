@@ -9,6 +9,7 @@
             <button data-lang='side_posteach' data-lang_type='innertext' class="w3-bar-item w3-button config-tablink" onclick="openLink(event, 'PosTeach')" tabindex="-1">Teach Position Guide</button>
             <button data-lang='side_userMang' data-lang_type='innertext' class="w3-bar-item w3-button config-tablink" onclick="openLink(event, 'Users')" tabindex="-1">User Managment</button>
             <button data-lang='side_systemlog' data-lang_type='innertext' class="w3-bar-item w3-button config-tablink" onclick="openLink(event, 'SysLog')" tabindex="-1">System Log</button>
+            <button data-lang='side_database' data-lang_type='innertext' class="w3-bar-item w3-button config-tablink" onclick="openLink(event, 'DatabaseBackup')" tabindex="-1">Backup and Restore</button>
           </div>
           
           <!-- Content of config item -->
@@ -191,9 +192,28 @@
                 <div id="syslog-table"></div>
               </div>
             </div>
+
+            <!-- Database Backup and Restore item -->
+            <div id="DatabaseBackup" class="w3-container config-tab w3-animate-opacity" style="display:none">
+              <div class='w3-container w3-margin'>
+                <div class="w3-text-black w3-large"><b data-lang='db_backup_restore_title' data-lang_type='innertext'>Database Backup and Restore</b></div>
+                
+                <div class='w3-container w3-margin-top' style='margin-left:0;padding-left: 0;'>
+                <button id="backup_db_btn" data-lang='backup_db_btn' data-lang_type='innertext' data-auth='database_backup_btn' class="w3-btn w3-border w3-hover-border w3-green"  style='width:150px' tabindex="-1">Backup</button>
+                </div>
+                
+                <div class='w3-container w3-margin-top' style='margin-left:0;padding-left: 0;'>
+                <button id="restore_db_btn" data-lang='restore_db_btn' data-lang_type='innertext' data-auth='database_restore_btn' class="w3-btn w3-border w3-hover-border w3-green"  style='width:150px' tabindex="-1">Restore</button>
+                </div>
+                
+                </div>
+              </div>
+          
+            </div>
           
           </div>
 
+          
           <!-- new user -->
           <div class="w3-container">
             <div id="new-user-account-modal" class="w3-modal">

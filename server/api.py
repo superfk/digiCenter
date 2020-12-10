@@ -3,6 +3,8 @@
 
 from __future__ import print_function
 import sys
+
+from numpy.lib.shape_base import expand_dims
 sys.path.append('server/corelib')
 sys.path.append('server/corelib/hardwarelib/instrClass')
 sys.path.append('server/productlib')
@@ -44,9 +46,9 @@ class PyServerAPI(object):
         logger.add(sys.stdout, format="{time} - {level} - {message}")
         logger.add(r"systemlog/{time:YYYY-MM-DD}/file_{time:YYYY-MM-DD}.log", rotation="5 MB")
         self.lg = logger
-        # self.db = DB(r"SHAWNNB\SQLEXPRESS", 'BareissAdmin', 'BaAdmin')        
-        self.db = DB(r"(localDB)\BareissLocalDB", r"BareissAdmin", r"BaAdmin")
-        self.db.connect('DigiChamger')
+        # self.db = DB(r"SHAWNNB\SQLEXPRESS", 'BareissAdmin', 'BaAdmin')       
+        self.db = DB(r'(localDB)\BareissLocalDB', 'BareissAdmin', 'BaAdmin')  
+        self.db.connect('DigiChamger', False)
         self.userMang = UserManag(self.db,"Guest", "Guest", 0, True)
         self.config = None
         self.productProcess = DigiChamberProduct('digiCenter',r"C:\\data_exports",self.sendMsg,self.saveTestData)
@@ -242,6 +244,9 @@ class PyServerAPI(object):
                     await self.download_event_chart_data(websocket, data)
                 elif cmd == 'get_digitest_is_rotaion_mode':
                     await self.get_digitest_is_rotaion_mode(websocket)
+                elif cmd == 'database_backup_restore':
+                    backup = data
+                    await self.database_backup_restore(websocket, backup)
                 elif cmd == 'close_all':
                     await self.close_all(websocket)
                 else:
@@ -279,6 +284,48 @@ class PyServerAPI(object):
                 self.lg.debug(err_msg)
             finally:
                 await asyncio.sleep(10)
+
+    async def database_backup_restore(self,websocket, backup=True):
+        destFolder = self.config['system']['default_export_folder']
+        destFolder = os.path.join(destFolder, 'backup')
+        if not os.path.exists(destFolder):
+            os.makedirs(destFolder)
+        if backup:
+            self.local_log_to_db(f'Starting Backup database process','info', True)
+            try:
+                success = self.db.backup(destFolder)
+                if success:
+                    self.local_log_to_db(f'Backup database OK','info', True)
+                    await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':1, 'res':self.lang_data['server_database_backup_ok']})
+                else:
+                    self.local_log_to_db(f'Backup database error','error', True)
+                    await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':0, 'res':self.lang_data['server_database_backup_NG']})
+            except:
+                error_msg = traceback.format_exc()
+                self.lg.debug(error_msg)
+                self.local_log_to_db(f'Backup database error: {error_msg}','error', True)
+                await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':0, 'res':self.lang_data['server_database_backup_NG']})
+        else:
+            self.local_log_to_db(f'Starting Restore database process','info', True)
+            try:
+                success = self.db.restore(destFolder)
+                if success:
+                    try:
+                        self.local_log_to_db(f'Restore database OK','info', True)
+                        await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':1, 'res':self.lang_data['server_database_restore_ok']})
+                    except:
+                        error_msg = traceback.format_exc()
+                        self.local_log_to_db(f'Backup database init error: {error_msg}','error', True)
+                        await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':0, 'res':self.lang_data['server_database_restore_NG']})
+                else:
+                    self.local_log_to_db(f'Backup database error','error', True)
+                    await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':0, 'res':self.lang_data['server_database_restore_NG']})
+            except:
+                error_msg = traceback.format_exc()
+                self.lg.debug(error_msg)
+                self.local_log_to_db(f'Restore database error: {error_msg}','error', True)
+                await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':0, 'res':self.lang_data['server_database_restore_NG']})
+
 
     async def load_sys_config(self, websocket, path):
         self.config = util.read_system_config(path)
@@ -323,7 +370,17 @@ class PyServerAPI(object):
     async def getDBServer(self, websocket):
         await self.sendMsg(websocket,'get_db_server',self.config['system']['database']["server"])
     async def getRotationTable_N(self, websocket):
-        await self.sendMsg(websocket,'getRotationTable_N',self.config['system']['rotationTable_N'])
+        try:
+            N, n = self.digiTest.get_rotation_info()
+            if N is not None:
+                self.config['system']['rotationTable_N'] = N
+                util.write_system_config(path=self.config_path, data = self.config)
+            else:
+                N = self.config['system']['rotationTable_N']
+        except:
+            N = self.config['system']['rotationTable_N']
+        finally:
+            await self.sendMsg(websocket,'getRotationTable_N', N)
     async def update_machine_remote(self, websocket, ip):
         self.config['system']['machine_ip'] = ip
         util.write_system_config(path=self.config_path, data = self.config)
@@ -355,6 +412,10 @@ class PyServerAPI(object):
     async def backend_init(self, websocket):
         # self.db = DB(self.config['system']['database']['server'], 'BareissAdmin', 'BaAdmin')
         # self.db = DB(r'' + os.environ['COMPUTERNAME'] + r'\SQLEXPRESS', 'BareissAdmin', 'BaAdmin')
+        try:
+            self.db.close()
+        except:
+            pass
         self.db = DB(r'(localDB)\BareissLocalDB', 'BareissAdmin', 'BaAdmin')
         res = {}
         if not self.db.connect('DigiChamber'):

@@ -200,6 +200,17 @@ function connect() {
         case 'update_sys_default_config':
           updateServerSeqFolder(data);
           break;
+        case 'reply_database_backup_restore':
+          if (data.resp_code == 0) {
+            ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, data.res);
+          }
+          else {
+            ipcRenderer.send('show-info-alert', window.lang_data.modal_info_title, data.res);
+          }
+          backBtn.classList.remove('db_action_disabled','db_action_enabled');
+          restoreBtn.classList.remove('db_action_disabled','db_action_enabled');
+          ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title,  window.lang_data.server_restart_program);
+          break;
         case 'reply_server_error':
           ipcRenderer.send('show-server-error', data.error);
           break;
@@ -848,4 +859,29 @@ $('#systemlog_link').on('click', (e) => {
   let fpath = $("#systemlog_link").attr("href")
   shell.openItem(fpath);
 
+})
+
+
+// ===============================================================
+// Database backup Panel                                               |
+// ===============================================================
+
+var backBtn = document.getElementById('backup_db_btn');
+var restoreBtn = document.getElementById('restore_db_btn');
+
+$(backBtn).on('click', () => {
+  ws.send(tools.parseCmd('database_backup_restore', true));
+  backBtn.classList.remove('db_action_enabled', 'db_action_disabled');
+  backBtn.classList.add('db_action_disabled');;
+  restoreBtn.classList.remove('db_action_enabled', 'db_action_disabled');
+  restoreBtn.classList.add('db_action_disabled');
+  
+})
+
+$(restoreBtn).on('click', () => {
+  ws.send(tools.parseCmd('database_backup_restore', false));
+  backBtn.classList.remove('db_action_enabled', 'db_action_disabled');
+  backBtn.classList.add('db_action_disabled');;
+  restoreBtn.classList.remove('db_action_enabled', 'db_action_disabled');
+  restoreBtn.classList.add('db_action_disabled');
 })

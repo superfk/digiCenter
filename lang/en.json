@@ -273,5 +273,14 @@
   "run_pause_btn":"Pause",
   "run_resume_btn":"Resume",
   "wait_for_resume_header":"Wating for resume",
-  "wait_for_resume_title":"Please click resume button to continue test"
+  "wait_for_resume_title":"Please click resume button to continue test",
+  "server_database_backup_ok":"Database backup successfully!",
+  "server_database_backup_NG":"Database backup failed!",
+  "db_backup_restore_title":"Database Backup and Restore",
+  "backup_db_btn":"Backup",
+  "restore_db_btn":"Restore",
+  "server_database_restore_ok":"Database restore successfully!",
+  "server_database_restore_NG":"Database restore failed!",
+  "side_database":"Backup and Restore",
+  "server_restart_program":"Please restart the program!"
 }

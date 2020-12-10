@@ -273,5 +273,14 @@
   "run_pause_btn":"暫停",
   "run_resume_btn":"繼續",
   "wait_for_resume_header":"等待測試繼續",
-  "wait_for_resume_title":"請點擊繼續按鈕以繼續測試"
+  "wait_for_resume_title":"請點擊繼續按鈕以繼續測試",
+  "server_database_backup_ok":"資料庫備份成功",
+  "server_database_backup_NG":"資料庫備份失敗",
+  "db_backup_restore_title":"資料庫備份與還原",
+  "backup_db_btn":"備份",
+  "restore_db_btn":"還原",
+  "server_database_restore_ok":"資料庫還原成功",
+  "server_database_restore_NG":"資料庫還原失敗",
+  "side_database":"備份與還原",
+  "server_restart_program":"請重新開啟程式"
 }

@@ -289,6 +289,12 @@ class DigiChamberProduct(pd_product.Product):
                             self.errorMsg = self.lang_data['digitest_distance_too_big']
                         elif testResult['eventName'] == 'move_fail':
                             self.errorMsg = self.lang_data['rotation_table_move_fail']
+                        elif testResult['eventName'] == 'digiChamber_connection_error':
+                            self.errorMsg = self.lang_data['digichamber_disconnect_msg']
+                        elif testResult['eventName'] == 'digitest_connection_error':
+                            self.errorMsg = self.lang_data['digitest_disconnect_msg']
+                        else:
+                            pass
                         # set error attribute to every step
                         for s in self.stepsClass:
                             s.set_error_occurred(True, self.errorMsg)
@@ -306,12 +312,6 @@ class DigiChamberProduct(pd_product.Product):
             self.set_test_stop()
 
         finally:
-            if not self.digiTest.connected:
-                self.errorMsg = self.lang_data['digitest_disconnect_msg']
-                self.log_to_db_func('digitest_disconnected', 'error', False)
-            if not self.dChamb.connected:
-                self.errorMsg = self.lang_data['digichamber_disconnect_msg']
-                self.log_to_db_func('digichamber_disconnected', 'error', False)
             try:
                 self.interuptQueue.task_done()
             except:
@@ -487,10 +487,12 @@ class DigiChamberProduct(pd_product.Product):
             conn = self.digiTest.open_rs232(COM, timeout=5)
             self.digiTest.config(debug=False, wait_cmd = True)
             self.digiTest.setRotation()
+            N, n = self.digiTest.get_rotation_info()
             dev_name = self.digiTest.get_dev_name()
             dev_sw_version = self.digiTest.get_dev_software_version()
             self.log_to_db_func('digitest init ok', 'info', False)
             self.log_to_db_func('digitest device name: {}, software version: {}'.format(dev_name, dev_sw_version), 'info', False)
+            self.log_to_db_func('digitest N: {}, n: {}'.format(N, n), 'info', False)
             statusCode = 0
             if conn:
                 statusCode = 1

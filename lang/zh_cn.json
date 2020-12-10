@@ -273,5 +273,14 @@
   "run_pause_btn":"暂停",
   "run_resume_btn":"继续",
   "wait_for_resume_header":"等待测试继续",
-  "wait_for_resume_title":"请点击继续按钮以继续测试"
+  "wait_for_resume_title":"请点击继续按钮以继续测试",
+  "server_database_backup_ok":"资料库备份成功",
+  "server_database_backup_NG":"资料库备份失败",
+  "db_backup_restore_title":"资料库备份与还原",
+  "backup_db_btn":"备份",
+  "restore_db_btn":"还原",
+  "server_database_restore_ok":"资料库还原成功",
+  "server_database_restore_NG":"资料库还原失败",
+  "side_database":"备份与还原",
+  "server_restart_program":"请重新开启程式"
 }

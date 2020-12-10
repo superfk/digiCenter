@@ -1,6 +1,6 @@
 {
     "name": "digiCenter",
-    "version": "0.9.22",
+    "version": "0.9.24",
     "description": "Control center for digi chamber",
     "main": "main.js",
     "scripts": {
@@ -19,7 +19,7 @@
         "productName": "digiCenter",
         "appId": "app.digicenter.v000900",
         "copyright": "Bareiss",
-        "buildVersion": "0.9.22",
+        "buildVersion": "0.9.24",
         "directories": {
             "output": "builds"
         },

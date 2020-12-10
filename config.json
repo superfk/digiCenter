@@ -15,7 +15,7 @@
             "test_data_fields_type": "time,float, str,str,str,str,str,float,float,float,time,float,float,float,float,float"
         },
         "mode": "",
-        "rotationTable_N": 25,
+        "rotationTable_N": 24,
         "temp_shift_K": 1
     }
 }

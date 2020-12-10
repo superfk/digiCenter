@@ -22,10 +22,28 @@ class DigiChamber(object):
     def connect(self):
         self.connected=False
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.settimeout(0.5)
+        self.s.settimeout(5)
         self.s.connect((self.ip, self.port))
         self.connected=True
         return self.connected
+    
+    def recovery(self):
+        tryCounts = 5
+        interval = 1
+        for i in range(tryCounts):
+            try:
+                self.close()
+            except:
+                pass
+            try:
+                connected = self.connect()
+                if connected:
+                    return True
+                else:
+                    time.sleep(interval)
+            except:
+                time.sleep(interval)
+        return False
 
     def create_cmd(self, cmdID, arglist):
         global CR, DELIM
@@ -365,6 +383,11 @@ class DigiChamber(object):
         self.connected=False
         self.s.close()
         
+'''
+#################################################################
+### Dummy Class
+#################################################################
+'''
 
 
 class DummyChamber(DigiChamber):
@@ -383,6 +406,9 @@ class DummyChamber(DigiChamber):
         self.connected=True
         self.status = 1
         return self.connected
+    
+    def recovery(self):
+        return True
 
     def create_cmd(self, cmdID, arglist):
         global CR, DELIM

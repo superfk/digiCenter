@@ -297,7 +297,7 @@ class DummyDigitest(BaInstr):
         self.dummyWaitTime = 0
         self.dummyStartTime = time.time()
         self.dummyType = '"ROTATION DC"'
-        self.sampleCounts = 25
+        self.sampleCounts = 24
         self.mearCounts = 3
         self.rotStatus = RotationState()
     

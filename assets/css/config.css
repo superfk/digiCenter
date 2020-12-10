@@ -33,4 +33,13 @@
   #systemlog_link:hover {
     color: rgb(0, 68, 255);
   }
+
+  .db_action_disabled {
+    pointer-events: none !important;
+    /* display: block; */
+    opacity:0.60 !important;
+  }
   
+  .db_action_enabled {
+    pointer-events: auto;
+  }

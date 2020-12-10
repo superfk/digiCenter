@@ -273,5 +273,14 @@
   "run_pause_btn":"Auszeit",
   "run_resume_btn":"Fortsetzen",
   "wait_for_resume_header":"Wating für Lebenslauf",
-  "wait_for_resume_title":"Bitte klicken Sie auf Wiederaufnahme-Taste Test fortzusetzen"
+  "wait_for_resume_title":"Bitte klicken Sie auf Wiederaufnahme-Taste Test fortzusetzen",
+  "server_database_backup_ok":"Datenbank-Backup erfolgreich!",
+  "server_database_backup_NG":"Datenbanksicherung fehlgeschlagen!",
+  "db_backup_restore_title":"Datenbank-Backup und Wiederherstellung",
+  "backup_db_btn":"Sicherungskopie",
+  "restore_db_btn":"Wiederherstellen",
+  "server_database_restore_ok":"Datenbank wiederherstellen erfolgreich!",
+  "server_database_restore_NG":"Datenbank Wiederherstellung fehlgeschlagen!",
+  "side_database":"Sichern und Wiederherstellen",
+  "server_restart_program":"Bitte starten Sie das Programm!"
 }

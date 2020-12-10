@@ -315,6 +315,8 @@ function connect() {
                     break;
                 case 'getRotationTable_N':
                     uutN = parseInt(data);
+                    createInstance();
+                    updateDigiTestModeCallback();
                     break;
                 case 'get_digitest_manual_mode':
                     console.log('mode changed', data)
@@ -515,6 +517,7 @@ function init() {
     ws.send(tools.parseCmd('run_cmd', tools.parseCmd('get_default_seq_path')));
     ws.send(tools.parseCmd('get_digitest_manual_mode'));
     ws.send(tools.parseCmd('get_digitest_is_rotaion_mode'));
+    ws.send(tools.parseCmd('getRotationTable_N'));
     stopBtn_disable();
     pauseBtn_disable();
 }

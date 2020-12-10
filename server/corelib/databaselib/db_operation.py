@@ -1,12 +1,22 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 
-import pyodbc
+import sys, os, traceback
 import time
+
+PACKAGE_PARENT = '..'
+SCRIPT_DIR = os.path.dirname(os.path.realpath(os.path.join(os.getcwd(), os.path.expanduser(__file__))))
+DB_DIR = SCRIPT_DIR
+indentLevel = 2
+for i in range(indentLevel):
+    DB_DIR = os.path.split(DB_DIR)[0]
+sys.path.append(os.path.normpath(os.path.join(PACKAGE_PARENT,SCRIPT_DIR)))
+sys.path.append(os.path.normpath(DB_DIR))
+
+import pyodbc
 import datetime
 import calendar
 import corelib.utility as util
-import json
  
 class DB():
     def __init__(self, server_name, username="",password=""):
@@ -16,19 +26,74 @@ class DB():
         self.coxn = None
         self.connected = False
         self.cursor = None
+        self.db_name = ''
     
-    def connect(self, db_name):
+    def connect(self, db_name, autoCommitInConnection=False):
         """ Connection String should be: 'DRIVER={ODBC Driver 13 for SQL Server};
         SERVER=SHAWNNB\SQLEXPRESS;DATABASE=HDA150;UID=BareissAdmin;PWD=BaAdmin'  """
         try:
+            self.db_name = db_name
             conn_str = r"DRIVER={ODBC Driver 11 for SQL Server};SERVER="+ self.server_name + ";DATABASE="+db_name+";UID="+ self.username+";PWD="+self.password+""
-            self.coxn = pyodbc.connect(conn_str)
+            self.coxn = pyodbc.connect(conn_str, autocommit = autoCommitInConnection)
             self.coxn.autocommit = True
             self.cursor = self.coxn.cursor()
             self.connected = True
         except:
+            err_msg = traceback.format_exc()
+            print(err_msg)
             self.connected = False
+            time.sleep(1)
         return self.connected
+    
+    def backup(self, destFolder):
+        conn_str = r"DRIVER={ODBC Driver 11 for SQL Server};SERVER="+ self.server_name + ";DATABASE=master"+";UID="+ self.username+";PWD="+self.password+""
+        coxn = pyodbc.connect(conn_str, autocommit = True)
+        cursor = coxn.cursor()
+        destPath = os.path.join(destFolder, f'{self.db_name}.bak')
+        exe_str = f'''
+        BACKUP DATABASE [{self.db_name}] TO DISK = N'{destPath}'
+        WITH NOFORMAT, INIT,  NAME = N'{self.db_name}-Full Database Backup', SKIP, NOREWIND, NOUNLOAD,  STATS = 10
+        '''
+        cursor.execute(exe_str)
+        while cursor.nextset():
+            pass
+        cursor.close()
+        coxn.close()
+        return True
+
+    def restore(self, destFolder):
+        try:
+            self.close()
+        except:
+            pass
+        finally:
+            conn_str = r"DRIVER={ODBC Driver 11 for SQL Server};SERVER="+ self.server_name + ";DATABASE=master"+";UID="+ self.username+";PWD="+self.password+""
+            coxn = pyodbc.connect(conn_str, autocommit = True)
+            cursor = coxn.cursor()
+            destPath = os.path.join(destFolder, f'{self.db_name}.bak')
+            exe_str = f'''
+            ALTER DATABASE [{self.db_name}]
+            SET SINGLE_USER
+            WITH ROLLBACK IMMEDIATE
+
+            RESTORE DATABASE [{self.db_name}] FROM DISK = N'{destPath}' WITH REPLACE, RECOVERY 
+
+            ALTER DATABASE [{self.db_name}] SET MULTI_USER
+            '''
+            cursor.execute(exe_str)
+            while cursor.nextset():
+                pass
+            cursor.close()
+            coxn.close()
+        try:
+            for i in range(5):
+                success = self.connect(self.db_name, True)
+                if success:
+                    return success
+                else:
+                    time.sleep(1)
+        except:
+            return False
     
     def create_table(self, table, fields, types, primary_field=""):
         '''CREATE TABLE TestTable(symbol varchar(15), leverage double, shares integer, price double)'''
@@ -329,44 +394,13 @@ def add_months(sourcedate, months):
     seconds = sourcedate.second
     return datetime.datetime(year, month, day, hour,minutes, seconds)
 
-if __name__=="__main__":
-    # db = DB(r"SHAWNNB\SQLEXPRESS", r"BareissAdmin", r"BaAdmin")
+def test_restore():
     db = DB(r"(localDB)\BareissLocalDB", r"BareissAdmin", r"BaAdmin")
     db.connect("DigiChamber")
-    # db.drop_table("UserPermission")
-    # db.close()
+    db.backup(r"C:\data_exports\backup")
+    success = db.restore(r"C:\data_exports\backup")
+    print(f"database backup and recovery test: {success}")
+    db.close()
 
-    # #unit_test()
-    # create_data_table()
-    # #create_syslog_table()
-
-    # create_userlist_table()
-    # create_user_role_list_table()
-    # create_permission_table()
-    # create_funclist_table()
-
-    # Add new function automatically
-    # fn = [Functions, Tree, DispOrder, DisplayFnName]
-    # fn = ['export-start', 1, 62, 'Export data to File Button']
-    # add_new_function_to_all_user(fn)
-    
-
-    # fields = ["Functions", "Enabled", "Visibled"]
-    # condition = r"WHERE User_Role='{}'".format('System_Admin')
-    # ret = db.select("UserPermission", fields, condition=condition)
-    # for d in ret:
-    #     fields = ["User_Role","Functions", "Enabled", "Visibled"]
-    #     fn = d['Functions']
-    #     enb = d['Enabled']
-    #     visb = d['Visibled']
-    #     db.insert("UserPermission",fields=fields,data=["Guest",fn,enb,visb])
-    data = [{'User_Role': 'System_Admin', 'Functions': 'button-dataEx-upload', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'button-dataEx-download', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'button-report', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'download-data-from-plc', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'download-data-from-file', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'save-test-data-to-db', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'upload-data-new', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'upload-data-import', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'send-batch-to-machine', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'export-test-data-to-file', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'button-config', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'apply_change_general', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'add_new_role_btn', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'delete_new_role_btn', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'apply_change_user_fnc', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'new_pw_btn', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'activate_user_btn', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'deactivate_user_btn', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'add_new_user_btn', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'delete_user_btn', 'Enabled': True, 'Visibled': True}, {'User_Role': 'System_Admin', 'Functions': 'export-start', 'Enabled': True, 'Visibled': True}]
-    fields = ["User_Role","Functions", "Enabled", "Visibled"]
-    for d in data:
-        ro = d['User_Role']
-        fn = d['Functions']
-        enb = d['Enabled']
-        visb = d['Visibled']
-        db.insert("UserPermission",fields=fields,data=[ro,fn,enb,visb])
-
-    pass
+if __name__=="__main__":
+    test_restore()
