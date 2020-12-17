@@ -257,6 +257,26 @@ class TeardownStep(DigiCenterStep):
         self.waitMinute = float(list(filter(lambda name: name['name'] == 'waiting time', self.paras))[0]['value'])
         if self.waitMinute == 0:
             self.waitMinute = 0.001 * 60
+        
+    def set_target_temperature(self, targetT):
+        absMaxT = 100
+        absMinT = 10
+        maxT = 50
+        minT = 10
+        try:
+            maxT = self.sysConfig['system']['maxTInTearDown']
+            minT = self.sysConfig['system']['minTInTearDown']
+            if maxT > absMaxT:
+                maxT = absMaxT
+            if minT < absMinT:
+                minT = absMinT
+        except:
+            pass
+        if targetT < minT:
+            targetT = minT
+        elif targetT > maxT:
+            targetT = maxT
+        self.hwDigichamber.set_setPoint(targetT)
 
     @DigiCenterStep.deco
     def do(self):
@@ -275,7 +295,7 @@ class TeardownStep(DigiCenterStep):
                 tol = 5 # degree
                 UL = target + tol
                 LL = target - tol
-                self.hwDigichamber.set_setPoint(target)
+                self.set_target_temperature(target)
                 self.commCallback('update_gauge_ref',target)
                 self.hwDigichamber.set_manual_mode(True)
                 curT = self.hwDigichamber.get_real_temperature()
@@ -355,14 +375,36 @@ class TemperatureStep(DigiCenterStep):
             self.settlingTime=0.001
         self.actTarget = self.targetTemp
     
+    def set_target_temperature(self, targetT):
+        absMaxT = 190
+        absMinT = -40
+        maxT = 110
+        minT = -40
+        try:
+            maxT = self.sysConfig['system']['maxT']
+            minT = self.sysConfig['system']['minT']
+            if maxT > absMaxT:
+                maxT = absMaxT
+            if minT < absMinT:
+                minT = absMinT
+        except:
+            pass
+        if targetT < minT:
+            targetT = minT
+        elif targetT > maxT:
+            targetT = maxT
+        self.hwDigichamber.set_setPoint(targetT)
+
     def set_gradient_process(self, target, slope):
         curT = self.hwDigichamber.get_real_temperature()
-        self.hwDigichamber.set_setPoint(curT)
+        self.set_target_temperature(curT)
+        # self.hwDigichamber.set_setPoint(curT)
         if curT >= target:
             self.hwDigichamber.set_gradient_down(slope)
         else:
             self.hwDigichamber.set_gradient_up(slope)
-        self.hwDigichamber.set_setPoint(target)
+        self.set_target_temperature(target)
+        # self.hwDigichamber.set_setPoint(target)
     
     def set_temperature_imporve_options(self):
         try:
@@ -438,14 +480,21 @@ class TemperatureStep(DigiCenterStep):
                     curT = self.hwDigichamber.get_real_temperature()
                 except:
                     self.lg.debug("[Chamber disconnet suddenly, executing recovery process...]")
-                    recoveryOK = self.hwDigichamber.recovery()
-                    if recoveryOK:
-                        self.lg.debug("[Chamber recover OK]")
-                        curT = self.hwDigichamber.get_real_temperature()
-                        self.lg.debug(f"[Chamber get temperature value after recovery: {curT}]")
-                    else:
-                        self.lg.debug(f"[Chamber recover Failed]")
-                        raise ConnectionError
+                    tryTimes = 10
+                    for i in range(tryTimes):
+                        recoveryOK = self.hwDigichamber.recovery()
+                        self.lg.debug(f"[Attempt {i} time to reconnect to Chamber]")
+                        if recoveryOK:
+                            self.lg.debug(f"[Reconnect to Chamber recover OK]")
+                            curT = self.hwDigichamber.get_real_temperature()
+                            self.lg.debug(f"[Chamber get temperature value after recovery: {curT}]")
+                            break
+                        else:
+                            self.lg.debug(f"[Chamber recover Failed]")
+                            if i < tryTimes:
+                                pass
+                            else:
+                                raise ConnectionError
                 
                 if curT<=UL and curT>=LL:
                     if not startCountSettlingTime:

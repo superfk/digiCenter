@@ -42,7 +42,6 @@ class DB():
             err_msg = traceback.format_exc()
             print(err_msg)
             self.connected = False
-            time.sleep(1)
         return self.connected
     
     def backup(self, destFolder):
@@ -87,6 +86,7 @@ class DB():
             coxn.close()
         try:
             for i in range(5):
+                print(f'retry to connect to db after restore database: retry {i+1}')
                 success = self.connect(self.db_name, True)
                 if success:
                     return success
@@ -396,10 +396,15 @@ def add_months(sourcedate, months):
 
 def test_restore():
     db = DB(r"(localDB)\BareissLocalDB", r"BareissAdmin", r"BaAdmin")
+    print(id(db))
     db.connect("DigiChamber")
     db.backup(r"C:\data_exports\backup")
     success = db.restore(r"C:\data_exports\backup")
     print(f"database backup and recovery test: {success}")
+    
+    # db = DB(r"(localDB)\BareissLocalDB", r"BareissAdmin", r"BaAdmin")
+    # ret = db.connect("DigiChamber", True)
+    print(f"database connected?: {db.connected}")
     db.close()
 
 if __name__=="__main__":

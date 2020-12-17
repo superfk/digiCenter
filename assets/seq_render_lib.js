@@ -17,7 +17,7 @@ module.exports = {
         this.langFlag = langFlag;
     },
 
-    NumberPara: function (name, value, unit = '', max = null, min = null, readOnly = false, langName = null, langFlag = null) {
+    NumberPara: function (name, value, unit = '', max = null, min = null, step=1, readOnly = false, langName = null, langFlag = null) {
         this.name = name;
         this.value = value;
         this.unit = unit;
@@ -27,6 +27,7 @@ module.exports = {
         this.readOnly = readOnly;
         this.nameByLang = langName === null ? name : langName;
         this.langFlag = langFlag;
+        this.step = step;
     },
 
     TextPara: function (name, value, unit = '', readOnly = false, langName = null, langFlag = null) {
@@ -56,11 +57,11 @@ module.exports = {
 
     genTempPara: function () {
         let paras = [
-            new module.exports.NumberPara('target temperature', 20, unit = '&#8451', max = 190, min = -40, readOnly = false, window.lang_data.target_temperature, 'target_temperature'),
-            new module.exports.NumberPara('tolerance', 1, unit = '&#8451', max = 10, min = 0.5, readOnly = false, window.lang_data.tolerance, 'tolerance'),
-            new module.exports.NumberPara('slope', 2, 'K/min', max = 4, min = 0, readOnly = false, window.lang_data.slope, 'slope'),
-            new module.exports.NumberPara('increment', 0, '&#8451', max = 100, min = -100, readOnly = false, window.lang_data.increment, 'increment'),
-            new module.exports.NumberPara('settling time', 5, 'min', max = 30, min = 0, readOnly = false, window.lang_data.settling_time, 'settling_time')
+            new module.exports.NumberPara('target temperature', 20, unit = '&#8451', max = 110, min = -40, step=1, readOnly = false, window.lang_data.target_temperature, 'target_temperature'),
+            new module.exports.NumberPara('tolerance', 1, unit = '&#8451', max = 10, min = 0.1, step=0.1, readOnly = false, window.lang_data.tolerance, 'tolerance'),
+            new module.exports.NumberPara('slope', 2, 'K/min', max = 4, min = 1, step=1, readOnly = false, window.lang_data.slope, 'slope'),
+            new module.exports.NumberPara('increment', 0, '&#8451', max = 100, min = -100, step=1, readOnly = false, window.lang_data.increment, 'increment'),
+            new module.exports.NumberPara('settling time', 5, 'min', max = 30, min = 0, step=1, readOnly = false, window.lang_data.settling_time, 'settling_time')
         ]
 
         // UIkit.modal('#parasModal').show();
@@ -71,15 +72,15 @@ module.exports = {
             // new TextPara('port','COM3',unit='',readOnly=false),
             // new module.exports.OptionPara('mode','STANDARD_M','STANDARD_M',unit='',readOnly=false),
             // new module.exports.OptionPara('method','shoreA','shoreA,shore0',unit='',readOnly=false),
-            new module.exports.NumberPara('measuring time', 3, unit = 'sec', max = 99, min = 0.1, readOnly = false, window.lang_data.measuring_time, 'measuring_time'),
-            new module.exports.NumberPara('number of measurement', 3, unit = '', max = 10, min = 1, readOnly = false, window.lang_data.number_of_measurement, 'number_of_measurement'),
+            new module.exports.NumberPara('measuring time', 3, unit = 'sec', max = 99, min = 1, step=1, readOnly = false, window.lang_data.measuring_time, 'measuring_time'),
+            new module.exports.NumberPara('number of measurement', 3, unit = '', max = 10, min = 1, step=1, readOnly = false, window.lang_data.number_of_measurement, 'number_of_measurement'),
             new module.exports.OptionPara('numerical method', 'mean', 'mean,median', unit = '', readOnly = false, window.lang_data.numerical_method, 'numerical_method')
         ]
         return module.exports.makeSingleStep('hardness', 'measure', paras);
     },
     genWaitPara: function () {
         let paras = [
-            new module.exports.NumberPara('conditioning time', 1, unit = 'minute', max = 480, min = 0, readOnly = false, window.lang_data.conditioning_time, 'conditioning_time')
+            new module.exports.NumberPara('conditioning time', 1, unit = 'minute', max = 480, min = 0, step=1, readOnly = false, window.lang_data.conditioning_time, 'conditioning_time')
         ]
         return module.exports.makeSingleStep('waiting', 'time', paras);
     },
@@ -102,15 +103,15 @@ module.exports = {
         }
         let loop_counts = 1;
         let paras = [
-            new module.exports.NumberPara('loop id', loopID, unit = '', max = null, min = 0, readOnly = true, window.lang_data.loopid, 'loopid'),
-            new module.exports.NumberPara('loop counts', loop_counts, unit = '', max = 100, min = 0, readOnly = false, window.lang_data.loop_counts, 'loop_counts'),
+            new module.exports.NumberPara('loop id', loopID, unit = '', max = null, min = 0, step=1, readOnly = true, window.lang_data.loopid, 'loopid'),
+            new module.exports.NumberPara('loop counts', loop_counts, unit = '', max = 100, min = 0, step=1, readOnly = false, window.lang_data.loop_counts, 'loop_counts'),
             new module.exports.TextPara('loop color', loopColor, unit = '', readOnly = true, window.lang_data.loop_color, 'loop_color')
         ]
         let lpStartStep = module.exports.makeSingleStep('loop', 'loop start', paras);
 
         paras = [
-            new module.exports.NumberPara('stop on', loop_counts, unit = '', max = null, min = 0, readOnly = true, window.lang_data.loop_counts, 'loop_counts'),
-            new module.exports.NumberPara('loop id', loopID, unit = '', max = null, min = 0, readOnly = true, window.lang_data.loopid, 'loopid'),
+            new module.exports.NumberPara('stop on', loop_counts, unit = '', max = null, min = 0, step=1, readOnly = true, window.lang_data.loop_counts, 'loop_counts'),
+            new module.exports.NumberPara('loop id', loopID, unit = '', max = null, min = 0, step=1, readOnly = true, window.lang_data.loopid, 'loopid'),
             new module.exports.TextPara('loop color', loopColor, unit = '', readOnly = true, window.lang_data.loop_color, 'loop_color')
         ];
 
@@ -244,8 +245,8 @@ module.exports = {
     genTeardownTest: function (paras = null) {
         if (paras == null) {
             paras = [
-                new module.exports.NumberPara('safe temperature', 30, unit = '&#8451', max = 50, min = 0, readOnly = false, window.lang_data.safe_temperature, 'safe_temperature'),
-                new module.exports.NumberPara('waiting time', 10, unit = 'minute', max = 60, min = 0, readOnly = false, window.lang_data.waiting_time, 'waiting_time')
+                new module.exports.NumberPara('safe temperature', 30, unit = '&#8451', max = 50, min = 10, step=1, readOnly = false, window.lang_data.safe_temperature, 'safe_temperature'),
+                new module.exports.NumberPara('waiting time', 10, unit = 'minute', max = 60, min = 0, step=1, readOnly = false, window.lang_data.waiting_time, 'waiting_time')
             ]
         }
         teardown_seq = module.exports.makeSingleStep('teardown', 'teardown', paras, true, 9999);
@@ -342,12 +343,13 @@ module.exports = {
                 } else if (t === 'number') {
                     let maxValue = item['max'] === null ? '' : `max='${item['max']}'`;
                     let minValue = item['min'] === null ? '' : `min='${item['min']}'`;
+                    let stepValue = item['step'] === null ? '' : `step='${item['step']}'`;
                     let plhValue = item['min'] === null ? 'no limit' : `${item['min']}`
                     plhValue += "~"
                     plhValue += item['max'] === null ? 'no limit' : `${item['max']}`
                     plhValue = "placeholder='" + plhValue + "'"
                     c += `<li><label><span ${module.exports.genParaLangIdentifierText(item)}>${tools.capitalize(module.exports.findLangs(item.langFlag))}</span> ${module.exports.genUnit(item['unit'])}</label>
-                    <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='number' ${maxValue} ${minValue} ${plhValue} ${ronly}></li>`;
+                    <input class='w3-input w3-border-bottom w3-cell' value='${item['value']}' type='number' ${maxValue} ${minValue} ${stepValue} ${plhValue} ${ronly}></li>`;
 
                 } else if (t === 'bool') {
                     c += `<li><input class='w3-check w3-border-bottom w3-cell' checked=${item['value']} type='checkbox' ${ronly}><label><span ${module.exports.genParaLangIdentifierText(item)}> ${tools.capitalize(module.exports.findlangs(item.langflag))}</span> ${module.exports.genUnit(item['unit'])}

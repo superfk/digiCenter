@@ -51,6 +51,13 @@ const confirmlogoutBtn = document.getElementById('confirm-logout');
 const current_login_user = document.getElementById('login_username');
 const current_login_role = document.getElementById('login_userrole');
 
+// for first login
+const current_pw = document.getElementById('confirm_current_pw')
+const new_pw = document.getElementById('confirm_new_pw')
+const new_pw_again = document.getElementById('confirm_new_pw_again')
+const new_pw_confirm_btn = document.getElementById('confirm_new_pw_btn')
+const back_to_normal_login = document.getElementById('back_to_normal_login')
+
 
 // **************************************
 // websocket functions
@@ -114,6 +121,9 @@ function connect() {
             if (first) {
               ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, reason);
               $('#first_login_panel').show();
+              current_pw.value = ''
+              new_pw.value = ''
+              new_pw_again.value = ''
               $('#normal_login_panel').hide();
               window.removeEventListener('keypress', checkkeypressLogin);
               window.removeEventListener('keypress', checkkeypressFirstLogin);
@@ -151,6 +161,8 @@ function connect() {
             ipcRenderer.send('show-info-alert', window.lang_data.modal_info_title, data[1]);
             $('#first_login_panel').hide();
             $('#normal_login_panel').show();
+            useridInput.value = "";
+            pwInput.value = "";
           } else {
             ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, data[1]);
           }
@@ -222,19 +234,19 @@ function updatefoot(msg, color = 'w3-red') {
 }
 
 // show modal event
-ipcRenderer.on('show-info-alert', (event, title, msg, position='100px') => {
+ipcRenderer.on('show-info-alert', (event, title, msg, position = '100px') => {
   document.getElementById("modal_info_message_title").innerHTML = title;
   document.getElementById("modal_info_message_text").innerHTML = msg;
   document.getElementById("modal_warning_message").style.paddingTop = position;
   document.getElementById("modal_info_message").style.display = "block";
 })
-ipcRenderer.on('show-warning-alert', (event, title, msg, position='100px') => {
+ipcRenderer.on('show-warning-alert', (event, title, msg, position = '100px') => {
   document.getElementById("modal_warning_message_title").innerHTML = title;
   document.getElementById("modal_warning_message_text").innerHTML = msg;
   document.getElementById("modal_warning_message").style.paddingTop = position;
   document.getElementById("modal_warning_message").style.display = "block";
 })
-ipcRenderer.on('show-alert-alert', (event, title, msg, position='100px') => {
+ipcRenderer.on('show-alert-alert', (event, title, msg, position = '100px') => {
   document.getElementById("modal_alert_message_title").innerHTML = title;
   document.getElementById("modal_alert_message_text").innerHTML = msg;
   document.getElementById("modal_warning_message").style.paddingTop = position;
@@ -254,18 +266,18 @@ list = document.getElementsByClassName("nav-button");
 for (var i = 0; i < list.length; i++) {
   list[i].addEventListener("click", function (e) {
     let btstr = e.target.textContent.trim()
-    ipcRenderer.send('save_log', `Click ${btstr} nav button`, 'info', 0);
+    // ipcRenderer.send('save_log', `Click ${btstr} nav button`, 'info', 0);
     e.preventDefault();
     ipcRenderer.send('updateFootStatus', "");
   });
 }
 loginBtn.addEventListener('click', (event) => {
   ipcRenderer.send('save_log', 'Click login button', 'info', 1);
-  useridInput.value = "";
-  pwInput.value = "";
   ipcRenderer.send('show-login');
   $('#first_login_panel').hide();
   $('#normal_login_panel').show();
+  useridInput.value = "";
+  pwInput.value = "";
   window.removeEventListener('keypress', checkkeypressLogin);
   window.removeEventListener('keypress', checkkeypressFirstLogin);
   window.addEventListener('keypress', checkkeypressLogin);
@@ -332,16 +344,12 @@ function confirm_login() {
 }
 
 
-// for first login
-var current_pw = document.getElementById('confirm_current_pw')
-var new_pw = document.getElementById('confirm_new_pw')
-var new_pw_again = document.getElementById('confirm_new_pw_again')
-var new_pw_confirm_btn = document.getElementById('confirm_new_pw_btn')
-var back_to_normal_login = document.getElementById('back_to_normal_login')
 
 back_to_normal_login.addEventListener('click', function () {
   $('#first_login_panel').hide();
   $('#normal_login_panel').show();
+  useridInput.value = "";
+  pwInput.value = "";
   window.removeEventListener('keypress', checkkeypressLogin);
   window.removeEventListener('keypress', checkkeypressFirstLogin);
   window.addEventListener('keypress', checkkeypressLogin);
@@ -426,7 +434,7 @@ function init_hw() {
 function monitorFunction() {
   try {
     ws.send(tools.parseCmd('run_cmd', tools.parseCmd('get_cur_temp_and_humi')));
-  } catch{
+  } catch {
     console.log('websocket disconnected')
   }
 

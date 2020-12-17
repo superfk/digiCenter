@@ -282,5 +282,5 @@
   "server_database_restore_ok":"資料庫還原成功",
   "server_database_restore_NG":"資料庫還原失敗",
   "side_database":"備份與還原",
-  "server_restart_program":"請重新開啟程式"
+  "server_restart_program":"請按下OK重新開啟程式"
 }

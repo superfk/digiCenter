@@ -10,7 +10,6 @@ sys.path.append('server/corelib/hardwarelib/instrClass')
 sys.path.append('server/productlib')
 from corelib.hardwarelib.digiChamber import DigiChamber, DummyChamber
 from corelib.hardwarelib.instrClass.digitest import Digitest, DummyDigitest
-# from corelib.logging_module.baLogger import TimeRotateLogger
 from corelib.usermanagelib.user_login import UserManag
 from corelib.lang.lang_tool import load_json_lang_from_json
 from productlib.digiCenter.pd_digichamber import DigiChamberProduct
@@ -23,7 +22,7 @@ import threading
 import random
 import asyncio
 import websockets
-import traceback
+import traceback, time
 from loguru import logger
 
 
@@ -44,11 +43,11 @@ class PyServerAPI(object):
         self.digiChamber = None # DigiChamber()
         # self.lg = TimeRotateLogger('syslog', 'M', 5)
         logger.add(sys.stdout, format="{time} - {level} - {message}")
-        logger.add(r"systemlog/{time:YYYY-MM-DD}/file_{time:YYYY-MM-DD}.log", rotation="5 MB")
+        logger.add(r"systemlog/{time:YYYY-MM-DD}/file_{time:YYYY-MM-DD}.log", rotation="2 MB")
         self.lg = logger
         # self.db = DB(r"SHAWNNB\SQLEXPRESS", 'BareissAdmin', 'BaAdmin')       
         self.db = DB(r'(localDB)\BareissLocalDB', 'BareissAdmin', 'BaAdmin')  
-        self.db.connect('DigiChamger', False)
+        self.db.connect('DigiChamber', False)
         self.userMang = UserManag(self.db,"Guest", "Guest", 0, True)
         self.config = None
         self.productProcess = DigiChamberProduct('digiCenter',r"C:\\data_exports",self.sendMsg,self.saveTestData)
@@ -62,6 +61,7 @@ class PyServerAPI(object):
         self.lang_data = None
         self.create_test_process()
         self.server = None
+        self.lastServerErr = Exception
 
     def set_sokectServer(self, server):
         self.server = server
@@ -254,8 +254,12 @@ class PyServerAPI(object):
         except Exception as e:
             try:
                 err_msg = traceback.format_exc()
-                self.lg.debug(err_msg)
-                await self.sendMsg(websocket,'reply_server_error',{'error':err_msg})
+                if type(e) is type(self.lastServerErr) and e.args == self.lastServerErr.args:
+                    pass
+                else:
+                    self.lastServerErr = e
+                    self.lg.debug(err_msg)
+                    await self.sendMsg(websocket,'reply_server_error',{'error':err_msg})
             except:
                 self.lg.debug('error during excetipn handling')
                 self.lg.debug(e)
@@ -296,43 +300,41 @@ class PyServerAPI(object):
                 success = self.db.backup(destFolder)
                 if success:
                     self.local_log_to_db(f'Backup database OK','info', True)
-                    await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':1, 'res':self.lang_data['server_database_backup_ok']})
+                    await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':1, 'res':self.lang_data['server_database_backup_ok'], 'type':'backup'})
                 else:
                     self.local_log_to_db(f'Backup database error','error', True)
-                    await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':0, 'res':self.lang_data['server_database_backup_NG']})
+                    await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':0, 'res':self.lang_data['server_database_backup_NG'], 'type':'backup'})
             except:
                 error_msg = traceback.format_exc()
-                self.lg.debug(error_msg)
                 self.local_log_to_db(f'Backup database error: {error_msg}','error', True)
-                await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':0, 'res':self.lang_data['server_database_backup_NG']})
+                await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':0, 'res':self.lang_data['server_database_backup_NG'], 'type':'backup'})
         else:
             self.local_log_to_db(f'Starting Restore database process','info', True)
             try:
                 success = self.db.restore(destFolder)
                 if success:
                     try:
+                        await self.backend_init(websocket)
                         self.local_log_to_db(f'Restore database OK','info', True)
-                        await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':1, 'res':self.lang_data['server_database_restore_ok']})
+                        await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':1, 'res':self.lang_data['server_database_restore_ok'], 'type':'restore'})
                     except:
                         error_msg = traceback.format_exc()
-                        self.local_log_to_db(f'Backup database init error: {error_msg}','error', True)
-                        await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':0, 'res':self.lang_data['server_database_restore_NG']})
+                        # self.local_log_to_db(f'Backup database init error: {error_msg}','error', True)
+                        await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':0, 'res':self.lang_data['server_database_restore_NG'], 'type':'restore'})
                 else:
-                    self.local_log_to_db(f'Backup database error','error', True)
-                    await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':0, 'res':self.lang_data['server_database_restore_NG']})
+                    self.lg.debug(f'Restore database error','error', True)
+                    await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':0, 'res':self.lang_data['server_database_restore_NG'], 'type':'restore'})
             except:
                 error_msg = traceback.format_exc()
-                self.lg.debug(error_msg)
-                self.local_log_to_db(f'Restore database error: {error_msg}','error', True)
-                await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':0, 'res':self.lang_data['server_database_restore_NG']})
-
+                self.lg.debug(f'Restore database error: {error_msg}','error', True)
+                await self.sendMsg(websocket,'reply_database_backup_restore',{'resp_code':0, 'res':self.lang_data['server_database_restore_NG'], 'type':'restore'})
 
     async def load_sys_config(self, websocket, path):
         self.config = util.read_system_config(path)
         self.config_path = path
         self.productProcess.setDefaultSeqFolder(self.config['system']['default_seq_folder'])
         self.productProcess.set_force_manual_mode(self.config['system']['digitest_manual_mode'])
-        self.productProcess.sysConfig = self.config
+        self.productProcess.set_sysConfig(self.config)
         self.lg.debug('log system config: {}'.format(self.config))
 
     async def load_default_lang(self, websocket, appRoot):
@@ -418,7 +420,7 @@ class PyServerAPI(object):
             pass
         self.db = DB(r'(localDB)\BareissLocalDB', 'BareissAdmin', 'BaAdmin')
         res = {}
-        if not self.db.connect('DigiChamber'):
+        if not self.db.connect('DigiChamber', True):
             res['result']=0
             res['resp']='database connection error'
             self.lg(res['resp'])
@@ -760,7 +762,6 @@ class PyServerAPI(object):
             self.lg.debug(e)
         finally:
             await self.sendMsg(websocket,'reply_close_all')
-        
 
 def main():
     loop = asyncio.get_event_loop()

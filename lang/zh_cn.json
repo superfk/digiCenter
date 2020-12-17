@@ -282,5 +282,5 @@
   "server_database_restore_ok":"资料库还原成功",
   "server_database_restore_NG":"资料库还原失败",
   "side_database":"备份与还原",
-  "server_restart_program":"请重新开启程式"
+  "server_restart_program":"请按下OK重新开启程式"
 }

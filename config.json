@@ -16,6 +16,10 @@
         },
         "mode": "",
         "rotationTable_N": 24,
-        "temp_shift_K": 1
+        "temp_shift_K": 1,
+        "maxT": 110,
+        "minT": -40,
+        "maxTInTearDown": 50,
+        "minTInTearDown": 10
     }
 }

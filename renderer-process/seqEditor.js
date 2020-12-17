@@ -368,8 +368,25 @@ function makeSortable() {
 
 makeSortable();
 
+function addEvents(){
+    $('#rightMenu input[type=number]').on('input', function(){ 
+        const maxValue = parseFloat($(this).attr('max'));
+        const minValue = parseFloat($(this).attr('min'));
+        const curValue = parseFloat($(this).val());
+        if(maxValue !== undefined && minValue !== undefined){
+            $(this).val(Math.min(maxValue, Math.max(minValue, curValue)));
+        }
+     })
+}
+
+function removeWindowEvents() {
+    $('#rightMenu input[type=number]').off('input')
+}
+
+
 function openRightMenu() {
     document.getElementById("rightMenu").style.display = "block";
+    addEvents()
 }
 
 function closeRightMenu() {
@@ -378,6 +395,7 @@ function closeRightMenu() {
 
 $('#closeParaPanel').on('click', () => {
     closeRightMenu();
+    removeWindowEvents();
 })
 
 
@@ -467,3 +485,4 @@ ipcRenderer.on('trigger_tanslate_to_edit_page', (event) => {
     reTranslateTempTimeChart();
     console.log('triggerTranslation on edit page')
 })
+

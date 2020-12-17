@@ -53,8 +53,11 @@ function connect() {
         case 'result_of_backendinit':
           if (data.result == 1) {
             console.log(data.resp)
+            if (!PY_INIT_OK) {
+              PY_INIT_OK = true;
+              createWindow();
+            }
             PY_INIT_OK = true;
-            createWindow();
           } else {
             console.log(data.resp)
           }
@@ -64,7 +67,7 @@ function connect() {
           console.log(data.error);
           break;
         case 'reply_close_all':
-          app.quit()
+          app.quit();
           break;
         default:
           console.log('Not found this cmd ' + cmd)
@@ -156,18 +159,28 @@ const exitPyProc = (e) => {
         console.log('api.exe pid:', apiPids);
         try {
           (async () => {
-            await taskkill(apiPids, { force: true, tree: true });
-            await ws.close()
-            ws = null;
-            app.exit(0)
+            try {
+              await taskkill(apiPids, { force: true, tree: true });
+              ws.close();
+              ws = null;
+              app.exit(0);
+            } catch (e) {
+              app.exit(0);
+            }
           })();
 
         } catch (err) {
-
+          app.exit(0)
         }
       });
   } else {
-    app.exit(0)
+    try {
+      ws.close();
+      ws = null;
+      app.exit(0);
+    } catch (e) {
+      app.exit(0);
+    }
   }
 
 }
@@ -215,7 +228,7 @@ const createStartupWindow = () => {
     width: 500,
     height: 300,
     alwaysOnTop: true,
-    backgroundColor : "#80FFFFFF"
+    backgroundColor: "#80FFFFFF"
   })
   startupWindow.loadURL(require('url').format({
     pathname: path.join(__dirname, 'sections/startupScreen.html'),
@@ -338,7 +351,7 @@ const createReportDesignerWindow = (data, langID = 'en') => {
 
   reportDesignerWindow.webContents.once('did-finish-load', () => {
     reportDesignerWindow.webContents.send('set-lang', langID)
-    reportDesignerWindow.webContents.send('import-data-to-designer', data )
+    reportDesignerWindow.webContents.send('import-data-to-designer', data)
 
   });
 
@@ -416,6 +429,7 @@ app.on('window-all-closed', (e) => {
   ws.send(tools.parseCmd('close_all'));
   if (process.platform !== 'darwin') {
     setTimeout(function () {
+      ws.close();
       app.quit();
     }, 10000);
   }
@@ -438,6 +452,19 @@ function showInternalErrorModal(msg) {
   mainWindow.webContents.send('show-server-error', msg);
 }
 
+// force close window
+ipcMain.on('exit-app', (event, title, msg) => {
+  options = {
+    type: "warning",
+    buttons: [],
+    title: title,
+    message : msg
+  }
+  const ret = dialog.showMessageBoxSync(mainWindow, options)
+  app.quit();
+})
+
+
 // save_log
 ipcMain.on('save_log', (event, msg, type = 'info', audit = 0) => {
   try {
@@ -449,17 +476,17 @@ ipcMain.on('save_log', (event, msg, type = 'info', audit = 0) => {
 })
 
 // show info dialog
-ipcMain.on('show-info-alert', (event, title, msg, position='100px') => {
+ipcMain.on('show-info-alert', (event, title, msg, position = '100px') => {
   mainWindow.webContents.send('show-info-alert', title, msg, position);
 })
 
 // show warning dialog
-ipcMain.on('show-warning-alert', (event, title, msg, position='100px') => {
+ipcMain.on('show-warning-alert', (event, title, msg, position = '100px') => {
   mainWindow.webContents.send('show-warning-alert', title, msg, position);
 })
 
 // show alert dialog
-ipcMain.on('show-alert-alert', (event, title, msg, position='100px') => {
+ipcMain.on('show-alert-alert', (event, title, msg, position = '100px') => {
   mainWindow.webContents.send('show-alert-alert', title, msg, position);
 })
 
@@ -548,7 +575,7 @@ ipcMain.on('toggle_monitor', (event, start) => {
 })
 
 ipcMain.on('system-inited', (event) => {
-  if (startupWindow!==null){
+  if (startupWindow !== null) {
     startupWindow.close();
   }
   mainWindow.focus()

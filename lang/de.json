@@ -282,5 +282,5 @@
   "server_database_restore_ok":"Datenbank wiederherstellen erfolgreich!",
   "server_database_restore_NG":"Datenbank Wiederherstellung fehlgeschlagen!",
   "side_database":"Sichern und Wiederherstellen",
-  "server_restart_program":"Bitte starten Sie das Programm!"
+  "server_restart_program":"Klicken Sie auf „OK“, um das Programm neu starten!"
 }

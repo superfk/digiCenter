@@ -375,12 +375,10 @@ class DigiChamberProduct(pd_product.Product):
                     humInfo['value']=None 
             except Exception as e:
                 err_msg = traceback.format_exc()
-                # self.log_to_db_func('digiChamber get temperature error: {}'.format(err_msg), 'info', False)
             finally:
                 try:
                     if self.digiTest.connected:
                         statusCode, dtInfo['value'] =self.digiTest.get_single_value(dummyTemp=self.curT, immediate=True)
-                        # self.lg.debug('digiTest statusCode {}'.format(statusCode))
                         if statusCode == 1:
                             dtInfo['status'] = 1 
                         elif statusCode < 0:
@@ -391,13 +389,9 @@ class DigiChamberProduct(pd_product.Product):
                         dtInfo['value']= None
                 except Exception as e:
                     err_msg = traceback.format_exc()
-                    # self.log_to_db_func('digitest get value error: {}'.format(err_msg), 'info', False)
                 finally:
                     status = {'dt':dtInfo,'temp':tempInfo, 'hum':humInfo}
-                    #self.sendCommunicateCallback('update_cur_status',status)
-                    # asyncio.create_task(self.socketCallback(websocket,'update_cur_status',status))
                     asyncio.run_coroutine_threadsafe(self.socketCallback(websocket,'update_cur_status',status), self.parentLoop)
-                    # self.lg.debug(status)
         else:
             await asyncio.sleep(0.1) 
 

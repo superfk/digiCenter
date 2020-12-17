@@ -533,10 +533,10 @@ class DummyChamber(DigiChamber):
         return self.dummySetPoint + random.random()*0.2
     
     def get_real_temperature(self, roundTo=1):
-        return round(self.dummyT + random.random()*0.002,roundTo)
+        return round(self.dummyT + random.random()*0.005,6)
     
     def get_real_humidity(self,  roundTo=1):
-        return round(self.dummyH + random.random()*0.2,roundTo)
+        return round(self.dummyH + random.random()*0.2,6)
     
     def set_gradient_up(self, value_k_per_min=0):
         cmd = self.create_cmd('11068', ['1', str(value_k_per_min)])

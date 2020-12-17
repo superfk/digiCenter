@@ -282,5 +282,5 @@
   "server_database_restore_ok":"Database restore successfully!",
   "server_database_restore_NG":"Database restore failed!",
   "side_database":"Backup and Restore",
-  "server_restart_program":"Please restart the program!"
+  "server_restart_program":"Click \"OK\" to restart the program!"
 }
