@@ -1,6 +1,10 @@
 const { ipcRenderer } = require("electron");
 let tools = require('../assets/shared_tools');
-let seqRend = require('../assets/seq_render_lib')
+let seqRend = require('../assets/seq_render_lib');
+const path = require('path');
+const appRoot = require('electron-root-path').rootPath;
+const curPath = path.join(appRoot, 'config.json')
+const fs = require('fs');
 let ws;
 
 const seqContainer = document.getElementById('seqContainer');
@@ -248,6 +252,10 @@ function initSeq() {
     alwayIncrLoopColorIdx = 0;
     ws.send(tools.parseCmd('run_cmd', tools.parseCmd('ini_seq')));
     ws.send(tools.parseCmd('run_cmd', tools.parseCmd('get_default_seq_path')));
+    let rawdata = fs.readFileSync(curPath);
+    let configData = JSON.parse(rawdata);
+    console.log(configData)
+    window.configData = configData;
 }
 
 function updateServerSeqFolder(path) {
@@ -268,6 +276,10 @@ ipcRenderer.on('save-seq', (event, path) => {
     ws.send(tools.parseCmd('run_cmd', tools.parseCmd('save_seq', { path: seqPath_under_save, seq: test_flow, force_save: false })));
 })
 
+ipcRenderer.on('update_system_config', (event, configData) => {
+    console.log(configData)
+    window.configData = configData;
+})
 ipcRenderer.on('confirm-save-seq', (event, resp) => {
     console.log(resp)
     if (resp == 0) {
@@ -300,6 +312,7 @@ function updateSequence(res) {
 
 tempBox.addEventListener('click', () => {
     let step = seqRend.genTempPara();
+    console.log(step)
     appendSeq(step);
 })
 
@@ -368,15 +381,15 @@ function makeSortable() {
 
 makeSortable();
 
-function addEvents(){
-    $('#rightMenu input[type=number]').on('input', function(){ 
+function addEvents() {
+    $('#rightMenu input[type=number]').on('input', function () {
         const maxValue = parseFloat($(this).attr('max'));
         const minValue = parseFloat($(this).attr('min'));
         const curValue = parseFloat($(this).val());
-        if(maxValue !== undefined && minValue !== undefined){
+        if (maxValue !== undefined && minValue !== undefined) {
             $(this).val(Math.min(maxValue, Math.max(minValue, curValue)));
         }
-     })
+    })
 }
 
 function removeWindowEvents() {
@@ -463,18 +476,18 @@ $('body').on('click', '.delete_list', function () {
 });
 
 applyParaBtn.addEventListener('click', () => {
-    const tempTestFlow = seqRend.applyChange(paraContainerID = 'paraContainer', test_flow = {...test_flow}, activePara = activePara)
+    const tempTestFlow = seqRend.applyChange(paraContainerID = 'paraContainer', test_flow = { ...test_flow }, activePara = activePara)
     let calObj = seqRend.calcApproxTimeAndTemperature(tempTestFlow, 20, 1);
-    if (calObj.stats.maxTemp>190){
+    if (calObj.stats.maxTemp > 190) {
         ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, window.lang_data.exceed_max_temp);
-    }else if(calObj.stats.mintemp<-40){
-        ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title,  window.lang_data.exceed_min_temp);
-    }else{
+    } else if (calObj.stats.mintemp < -40) {
+        ipcRenderer.send('show-warning-alert', window.lang_data.modal_warning_title, window.lang_data.exceed_min_temp);
+    } else {
         test_flow = seqRend.applyChange(paraContainerID = 'paraContainer', test_flow = test_flow, activePara = activePara)
         seqRend.sortSeq('seqContainer', test_flow.setup, test_flow.main, test_flow.teardown, true);
         makeSortable();
         updateTempTimeChart();
-        ipcRenderer.send('show-info-alert',window.lang_data.modal_info_title, window.lang_data.param_modify_ok);
+        ipcRenderer.send('show-info-alert', window.lang_data.modal_info_title, window.lang_data.param_modify_ok);
     }
 })
 

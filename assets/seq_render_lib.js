@@ -56,8 +56,14 @@ module.exports = {
     // **************************************
 
     genTempPara: function () {
+        let maxT = 150
+        let minT = -40;
+        if (window.configData !== undefined){
+            maxT = window.configData.system.maxT;
+            minT = window.configData.system.minT;
+        }
         let paras = [
-            new module.exports.NumberPara('target temperature', 20, unit = '&#8451', max = 110, min = -40, step=1, readOnly = false, window.lang_data.target_temperature, 'target_temperature'),
+            new module.exports.NumberPara('target temperature', 20, unit = '&#8451', max = maxT, min = minT, step=1, readOnly = false, window.lang_data.target_temperature, 'target_temperature'),
             new module.exports.NumberPara('tolerance', 1, unit = '&#8451', max = 10, min = 0.1, step=0.1, readOnly = false, window.lang_data.tolerance, 'tolerance'),
             new module.exports.NumberPara('slope', 2, 'K/min', max = 4, min = 1, step=1, readOnly = false, window.lang_data.slope, 'slope'),
             new module.exports.NumberPara('increment', 0, '&#8451', max = 100, min = -100, step=1, readOnly = false, window.lang_data.increment, 'increment'),

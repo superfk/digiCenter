@@ -1,9 +1,10 @@
 const electron = require('electron')
 const app = electron.app
 const BrowserWindow = electron.BrowserWindow
-const path = require('path')
 const { ipcMain, dialog, shell } = require('electron')
+const path = require('path')
 const appRoot = require('electron-root-path').rootPath;
+const curPath = path.join(appRoot, 'config.json')
 const ProgressBar = require('electron-progressbar');
 const isDev = require('electron-is-dev');
 const PDFWindow = require('electron-pdf-window')
@@ -11,12 +12,10 @@ let tools = require('./assets/shared_tools');
 let ws;
 const taskkill = require('taskkill');
 const find = require('find-process');
-
 const gotTheLock = app.requestSingleInstanceLock()
 let isSecondIndtance = false;
 
 console.log('appRoot:', appRoot)
-const curPath = path.join(appRoot, 'config.json')
 console.log('config Path:', curPath)
 
 function connect() {

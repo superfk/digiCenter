@@ -261,6 +261,11 @@ ipcRenderer.on('show-server-error', (event, msg) => {
   document.getElementById("modal_server_alert_message").style.display = "block";
 })
 
+ipcRenderer.on('update_system_config', (event, configData) => {
+  console.log(configData)
+  window.configData = configData;
+})
+
 // change section event
 list = document.getElementsByClassName("nav-button");
 for (var i = 0; i < list.length; i++) {

@@ -74,9 +74,15 @@ var groupTable = new Tabulator("#groupTableContainer", {
     { column: "Sample_counter", dir: "asc" },
   ],
   columns: [
-    { title: 'Project', field: "Project_name", sorter: "string", dir: "asc", print: false },
-    { title: 'Batch', field: "Batch_name", sorter: "string", dir: "asc", print: false },
-    { title: 'Sample No.', field: "Sample_counter", sorter: "number", dir: "asc" },
+    { title: 'Project', field: "Project_name", sorter: "string", print: false },
+    { title: 'Batch', field: "Batch_name", sorter: "string", print: false },
+    { title: 'Sample No.', field: "Sample_counter", sorter: "number", formatter:function(cell, formatterParams, onRendered){
+      //cell - the cell component
+      //formatterParams - parameters set for the column
+      //onRendered - function to call when the formatter has been rendered
+      const curValue = parseInt(cell.getValue()) + 1;  
+      return curValue.toFixed(0); //return the contents of the cell;
+  }},
     { title: 'Temperature', field: "Temperature", sorter: "number" },
     { title: 'Hardness', field: "Hardness_result", sorter: "number" },
 
@@ -130,9 +136,16 @@ var groupTable = new Tabulator("#groupTableContainer", {
 });
 
 const translateCol = () => [
-  { title: window.lang_data.run_project_title, field: "Project_name", sorter: "string", dir: "asc", print: false },
-  { title: window.lang_data.run_batch_title, field: "Batch_name", sorter: "string", dir: "asc", print: false },
-  { title: window.lang_data.modal_moving_sample_sampleID, field: "Sample_counter", sorter: "number", dir: "asc" },
+  { title: window.lang_data.run_project_title, field: "Project_name", sorter: "string", print: false },
+  { title: window.lang_data.run_batch_title, field: "Batch_name", sorter: "string", print: false },
+  { title: window.lang_data.modal_moving_sample_sampleID, field: "Sample_counter", sorter: "number" , formatter:function(cell, formatterParams, onRendered){
+    //cell - the cell component
+    //formatterParams - parameters set for the column
+    //onRendered - function to call when the formatter has been rendered
+    const curValue = parseInt(cell.getValue()) + 1;
+
+    return curValue.toFixed(0); //return the contents of the cell;
+}},
   { title: window.lang_data.main_indicator_temperature + '(℃)', field: "Temperature", sorter: "number" },
   { title: window.lang_data.main_indicator_hard, field: "Hardness_result", sorter: "number" },
 ]
@@ -183,7 +196,6 @@ function connect() {
           }
           break;
         case 'get_export_folder':
-          console.log('export_path', data)
           exportFolder = data;
           break;
         case 'reply_server_error':
@@ -250,7 +262,7 @@ var savelog = function (msg, type = 'info', audit = 0) {
 
 function showData(res) {
   // tools.generateHardnessPlot('hardnessVStemp_plot',onlyOccupySamples.length);
-
+  console.log(res)
   if (typeof res !== 'undefined' && res.length > 0) {
     const toFixPrecisionArray = res.map(elm => {
       let currentRow = { ...elm };
@@ -345,9 +357,12 @@ function createTable(tableData) {
   });
 
   t.destroy();
+  const newTableDataSmapleStartAs1 = tableData.map(elm=>{
+    return {...elm, Sample_counter: elm.Sample_counter+1 }
+  })
 
   t = $('#test-data-table-in-report').DataTable({
-    data: tableData,
+    data: newTableDataSmapleStartAs1,
     columns: my_columns,
     deferRender: true,
     scrollX: true,
