@@ -1,4 +1,4 @@
 pyodbc
 pyinstaller
-cryptography==2.8
+cryptography==3.2
 psycopg2==2.8.6
