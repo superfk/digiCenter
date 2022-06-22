@@ -1,6 +1,6 @@
 loguru==0.4.1
 lxml==4.4.1
-numpy==1.16.1
+numpy==1.22.0
 matplotlib==3.2.1
 openpyxl==2.6.3
 pandas==1.0.1
