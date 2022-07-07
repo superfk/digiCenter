@@ -88,7 +88,7 @@
         "highlight.js": "^9.15.9",
         "hydrogen": "^0.2.0",
         "jquery": "^3.4.1",
-        "moment": "^2.24.0",
+        "moment": "^2.29.4",
         "popper": "^1.0.1",
         "popper.js": "^1.15.0",
         "stimulsoft-reports-js": "^2020.4.1",
